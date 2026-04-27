@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "1.4.1";
+def VERSION = "1.5.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -58,6 +58,10 @@ fn cprint(color: str, tag: str, msg: str, nc: bool) void = {
 
 fn is_magnet(url: str) bool = {
 	return strings::hasprefix(url, "magnet:?");
+};
+
+fn is_mega(url: str) bool = {
+	return strings::hasprefix(url, "https://mega.nz/");
 };
 
 fn is_rooster(url: str) bool = {
@@ -137,6 +141,10 @@ fn default_output(url: str) str = {
 		yield s;
 	case void =>
 		yield "/tmp";
+	};
+	if (is_mega(url)) {
+		static let megabuf: [512]u8 = [0...];
+		return fmt::bsprintf(megabuf, "{}/Downloads", home)!;
 	};
 	if (is_magnet(url)) {
 		static let mbuf: [512]u8 = [0...];
@@ -778,6 +786,36 @@ fn do_gdrive(o: *opts) void = {
 	};
 };
 
+fn do_mega(o: *opts) void = {
+	if (!check_tool("megadl")) {
+		cprint(C_RED, "ERR", "megadl not found! Install: sudo apt install megatools", o.nocolor);
+		os::exit(1);
+	};
+	if (!o.quiet) {
+		cprint(C_BLUE, "HPO", "Mega link detected! Using megadl backend...", o.nocolor);
+		fmt::println("")!;
+		cprint(C_GREEN, "HPO", "Skadoosh! Fetching from Mega...", o.nocolor);
+		fmt::println("")!;
+	};
+	let args: []str = alloc([], 8)!;
+	defer free(args);
+	append(args, "megadl")!;
+	append(args, "--path")!;
+	append(args, o.output)!;
+	append(args, o.url)!;
+	if (run_cmd(args, o.nocolor)) {
+		if (!o.quiet) {
+			cprint(C_GREEN, "OK", "Download complete! The Dragon Warrior delivers!", o.nocolor);
+			fmt::printfln("  Saved to: {}", o.output)!;
+		};
+	} else {
+		if (!o.quiet) {
+			cprint(C_RED, "FAIL", "Mega download failed!", o.nocolor);
+		};
+		os::exit(1);
+	};
+};
+
 fn do_download(o: *opts) void = {
 	// Lock mode: encrypt URL into rooster link
 	if (len(o.lock) > 0) {
@@ -833,7 +871,9 @@ fn do_download(o: *opts) void = {
 			o.output = default_output(o.url);
 		};
 
-		if (is_magnet(o.url)) {
+		if (is_mega(o.url)) {
+			do_mega(o);
+		} else if (is_magnet(o.url)) {
 			do_magnet(o);
 		} else if (is_gdrive(o.url)) {
 			do_gdrive(o);
@@ -860,7 +900,9 @@ fn do_download(o: *opts) void = {
 		if (!o.nocolor) fmt::print(C_RESET)!;
 		fmt::printfln("  Version {} | https://harelang.org\n", VERSION)!;
 	};
-	if (is_magnet(o.url)) {
+	if (is_mega(o.url)) {
+		do_mega(o);
+	} else if (is_magnet(o.url)) {
 		do_magnet(o);
 	} else if (is_gdrive(o.url)) {
 		do_gdrive(o);
