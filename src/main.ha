@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "1.5.0";
+def VERSION = "1.6.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -43,6 +43,7 @@ type opts = struct {
 	seed:    str,
 	code:    str,
 	lock:    str,
+        token:   str,
 	verbose: bool,
 	quiet:   bool,
 	nocolor: bool,
@@ -290,8 +291,9 @@ fn format_speed(bps: size) str = {
 	return fmt::bsprintf(spbuf, "{} B/s", bps)!;
 };
 
-fn get_content_length(url: str, ua: str) size = {
-	const cmd = match (exec::cmd("curl", "-g", "-sI", "-L", "--max-time", "5", "-A", ua, url)) {
+fn get_content_length(url: str, ua: str, token: str) size = {
+	const auth_hdr = if (len(token) > 0) fmt::asprintf("Authorization: token {}", token)! else "";
+        const cmd = match (if (len(token) > 0) exec::cmd("curl", "-g", "-sI", "-L", "--max-time", "5", "-A", ua, "-H", auth_hdr, url) else exec::cmd("curl", "-g", "-sI", "-L", "--max-time", "5", "-A", ua, url)) {
 	case let c: exec::command =>
 		yield c;
 	case =>
@@ -589,7 +591,7 @@ fn do_http_custom(o: *opts) void = {
 		cprint(C_CYAN, "HPO", "Checking file size...", o.nocolor);
 	};
 
-	const total = get_content_length(o.url, ua);
+	const total = get_content_length(o.url, ua, o.token);
 	if (!o.quiet && total > 0) {
 		if (!o.nocolor) fmt::print(C_MAGENTA)!;
 		fmt::printfln("  Size:   {}", format_size(total))!;
@@ -602,7 +604,8 @@ fn do_http_custom(o: *opts) void = {
 		fmt::println("")!;
 	};
 
-	const cmd = match (exec::cmd("curl", "-g", "--silent", "-L",
+	const auth = if (len(o.token) > 0) fmt::asprintf("Authorization: token {}", o.token)! else "";
+        const cmd = match (if (len(o.token) > 0) exec::cmd("curl", "-g", "--silent", "-L", "-H", auth, "-A", ua, "-o", o.output, o.url) else exec::cmd("curl", "-g", "--silent", "-L",
 		"-A", ua, "-o", o.output, o.url)) {
 	case let c: exec::command =>
 		yield c;
@@ -912,7 +915,7 @@ fn do_download(o: *opts) void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download Manager v1.4.0\n")!;
+	fmt::println("hpo - The Hare Download Manager v1.6.0\n")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]\n")!;
 	fmt::println("OPTIONS:")!;
@@ -923,7 +926,8 @@ fn print_help() void = {
 	fmt::println("  -u <agent>    Custom User-Agent (HTTP only)")!;
 	fmt::println("  -s <mins>     Seed time after torrent (default: 0)")!;
 	fmt::println("  --lock <url>  Create a Rooster link (encrypted URL)")!;
-	fmt::println("  --code <key>  Secret code for Rooster links")!;
+	fmt::println("  --token <tok>  Bearer token for authenticated downloads
+  --code <key>   Secret code for Rooster links")!;
 	fmt::println("  -v            Verbose output")!;
 	fmt::println("  -q            Quiet mode")!;
 	fmt::println("  --no-color    Disable colors")!;
@@ -957,6 +961,7 @@ export fn main() void = {
 		seed    = "",
 		code    = "",
 		lock    = "",
+                token   = "",
 		verbose = false,
 		quiet   = false,
 		nocolor = false,
@@ -992,6 +997,13 @@ export fn main() void = {
 				os::exit(1);
 			};
 			o.code = args[i];
+                } else if (a == "--token") {
+                        i += 1;
+                        if (i >= len(args)) {
+                                fmt::errorfln("Error: --token requires a value")!;
+                                os::exit(1);
+                        };
+                        o.token = args[i];
 		} else if (a == "-o" || a == "--output") {
 			i += 1;
 			if (i >= len(args)) {
