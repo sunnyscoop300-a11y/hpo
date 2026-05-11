@@ -70,6 +70,70 @@ fn is_rooster(url: str) bool = {
 	return strings::hasprefix(url, "rooster:?xt=AES256:");
 };
 
+fn is_suno(url: str) bool = {
+        return strings::hasprefix(url, "https://suno.com/song/");
+};
+
+fn suno_to_cdn(url: str) str = {
+        const prefix = "https://suno.com/song/";
+        const uuid = strings::sub(url, len(prefix), strings::end);
+        static let buf: [512]u8 = [0...];
+        return fmt::bsprintf(buf, "https://cdn1.suno.ai/{}.m4a", uuid)!;
+};
+
+fn suno_get_title(url: str) str = {
+        const cmd = match (exec::cmd("curl", "-g", "-sL", "--max-time", "5", url)) {
+        case let c: exec::command =>
+                yield c;
+        case =>
+                return "";
+        };
+        const pipe = exec::pipe();
+        exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+        exec::addfile(&cmd, os::stderr_file, exec::nullfd)!;
+        const proc = match (exec::start(&cmd)) {
+        case let p: exec::process =>
+                yield p;
+        case =>
+                io::close(pipe.0)!;
+                io::close(pipe.1)!;
+                return "";
+        };
+        io::close(pipe.1)!;
+        static let sbuf: [65536]u8 = [0...];
+        let total = 0z;
+        for (true) {
+                const n = match (io::read(pipe.0, sbuf[total..])) {
+                case let n: size =>
+                        yield n;
+                case io::EOF =>
+                        break;
+                case =>
+                        break;
+                };
+                total += n;
+                if (total >= len(sbuf) - 1) break;
+        };
+        io::close(pipe.0)!;
+        exec::wait(&proc)!;
+        const html = strings::fromutf8(sbuf[..total])!;
+        const tag = "<title>";
+        const idx = match (strings::index(html, tag)) {
+        case let i: size =>
+                yield i;
+        case void =>
+                return "";
+        };
+        const rest = strings::sub(html, idx + len(tag), strings::end);
+        const end = match (strings::index(rest, "</title>")) {
+        case let i: size =>
+                yield i;
+        case void =>
+                return "";
+        };
+        return strings::sub(rest, 0, end);
+};
+
 fn is_gdrive(url: str) bool = {
 	return strings::hasprefix(url, "https://drive.google.com/");
 };
@@ -903,6 +967,23 @@ fn do_download(o: *opts) void = {
 ")!;
 		if (!o.nocolor) fmt::print(C_RESET)!;
 		fmt::printfln("  Version {} | https://harelang.org\n", VERSION)!;
+	};
+	if (is_suno(o.url)) {
+		const suno_orig = o.url;
+		o.url = suno_to_cdn(o.url);
+		const title = suno_get_title(suno_orig);
+		const home = match (os::getenv("HOME")) {
+		case let s: str =>
+			yield s;
+		case void =>
+			yield "/tmp";
+		};
+		static let tbuf: [512]u8 = [0...];
+		if (len(title) > 0) {
+			o.output = fmt::bsprintf(tbuf, "{}/Downloads/{}.m4a", home, title)!;
+		} else {
+			o.output = default_output(o.url);
+		};
 	};
 	if (is_mega(o.url)) {
 		do_mega(o);
