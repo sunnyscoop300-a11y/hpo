@@ -1006,6 +1006,13 @@ export fn main() void = {
                                 fmt::errorfln("Error: --token requires a value")!;
                                 os::exit(1);
                         };
+                } else if (a == "--cookie") {
+                        i += 1;
+                        if (i >= len(args)) {
+                                fmt::errorfln("Error: --cookie requires a value")!;
+                                os::exit(1);
+                        };
+                        o.cookie = args[i];
                         o.token = args[i];
 		} else if (a == "-o" || a == "--output") {
 			i += 1;
