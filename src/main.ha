@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "1.6.0";
+def VERSION = "1.7.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -44,6 +44,7 @@ type opts = struct {
 	code:    str,
 	lock:    str,
         token:   str,
+        cookie:  str,
 	verbose: bool,
 	quiet:   bool,
 	nocolor: bool,
@@ -291,9 +292,9 @@ fn format_speed(bps: size) str = {
 	return fmt::bsprintf(spbuf, "{} B/s", bps)!;
 };
 
-fn get_content_length(url: str, ua: str, token: str) size = {
+fn get_content_length(url: str, ua: str, token: str, cookie: str) size = {
 	const auth_hdr = if (len(token) > 0) fmt::asprintf("Authorization: token {}", token)! else "";
-        const cmd = match (if (len(token) > 0) exec::cmd("curl", "-g", "-sI", "-L", "--max-time", "5", "-A", ua, "-H", auth_hdr, url) else exec::cmd("curl", "-g", "-sI", "-L", "--max-time", "5", "-A", ua, url)) {
+        const cmd = match (if (len(token) > 0) exec::cmd("curl", "-g", "-sI", "-L", "--max-time", "5", "-A", ua, "-H", auth_hdr, "-b", cookie, url) else if (len(cookie) > 0) exec::cmd("curl", "-g", "-sI", "-L", "--max-time", "5", "-A", ua, "-b", cookie, url) else exec::cmd("curl", "-g", "-sI", "-L", "--max-time", "5", "-A", ua, url)) {
 	case let c: exec::command =>
 		yield c;
 	case =>
@@ -591,7 +592,7 @@ fn do_http_custom(o: *opts) void = {
 		cprint(C_CYAN, "HPO", "Checking file size...", o.nocolor);
 	};
 
-	const total = get_content_length(o.url, ua, o.token);
+	const total = get_content_length(o.url, ua, o.token, o.cookie);
 	if (!o.quiet && total > 0) {
 		if (!o.nocolor) fmt::print(C_MAGENTA)!;
 		fmt::printfln("  Size:   {}", format_size(total))!;
@@ -605,7 +606,7 @@ fn do_http_custom(o: *opts) void = {
 	};
 
 	const auth = if (len(o.token) > 0) fmt::asprintf("Authorization: token {}", o.token)! else "";
-        const cmd = match (if (len(o.token) > 0) exec::cmd("curl", "-g", "--silent", "-L", "-H", auth, "-A", ua, "-o", o.output, o.url) else exec::cmd("curl", "-g", "--silent", "-L",
+        const cmd = match (if (len(o.token) > 0) exec::cmd("curl", "-g", "--silent", "-L", "-H", auth, "-b", o.cookie, "-A", ua, "-o", o.output, o.url) else if (len(o.cookie) > 0) exec::cmd("curl", "-g", "--silent", "-L", "-b", o.cookie, "-A", ua, "-o", o.output, o.url) else exec::cmd("curl", "-g", "--silent", "-L",
 		"-A", ua, "-o", o.output, o.url)) {
 	case let c: exec::command =>
 		yield c;
@@ -915,7 +916,7 @@ fn do_download(o: *opts) void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download Manager v1.6.0\n")!;
+	fmt::println("hpo - The Hare Download Manager v1.7.0\n")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]\n")!;
 	fmt::println("OPTIONS:")!;
@@ -926,7 +927,8 @@ fn print_help() void = {
 	fmt::println("  -u <agent>    Custom User-Agent (HTTP only)")!;
 	fmt::println("  -s <mins>     Seed time after torrent (default: 0)")!;
 	fmt::println("  --lock <url>  Create a Rooster link (encrypted URL)")!;
-	fmt::println("  --token <tok>  Bearer token for authenticated downloads
+	fmt::println("  --token <tok>   Bearer token for authenticated downloads
+  --cookie <str>  Cookie string for session-based downloads
   --code <key>   Secret code for Rooster links")!;
 	fmt::println("  -v            Verbose output")!;
 	fmt::println("  -q            Quiet mode")!;
@@ -962,6 +964,7 @@ export fn main() void = {
 		code    = "",
 		lock    = "",
                 token   = "",
+                cookie  = "",
 		verbose = false,
 		quiet   = false,
 		nocolor = false,
