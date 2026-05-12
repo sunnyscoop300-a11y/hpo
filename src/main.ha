@@ -75,11 +75,29 @@ fn is_suno(url: str) bool = {
         return strings::hasprefix(url, "https://suno.com/song/");
 };
 
+fn is_suno_cdn(url: str) bool = {
+        return strings::hasprefix(url, "https://cdn1.suno.ai/");
+};
+
+fn suno_cdn_to_song(url: str) str = {
+        const prefix = "https://cdn1.suno.ai/";
+        const rest = strings::sub(url, len(prefix), strings::end);
+        const dot = match (strings::index(rest, '.')) {
+        case let i: size =>
+                yield i;
+        case void =>
+                yield len(rest);
+        };
+        const uuid = strings::sub(rest, 0, dot);
+        static let buf: [512]u8 = [0...];
+        return fmt::bsprintf(buf, "https://suno.com/song/{}", uuid)!;
+};
+
 fn suno_to_cdn(url: str) str = {
         const prefix = "https://suno.com/song/";
         const uuid = strings::sub(url, len(prefix), strings::end);
         static let buf: [512]u8 = [0...];
-        return fmt::bsprintf(buf, "https://cdn1.suno.ai/{}.m4a", uuid)!;
+        return fmt::bsprintf(buf, "https://cdn1.suno.ai/{}.mp3", uuid)!;
 };
 
 fn suno_get_title(url: str) str = {
@@ -998,6 +1016,21 @@ fn do_download(o: *opts) void = {
 		if (!o.nocolor) fmt::print(C_RESET)!;
 		fmt::printfln("  Version {} | https://harelang.org\n", VERSION)!;
 	};
+	if (is_suno_cdn(o.url)) {
+		const song_url = suno_cdn_to_song(o.url);
+		const title = suno_get_title(song_url);
+		const home = match (os::getenv("HOME")) {
+		case let s: str =>
+			yield s;
+		case void =>
+			yield "/tmp";
+		};
+		if (len(title) > 0) {
+			const ext = if (strings::hassuffix(o.url, ".mp3")) ".mp3" else ".m4a";
+			static let cbuf: [512]u8 = [0...];
+			o.output = fmt::bsprintf(cbuf, "{}/Downloads/{}{}", home, title, ext)!;
+		};
+	};
 	if (is_suno(o.url)) {
 		const suno_orig = o.url;
 		o.url = suno_to_cdn(o.url);
@@ -1010,11 +1043,11 @@ fn do_download(o: *opts) void = {
 		};
 		static let tbuf: [512]u8 = [0...];
 		if (len(title) > 0) {
-			o.output = fmt::bsprintf(tbuf, "{}/Downloads/{}.m4a", home, title)!;
+			o.output = fmt::bsprintf(tbuf, "{}/Downloads/{}.mp3", home, title)!;
 		} else {
 			o.output = default_output(o.url);
 		};
-		o.suno = true;
+		o.suno = false;
 	};
 	if (is_mega(o.url)) {
 		do_mega(o);
