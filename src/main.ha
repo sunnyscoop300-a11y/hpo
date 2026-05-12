@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "1.7.0";
+def VERSION = "1.8.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -45,6 +45,7 @@ type opts = struct {
 	lock:    str,
         token:   str,
         cookie:  str,
+        suno:    bool,
 	verbose: bool,
 	quiet:   bool,
 	nocolor: bool,
@@ -737,6 +738,25 @@ fn do_http_custom(o: *opts) void = {
 		fmt::printfln("  Saved to: {}", o.output)!;
 		fmt::printfln("  Size:     {}", format_size(get_file_size(o.output)))!;
 	};
+	if (o.suno) {
+		if (!o.quiet) cprint(C_CYAN, "HPO", "Converting to MP3...", o.nocolor);
+		static let mp3buf: [512]u8 = [0...];
+		const mp3out = fmt::bsprintf(mp3buf, "{}", o.output)!;
+		const m4a = o.output;
+		static let mp3path: [512]u8 = [0...];
+		const mp3file = strings::sub(m4a, 0, len(m4a) - 4);
+		const mp3 = strings::replace(m4a, ".m4a", ".mp3")!;
+		const args: []str = ["ffmpeg", "-y", "-i", m4a, "-q:a", "0", mp3];
+		if (run_cmd(args, o.nocolor)) {
+			os::remove(m4a)!;
+			if (!o.quiet) {
+				cprint(C_GREEN, "OK", "Converted to MP3!", o.nocolor);
+				fmt::printfln("  MP3: {}", mp3)!;
+			};
+		} else {
+			cprint(C_YELLOW, "WARN", "ffmpeg conversion failed, keeping .m4a", o.nocolor);
+		};
+	};
 };
 
 fn do_magnet(o: *opts) void = {
@@ -984,6 +1004,7 @@ fn do_download(o: *opts) void = {
 		} else {
 			o.output = default_output(o.url);
 		};
+		o.suno = true;
 	};
 	if (is_mega(o.url)) {
 		do_mega(o);
@@ -997,7 +1018,7 @@ fn do_download(o: *opts) void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download Manager v1.7.0\n")!;
+	fmt::println("hpo - The Hare Download Manager v1.8.0\n")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]\n")!;
 	fmt::println("OPTIONS:")!;
@@ -1046,6 +1067,7 @@ export fn main() void = {
 		lock    = "",
                 token   = "",
                 cookie  = "",
+                suno    = false,
 		verbose = false,
 		quiet   = false,
 		nocolor = false,
