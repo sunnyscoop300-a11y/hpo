@@ -132,7 +132,12 @@ fn suno_get_title(url: str) str = {
         case void =>
                 return "";
         };
-        return strings::sub(rest, 0, end);
+        const raw = strings::sub(rest, 0, end);
+        const d1 = strings::replace(raw, "&#x27;", "'")!;
+        const d2 = strings::replace(d1, "&amp;", "&")!;
+        const d3 = strings::replace(d2, "&quot;", "\"")!;
+        const d4 = strings::replace(d3, "&#39;", "'")!;
+        return d4;
 };
 
 fn is_gdrive(url: str) bool = {
@@ -737,6 +742,11 @@ fn do_http_custom(o: *opts) void = {
 		cprint(C_GREEN, "OK", "Download complete! The Dragon Warrior delivers!", o.nocolor);
 		fmt::printfln("  Saved to: {}", o.output)!;
 		fmt::printfln("  Size:     {}", format_size(get_file_size(o.output)))!;
+	};
+	if (o.suno && get_file_size(o.output) < 1024) {
+		cprint(C_RED, "ERR", "Song not available - private or deleted on Suno", o.nocolor);
+		os::remove(o.output)!;
+		return;
 	};
 	if (o.suno) {
 		if (!o.quiet) cprint(C_CYAN, "HPO", "Converting to MP3...", o.nocolor);
