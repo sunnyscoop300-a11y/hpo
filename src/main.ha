@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "1.8.0";
+def VERSION = "1.9.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1101,7 +1101,7 @@ fn do_download(o: *opts) void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download Manager v1.8.0\n")!;
+	fmt::println("hpo - The Hare Download Manager v1.9.0\n")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]\n")!;
 	fmt::println("OPTIONS:")!;
