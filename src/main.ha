@@ -1152,6 +1152,14 @@ fn do_download(o: *opts) void = {
 			o.output = default_output(o.url);
 		};
 
+		if (is_gog(o.url)) {
+			do_gog(o);
+			return;
+		};
+		if (is_itch(o.url)) {
+			do_itch(o);
+			return;
+		};
 		if (is_mega(o.url)) {
 			do_mega(o);
 		} else if (is_magnet(o.url)) {
