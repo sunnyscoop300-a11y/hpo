@@ -75,6 +75,10 @@ fn is_suno(url: str) bool = {
         return strings::hasprefix(url, "https://suno.com/song/");
 };
 
+fn is_gog(url: str) bool = {
+        return strings::hasprefix(url, "gog:");
+};
+
 fn is_suno_cdn(url: str) bool = {
         return strings::hasprefix(url, "https://cdn1.suno.ai/");
 };
@@ -932,6 +936,38 @@ fn do_mega(o: *opts) void = {
 	};
 };
 
+fn do_gog(o: *opts) void = {
+        if (!check_tool_help("lgogdownloader")) {
+                cprint(C_RED, "ERR", "lgogdownloader not found! Install: sudo apt install lgogdownloader", o.nocolor);
+                os::exit(1);
+        };
+        const prefix = "gog:";
+        const gamename = strings::sub(o.url, len(prefix), strings::end);
+        if (!o.quiet) {
+                cprint(C_BLUE, "HPO", "GOG game detected! Using lgogdownloader backend...", o.nocolor);
+                if (!o.nocolor) fmt::print(C_YELLOW)!;
+                fmt::printfln("  Game: {}", gamename)!;
+                if (!o.nocolor) fmt::print(C_RESET)!;
+                fmt::println("")!;
+                cprint(C_GREEN, "HPO", "Skadoosh! Fetching from GOG...", o.nocolor);
+                fmt::println("")!;
+        };
+        let args: []str = alloc([], 8)!;
+        defer free(args);
+        append(args, "lgogdownloader")!;
+        append(args, "--download")!;
+        append(args, "--game")!;
+        append(args, gamename)!;
+        if (run_cmd(args, o.nocolor)) {
+                if (!o.quiet) {
+                        cprint(C_GREEN, "OK", "GOG download complete! The Dragon Warrior delivers!", o.nocolor);
+                };
+        } else {
+                if (!o.quiet) cprint(C_RED, "FAIL", "GOG download failed!", o.nocolor);
+                os::exit(1);
+        };
+};
+
 fn do_download(o: *opts) void = {
 	// Lock mode: encrypt URL into rooster link
 	if (len(o.lock) > 0) {
@@ -1048,6 +1084,10 @@ fn do_download(o: *opts) void = {
 			o.output = default_output(o.url);
 		};
 		o.suno = false;
+	};
+	if (is_gog(o.url)) {
+		do_gog(o);
+		return;
 	};
 	if (is_mega(o.url)) {
 		do_mega(o);
