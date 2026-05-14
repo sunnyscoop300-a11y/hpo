@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "1.9.0";
+def VERSION = "2.0.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -73,6 +73,10 @@ fn is_rooster(url: str) bool = {
 
 fn is_suno(url: str) bool = {
         return strings::hasprefix(url, "https://suno.com/song/");
+};
+
+fn is_itch(url: str) bool = {
+        return strings::hasprefix(url, "itch:");
 };
 
 fn is_gog(url: str) bool = {
@@ -936,6 +940,131 @@ fn do_mega(o: *opts) void = {
 	};
 };
 
+fn do_itch(o: *opts) void = {
+        if (!check_tool("curl")) {
+                cprint(C_RED, "ERR", "curl not found!", o.nocolor);
+                os::exit(1);
+        };
+        const home = match (os::getenv("HOME")) {
+        case let s: str => yield s;
+        case void => yield "/tmp";
+        };
+        static let credpath: [512]u8 = [0...];
+        const cpath = fmt::bsprintf(credpath, "{}/.config/hpo/itch_key", home)!;
+        const apikey_raw = match (os::open(cpath)) {
+        case let f: io::file =>
+                static let kbuf: [256]u8 = [0...];
+                const n = match (io::read(f, kbuf)) {
+                case let n: size => yield n;
+                case => yield 0z;
+                };
+                io::close(f)!;
+                yield strings::fromutf8(kbuf[..n])!;
+        case =>
+                cprint(C_RED, "ERR", "itch.io credentials not found! Run: butler login", o.nocolor);
+                os::exit(1);
+        };
+        const apikey = strings::trim(apikey_raw);
+        const prefix = "itch:";
+        const target = strings::sub(o.url, len(prefix), strings::end);
+        const slash = match (strings::index(target, '/')) {
+        case let i: size => yield i;
+        case void =>
+                cprint(C_RED, "ERR", "itch URL must be user/game format", o.nocolor);
+                os::exit(1);
+        };
+        const user = strings::sub(target, 0, slash);
+        const game = strings::sub(target, slash + 1, strings::end);
+        if (!o.quiet) {
+                cprint(C_BLUE, "HPO", "itch.io game detected!", o.nocolor);
+                fmt::printfln("  Game: {}/{}", user, game)!;
+        };
+        // Fetch game ID
+        static let dataurl: [512]u8 = [0...];
+        const durl = fmt::bsprintf(dataurl, "https://{}.itch.io/{}/data.json", user, game)!;
+        const cmd1 = exec::cmd("curl", "-sL", durl)!;
+        const p1 = exec::pipe();
+        exec::addfile(&cmd1, os::stdout_file, p1.1)!;
+        const proc1 = exec::start(&cmd1)!;
+        io::close(p1.1)!;
+        static let jbuf: [4096]u8 = [0...];
+        const n1 = match (io::read(p1.0, jbuf)) {
+        case let n: size => yield n;
+        case => yield 0z;
+        };
+        io::close(p1.0)!;
+        exec::wait(&proc1)!;
+        const json1 = strings::fromutf8(jbuf[..n1])!;
+        const idkey = "\"id\":";
+        const idx1 = match (strings::index(json1, idkey)) {
+        case let i: size => yield i;
+        case void =>
+                cprint(C_RED, "ERR", "Could not find game ID", o.nocolor);
+                os::exit(1);
+        };
+        const rest1 = strings::sub(json1, idx1 + len(idkey), strings::end);
+        const comma = match (strings::index(rest1, ',')) {
+        case let i: size => yield i;
+        case void => yield len(rest1);
+        };
+        const game_id = strings::trim(strings::sub(rest1, 0, comma));
+        if (!o.quiet) fmt::printfln("  Game ID: {}", game_id)!;
+        // Fetch uploads
+        static let upurl: [512]u8 = [0...];
+        const uurl = fmt::bsprintf(upurl, "https://api.itch.io/games/{}/uploads", game_id)!;
+        static let authhdr: [256]u8 = [0...];
+        const auth = fmt::bsprintf(authhdr, "Authorization: {}", apikey)!;
+        const cmd2 = exec::cmd("curl", "-sL", "-H", auth, uurl)!;
+        const p2 = exec::pipe();
+        exec::addfile(&cmd2, os::stdout_file, p2.1)!;
+        const proc2 = exec::start(&cmd2)!;
+        io::close(p2.1)!;
+        static let ubuf: [8192]u8 = [0...];
+        const n2 = match (io::read(p2.0, ubuf)) {
+        case let n: size => yield n;
+        case => yield 0z;
+        };
+        io::close(p2.0)!;
+        exec::wait(&proc2)!;
+        const json2 = strings::fromutf8(ubuf[..n2])!;
+        const idkey2 = "\"id\":";
+        const idx2 = match (strings::index(json2, idkey2)) {
+        case let i: size => yield i;
+        case void =>
+                cprint(C_RED, "ERR", "Could not find upload ID", o.nocolor);
+                os::exit(1);
+        };
+        const rest2 = strings::sub(json2, idx2 + len(idkey2), strings::end);
+        const comma2 = match (strings::index(rest2, ',')) {
+        case let i: size => yield i;
+        case void => yield len(rest2);
+        };
+        const upload_id = strings::trim(strings::sub(rest2, 0, comma2));
+        // Get filename
+        const fnkey = "\"filename\":\"";
+        const fnidx = match (strings::index(json2, fnkey)) {
+        case let i: size => yield i;
+        case void => yield 0z;
+        };
+        const fnrest = strings::sub(json2, fnidx + len(fnkey), strings::end);
+        const fnend = match (strings::index(fnrest, '\"')) {
+        case let i: size => yield i;
+        case void => yield len(fnrest);
+        };
+        const filename = strings::sub(fnrest, 0, fnend);
+        // Build download URL and set output
+        static let dlurl: [512]u8 = [0...];
+        const finalurl = fmt::bsprintf(dlurl, "https://api.itch.io/uploads/{}/download?api_key={}", upload_id, apikey)!;
+        static let outbuf: [512]u8 = [0...];
+        o.url = finalurl;
+        o.output = fmt::bsprintf(outbuf, "{}/Downloads/{}", home, filename)!;
+        if (!o.quiet) {
+                fmt::printfln("  Upload: {} ({})", upload_id, filename)!;
+                fmt::println("")!;
+        };
+        do_http_custom(o);
+};
+
 fn do_gog(o: *opts) void = {
         if (!check_tool_help("lgogdownloader")) {
                 cprint(C_RED, "ERR", "lgogdownloader not found! Install: sudo apt install lgogdownloader", o.nocolor);
@@ -1085,6 +1214,10 @@ fn do_download(o: *opts) void = {
 		};
 		o.suno = false;
 	};
+	if (is_itch(o.url)) {
+		do_itch(o);
+		return;
+	};
 	if (is_gog(o.url)) {
 		do_gog(o);
 		return;
@@ -1101,7 +1234,7 @@ fn do_download(o: *opts) void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download Manager v1.9.0\n")!;
+	fmt::println("hpo - The Hare Download Manager v2.0.0\n")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]\n")!;
 	fmt::println("OPTIONS:")!;
