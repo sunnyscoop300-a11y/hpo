@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "2.0.0";
+def VERSION = "2.1.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -45,6 +45,8 @@ type opts = struct {
 	lock:    str,
         token:   str,
         cookie:  str,
+	epic:    bool,
+	epic_cmd: str,
         suno:    bool,
 	verbose: bool,
 	quiet:   bool,
@@ -940,6 +942,54 @@ fn do_mega(o: *opts) void = {
 	};
 };
 
+fn do_epic(o: *opts, gamename: str) void = {
+	if (!check_tool("legendary")) {
+		cprint(C_RED, "ERR", "legendary not found! Install: pipx install legendary-gl", o.nocolor);
+		os::exit(1);
+	};
+	if (!o.quiet) {
+		cprint(C_BLUE, "HPO", "Epic Games detected! Using legendary backend...", o.nocolor);
+		if (!o.nocolor) fmt::print(C_YELLOW)!;
+		fmt::printfln("  Action: {}", o.epic_cmd)!;
+		fmt::printfln("  Game:   {}", gamename)!;
+		if (!o.nocolor) fmt::print(C_RESET)!;
+		fmt::println("")!;
+		cprint(C_GREEN, "HPO", "Skadoosh! Launching legendary...", o.nocolor);
+		fmt::println("")!;
+	};
+	// Setup Proton env for launch action
+	if (o.epic_cmd == "launch") {
+		const home = match (os::getenv("HOME")) {
+		case let s: str => yield s;
+		case void => yield "/tmp";
+		};
+		static let prefix_buf: [512]u8 = [0...];
+		const prefix = fmt::bsprintf(prefix_buf, "{}/.proton-prefix-epic", home)!;
+		os::mkdir(prefix, 0o755): void;
+		static let steam_buf: [512]u8 = [0...];
+		const steam_path = fmt::bsprintf(steam_buf, "{}/.var/app/com.valvesoftware.Steam/.local/share/Steam", home)!;
+		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+		os::setenv("STEAM_COMPAT_CLIENT_INSTALL_PATH", steam_path)!;
+		if (!o.quiet) {
+			fmt::printfln("  Prefix: {}", prefix)!;
+			fmt::println("")!;
+		};
+	};
+	let args: []str = alloc([], 8)!;
+	defer free(args);
+	append(args, "legendary")!;
+	append(args, o.epic_cmd)!;
+	append(args, gamename)!;
+	if (run_cmd(args, o.nocolor)) {
+		if (!o.quiet) {
+			cprint(C_GREEN, "OK", "Epic action complete! The Dragon Warrior delivers!", o.nocolor);
+		};
+	} else {
+		if (!o.quiet) cprint(C_RED, "FAIL", "Epic action failed!", o.nocolor);
+		os::exit(1);
+	};
+};
+
 fn do_itch(o: *opts) void = {
         if (!check_tool("curl")) {
                 cprint(C_RED, "ERR", "curl not found!", o.nocolor);
@@ -1242,7 +1292,7 @@ fn do_download(o: *opts) void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download Manager v2.0.0\n")!;
+	fmt::println("hpo - The Hare Download Manager v2.1.0\n")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]\n")!;
 	fmt::println("OPTIONS:")!;
@@ -1291,6 +1341,8 @@ export fn main() void = {
 		lock    = "",
                 token   = "",
                 cookie  = "",
+		epic    = false,
+		epic_cmd = "",
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -1333,6 +1385,14 @@ export fn main() void = {
                                 fmt::errorfln("Error: --token requires a value")!;
                                 os::exit(1);
                         };
+                } else if (a == "--epic") {
+                        i += 1;
+                        if (i >= len(args)) {
+                                fmt::errorfln("Error: --epic requires install|launch|list")!;
+                                os::exit(1);
+                        };
+                        o.epic = true;
+                        o.epic_cmd = args[i];
                 } else if (a == "--cookie") {
                         i += 1;
                         if (i >= len(args)) {
@@ -1375,6 +1435,10 @@ export fn main() void = {
 		} else {
 			o.url = a;
 		};
+	};
+	if (o.epic) {
+		do_epic(&o, o.url);
+		return;
 	};
 	if (len(o.url) == 0 && len(o.lock) == 0) {
 		fmt::errorfln("Error: no URL provided. Run hpo -h for help.")!;
