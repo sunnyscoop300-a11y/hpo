@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "2.1.0";
+def VERSION = "2.2.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -957,21 +957,39 @@ fn do_epic(o: *opts, gamename: str) void = {
 		cprint(C_GREEN, "HPO", "Skadoosh! Launching legendary...", o.nocolor);
 		fmt::println("")!;
 	};
-	// Setup Proton env for launch action
+	// Setup umu-launcher env for launch action - per-game prefix
 	if (o.epic_cmd == "launch") {
 		const home = match (os::getenv("HOME")) {
 		case let s: str => yield s;
 		case void => yield "/tmp";
 		};
+		static let base_buf: [512]u8 = [0...];
+		const base = fmt::bsprintf(base_buf, "{}/.proton-prefix-epic", home)!;
+		os::mkdir(base, 0o755): void;
 		static let prefix_buf: [512]u8 = [0...];
-		const prefix = fmt::bsprintf(prefix_buf, "{}/.proton-prefix-epic", home)!;
+		const prefix = fmt::bsprintf(prefix_buf, "{}/{}", base, gamename)!;
 		os::mkdir(prefix, 0o755): void;
+		static let proton_buf: [512]u8 = [0...];
+		const proton_path = fmt::bsprintf(proton_buf, "{}/.var/app/com.heroicgameslauncher.hgl/config/heroic/tools/proton/GE-Proton10-34", home)!;
 		static let steam_buf: [512]u8 = [0...];
-		const steam_path = fmt::bsprintf(steam_buf, "{}/.var/app/com.valvesoftware.Steam/.local/share/Steam", home)!;
+		const steam_path = fmt::bsprintf(steam_buf, "{}/.var/app/com.heroicgameslauncher.hgl/.steam/steam", home)!;
+		os::setenv("WINEPREFIX", prefix)!;
 		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
 		os::setenv("STEAM_COMPAT_CLIENT_INSTALL_PATH", steam_path)!;
+		os::setenv("PROTONPATH", proton_path)!;
+		os::setenv("GAMEID", "umu-0")!;
+		os::setenv("STORE", "egs")!;
+		os::setenv("PROTON_USE_WINED3D", "0")!;
+		os::setenv("DXVK_ASYNC", "1")!;
+		os::setenv("WINE_FULLSCREEN_FSR", "1")!;
+		os::setenv("PROTON_ENABLE_NVAPI", "1")!;
+		os::setenv("DXVK_NVAPI_ALLOW_OTHER_DRIVERS", "1")!;
+		os::setenv("PROTON_HIDE_NVIDIA_GPU", "0")!;
+		os::setenv("WINEESYNC", "1")!;
+		os::setenv("WINEFSYNC", "1")!;
 		if (!o.quiet) {
 			fmt::printfln("  Prefix: {}", prefix)!;
+			fmt::printfln("  Proton: GE-Proton10-34")!;
 			fmt::println("")!;
 		};
 	};
@@ -980,6 +998,17 @@ fn do_epic(o: *opts, gamename: str) void = {
 	append(args, "legendary")!;
 	append(args, o.epic_cmd)!;
 	append(args, gamename)!;
+	if (o.epic_cmd == "launch") {
+		const home2 = match (os::getenv("HOME")) {
+		case let s: str => yield s;
+		case void => yield "/tmp";
+		};
+		static let umu_buf: [512]u8 = [0...];
+		const umu_path = fmt::bsprintf(umu_buf, "{}/.var/app/com.heroicgameslauncher.hgl/config/heroic/tools/runtimes/umu/umu-run", home2)!;
+		append(args, "--no-wine")!;
+		append(args, "--wrapper")!;
+		append(args, umu_path)!;
+	};
 	if (run_cmd(args, o.nocolor)) {
 		if (!o.quiet) {
 			cprint(C_GREEN, "OK", "Epic action complete! The Dragon Warrior delivers!", o.nocolor);
