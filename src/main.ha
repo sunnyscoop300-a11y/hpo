@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "3.1.0";
+def VERSION = "3.1.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1115,6 +1115,13 @@ fn do_steam(o: *opts, target: str) void = {
 		append(ls_args, grep_cmd)!;
 		let _ = run_cmd(ls_args, o.nocolor);
 		return;
+	};
+
+	// Smart kort syntax: hvis steam_cmd ikke er list/install, så er det selve target'et!
+	// Eksempel: "hpo --steam po" => steam_cmd="po", target="" => vi flytter po til target
+	if (o.steam_cmd != "list" && o.steam_cmd != "install" && o.steam_cmd != "launch" && len(target) == 0) {
+		let target_local: str = o.steam_cmd;
+		o.steam_cmd = "launch";
 	};
 
 	// Hvis kommandoen er "launch" eller "install" - kør URI
