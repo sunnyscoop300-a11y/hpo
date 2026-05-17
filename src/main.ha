@@ -48,6 +48,7 @@ type opts = struct {
 	epic:    bool,
 	epic_cmd: str,
 	zhen_setup: bool,
+	zhen_proton: bool,
         suno:    bool,
 	verbose: bool,
 	quiet:   bool,
@@ -1026,6 +1027,62 @@ fn do_zhen_setup(o: *opts) void = {
 		cprint(C_RED, "FAIL", "umu-run not found after extract!", o.nocolor);
 		os::exit(1);
 	};
+
+	// Optional: download GE-Proton if --proton flag was given
+	if (o.zhen_proton) {
+		static let proton_dir_buf: [512]u8 = [0...];
+		const proton_dir = fmt::bsprintf(proton_dir_buf, "{}/proton", zhen_dir)!;
+		static let proton_target_buf: [512]u8 = [0...];
+		const proton_target = fmt::bsprintf(proton_target_buf, "{}/GE-Proton10-34", proton_dir)!;
+
+		if (os::exists(proton_target)) {
+			if (!o.quiet) cprint(C_YELLOW, "ZHEN", "GE-Proton10-34 already installed, skipping.", o.nocolor);
+		} else {
+			if (!o.quiet) {
+				fmt::println("")!;
+				cprint(C_BLUE, "ZHEN", "Downloading GE-Proton10-34 (~700MB, patience grasshopper)...", o.nocolor);
+			};
+			os::mkdir(proton_dir, 0o755): void;
+			static let proton_tar_buf: [512]u8 = [0...];
+			const proton_tar = fmt::bsprintf(proton_tar_buf, "{}/proton.tar.gz", proton_dir)!;
+			const proton_url = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton10-34/GE-Proton10-34.tar.gz";
+
+			let pdl_args: []str = alloc([], 6)!;
+			defer free(pdl_args);
+			append(pdl_args, "curl")!;
+			append(pdl_args, "-L")!;
+			append(pdl_args, "-o")!;
+			append(pdl_args, proton_tar)!;
+			append(pdl_args, proton_url)!;
+			if (!run_cmd(pdl_args, o.nocolor)) {
+				cprint(C_RED, "FAIL", "Proton download failed!", o.nocolor);
+				os::exit(1);
+			};
+
+			if (!o.quiet) cprint(C_YELLOW, "ZHEN", "Extracting Proton (this takes a minute)...", o.nocolor);
+			let pex_args: []str = alloc([], 6)!;
+			defer free(pex_args);
+			append(pex_args, "tar")!;
+			append(pex_args, "-xzf")!;
+			append(pex_args, proton_tar)!;
+			append(pex_args, "-C")!;
+			append(pex_args, proton_dir)!;
+			if (!run_cmd(pex_args, o.nocolor)) {
+				cprint(C_RED, "FAIL", "Proton extract failed!", o.nocolor);
+				os::exit(1);
+			};
+
+			if (os::exists(proton_target)) {
+				if (!o.quiet) {
+					cprint(C_GREEN, "ZHEN", "GE-Proton10-34 installed! Full independence achieved.", o.nocolor);
+					fmt::printfln("  Path: {}", proton_target)!;
+				};
+			} else {
+				cprint(C_RED, "FAIL", "Proton not found after extract!", o.nocolor);
+				os::exit(1);
+			};
+		};
+	};
 };
 
 fn do_epic(o: *opts, gamename: str) void = {
@@ -1056,7 +1113,10 @@ fn do_epic(o: *opts, gamename: str) void = {
 		const prefix = fmt::bsprintf(prefix_buf, "{}/{}", base, gamename)!;
 		os::mkdir(prefix, 0o755): void;
 		static let proton_buf: [512]u8 = [0...];
-		const proton_path = fmt::bsprintf(proton_buf, "{}/.var/app/com.heroicgameslauncher.hgl/config/heroic/tools/proton/GE-Proton10-34", home)!;
+			const zhen_proton_path = fmt::bsprintf(proton_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton10-34", home)!;
+		static let proton_buf2: [512]u8 = [0...];
+		const heroic_proton_path = fmt::bsprintf(proton_buf2, "{}/.var/app/com.heroicgameslauncher.hgl/config/heroic/tools/proton/GE-Proton10-34", home)!;
+		const proton_path = if (os::exists(zhen_proton_path)) zhen_proton_path else heroic_proton_path;
 		static let steam_buf: [512]u8 = [0...];
 		const steam_path = fmt::bsprintf(steam_buf, "{}/.var/app/com.heroicgameslauncher.hgl/.steam/steam", home)!;
 		os::setenv("WINEPREFIX", prefix)!;
@@ -1461,6 +1521,7 @@ export fn main() void = {
 		epic    = false,
 		epic_cmd = "",
 		zhen_setup = false,
+		zhen_proton = false,
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -1513,6 +1574,8 @@ export fn main() void = {
                         o.epic_cmd = args[i];
                 } else if (a == "--zhen-setup") {
                         o.zhen_setup = true;
+                } else if (a == "--proton") {
+                        o.zhen_proton = true;
                 } else if (a == "--cookie") {
                         i += 1;
                         if (i >= len(args)) {
