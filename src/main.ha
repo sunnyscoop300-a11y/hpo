@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "3.0.0";
+def VERSION = "3.1.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -47,6 +47,8 @@ type opts = struct {
         cookie:  str,
 	epic:    bool,
 	epic_cmd: str,
+	steam:    bool,
+	steam_cmd: str,
 	zhen_setup: bool,
 	zhen_proton: bool,
         suno:    bool,
@@ -1085,6 +1087,131 @@ fn do_zhen_setup(o: *opts) void = {
 	};
 };
 
+fn do_steam(o: *opts, target: str) void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+
+	// Find Steam apps mappe - prøv Flatpak først, så native
+	static let flat_buf: [512]u8 = [0...];
+	const flat_apps = fmt::bsprintf(flat_buf, "{}/.var/app/com.valvesoftware.Steam/.steam/steam/steamapps", home)!;
+	static let nat_buf: [512]u8 = [0...];
+	const nat_apps = fmt::bsprintf(nat_buf, "{}/.steam/steam/steamapps", home)!;
+	const apps_dir = if (os::exists(flat_apps)) flat_apps else nat_apps;
+
+	// Hvis kommandoen er "list" - vis installerede spil
+	if (o.steam_cmd == "list") {
+		if (!o.quiet) {
+			cprint(C_BLUE, "STEAM", "Po's library of Steam games:", o.nocolor);
+			fmt::println("")!;
+		};
+		let ls_args: []str = alloc([], 4)!;
+		defer free(ls_args);
+		append(ls_args, "sh")!;
+		append(ls_args, "-c")!;
+		static let cmd_buf: [1024]u8 = [0...];
+		const grep_cmd = fmt::bsprintf(cmd_buf, "awk '/appid|name/' {}/appmanifest_*.acf 2>/dev/null | paste - -", apps_dir)!;
+		append(ls_args, grep_cmd)!;
+		let _ = run_cmd(ls_args, o.nocolor);
+		return;
+	};
+
+	// Hvis kommandoen er "launch" eller "install" - kør URI
+	if (len(target) == 0) {
+		cprint(C_RED, "ERR", "Steam command requires app-ID or alias!", o.nocolor);
+		os::exit(1);
+	};
+
+	// Læs alias-fil
+	static let alias_buf: [512]u8 = [0...];
+	const alias_path = fmt::bsprintf(alias_buf, "{}/.config/hpo/steam_aliases.txt", home)!;
+	let appid = target;
+	match (os::open(alias_path)) {
+	case let f: io::file =>
+		static let rbuf: [4096]u8 = [0...];
+		const n = match (io::read(f, rbuf)) {
+		case let n: size => yield n;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		const contents = strings::fromutf8(rbuf[..n])!;
+		const lines = match (strings::split(contents, "\n")) {
+		case let s: []str => yield s;
+		case => yield []: []str;
+		};
+		defer free(lines);
+		for (let i = 0z; i < len(lines); i += 1) {
+			const line = strings::trim(lines[i]);
+			if (len(line) == 0) continue;
+			const parts = match (strings::split(line, "=")) {
+			case let s: []str => yield s;
+			case => yield []: []str;
+			};
+			defer free(parts);
+			if (len(parts) >= 2 && strings::trim(parts[0]) == target) {
+				appid = strings::trim(parts[1]);
+				break;
+			};
+		};
+	case => void;
+	};
+
+	static let uri_buf: [512]u8 = [0...];
+	const action = if (o.steam_cmd == "install") "install" else "rungameid";
+	const uri = fmt::bsprintf(uri_buf, "steam://{}/{}", action, appid)!;
+
+	// Auto-link Zhen's GE-Proton til Steam så Steam-spil bruger samme engine
+	static let zhen_src_buf: [512]u8 = [0...];
+	const zhen_proton_src = fmt::bsprintf(zhen_src_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton10-34", home)!;
+	static let steam_compat_buf: [512]u8 = [0...];
+	const steam_compat_dir = fmt::bsprintf(steam_compat_buf, "{}/.var/app/com.valvesoftware.Steam/.local/share/Steam/compatibilitytools.d", home)!;
+	static let steam_target_buf: [512]u8 = [0...];
+	const steam_target = fmt::bsprintf(steam_target_buf, "{}/GE-Proton10-34", steam_compat_dir)!;
+	if (os::exists(zhen_proton_src) && !os::exists(steam_target)) {
+		if (!o.quiet) cprint(C_YELLOW, "ZHEN", "Linking Zhen's GE-Proton to Steam...", o.nocolor);
+		os::mkdir(steam_compat_dir, 0o755): void;
+		let ln_args: []str = alloc([], 5)!;
+		defer free(ln_args);
+		append(ln_args, "ln")!;
+		append(ln_args, "-sf")!;
+		append(ln_args, zhen_proton_src)!;
+		append(ln_args, steam_target)!;
+		let _ = run_cmd(ln_args, o.nocolor);
+	};
+
+	if (!o.quiet) {
+		cprint(C_BLUE, "HPO", "Steam game detected!", o.nocolor);
+		if (!o.nocolor) fmt::print(C_YELLOW)!;
+		fmt::printfln("  Action: {}", o.steam_cmd)!;
+		fmt::printfln("  AppID:  {}", appid)!;
+		if (!o.nocolor) fmt::print(C_RESET)!;
+		fmt::println("")!;
+		cprint(C_GREEN, "STEAM", "Skadoosh! Po races to Steam with Zhen's engine!", o.nocolor);
+		fmt::println("")!;
+	};
+
+	// Bestem om vi bruger Flatpak eller native steam
+	let steam_args: []str = alloc([], 6)!;
+	defer free(steam_args);
+	if (check_tool("steam")) {
+		append(steam_args, "steam")!;
+		append(steam_args, uri)!;
+	} else {
+		append(steam_args, "flatpak")!;
+		append(steam_args, "run")!;
+		append(steam_args, "com.valvesoftware.Steam")!;
+		append(steam_args, uri)!;
+	};
+
+	if (run_cmd(steam_args, o.nocolor)) {
+		if (!o.quiet) cprint(C_GREEN, "OK", "Steam action complete! Vroom vroom!", o.nocolor);
+	} else {
+		if (!o.quiet) cprint(C_RED, "FAIL", "Steam action failed!", o.nocolor);
+		os::exit(1);
+	};
+};
+
 fn do_epic(o: *opts, gamename: str) void = {
 	if (!check_tool("legendary")) {
 		cprint(C_RED, "ERR", "legendary not found! Install: pipx install legendary-gl", o.nocolor);
@@ -1520,6 +1647,8 @@ export fn main() void = {
                 cookie  = "",
 		epic    = false,
 		epic_cmd = "",
+		steam   = false,
+		steam_cmd = "",
 		zhen_setup = false,
 		zhen_proton = false,
                 suno    = false,
@@ -1572,6 +1701,14 @@ export fn main() void = {
                         };
                         o.epic = true;
                         o.epic_cmd = args[i];
+                } else if (a == "--steam") {
+                        i += 1;
+                        if (i >= len(args)) {
+                                fmt::errorfln("Error: --steam requires launch|list|install")!;
+                                os::exit(1);
+                        };
+                        o.steam = true;
+                        o.steam_cmd = args[i];
                 } else if (a == "--zhen-setup") {
                         o.zhen_setup = true;
                 } else if (a == "--proton") {
@@ -1621,6 +1758,10 @@ export fn main() void = {
 	};
 	if (o.zhen_setup) {
 		do_zhen_setup(&o);
+		return;
+	};
+	if (o.steam) {
+		do_steam(&o, o.url);
 		return;
 	};
 	if (o.epic) {
