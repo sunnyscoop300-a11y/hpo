@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "2.2.0";
+def VERSION = "3.0.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -47,6 +47,7 @@ type opts = struct {
         cookie:  str,
 	epic:    bool,
 	epic_cmd: str,
+	zhen_setup: bool,
         suno:    bool,
 	verbose: bool,
 	quiet:   bool,
@@ -942,6 +943,91 @@ fn do_mega(o: *opts) void = {
 	};
 };
 
+fn do_zhen_setup(o: *opts) void = {
+	if (!check_tool("curl")) {
+		cprint(C_RED, "ERR", "curl not found! Install: sudo apt install curl", o.nocolor);
+		os::exit(1);
+	};
+	if (!check_tool("tar")) {
+		cprint(C_RED, "ERR", "tar not found!", o.nocolor);
+		os::exit(1);
+	};
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let zhen_dir_buf: [512]u8 = [0...];
+	const zhen_dir = fmt::bsprintf(zhen_dir_buf, "{}/.local/share/hpo/zhen", home)!;
+	static let zhen_run_buf: [512]u8 = [0...];
+	const zhen_run = fmt::bsprintf(zhen_run_buf, "{}/umu-run", zhen_dir)!;
+	static let zhen_py_buf: [512]u8 = [0...];
+	const zhen_py = fmt::bsprintf(zhen_py_buf, "{}/umu_run.py", zhen_dir)!;
+	static let tar_buf: [512]u8 = [0...];
+	const tar_path = fmt::bsprintf(tar_buf, "{}/umu.tar", zhen_dir)!;
+
+	if (!o.quiet) {
+		cprint(C_BLUE, "ZHEN", "Awakening the Dragon Warrior engine...", o.nocolor);
+		fmt::printfln("  Target: {}", zhen_dir)!;
+		fmt::println("")!;
+	};
+
+	// Lav mapper
+	static let mkdir_buf: [512]u8 = [0...];
+	const share_dir = fmt::bsprintf(mkdir_buf, "{}/.local/share/hpo", home)!;
+	os::mkdir(share_dir, 0o755): void;
+	os::mkdir(zhen_dir, 0o755): void;
+
+	// Download umu-launcher zipapp
+	if (!o.quiet) cprint(C_YELLOW, "ZHEN", "Downloading umu-launcher 1.4.0...", o.nocolor);
+	const url = "https://github.com/Open-Wine-Components/umu-launcher/releases/download/1.4.0/umu-launcher-1.4.0-zipapp.tar";
+	let dl_args: []str = alloc([], 6)!;
+	defer free(dl_args);
+	append(dl_args, "curl")!;
+	append(dl_args, "-L")!;
+	append(dl_args, "-o")!;
+	append(dl_args, tar_path)!;
+	append(dl_args, url)!;
+	if (!run_cmd(dl_args, o.nocolor)) {
+		cprint(C_RED, "FAIL", "Download failed!", o.nocolor);
+		os::exit(1);
+	};
+
+	// Pak ud
+	if (!o.quiet) cprint(C_YELLOW, "ZHEN", "Extracting...", o.nocolor);
+	let tar_args: []str = alloc([], 6)!;
+	defer free(tar_args);
+	append(tar_args, "tar")!;
+	append(tar_args, "-xf")!;
+	append(tar_args, tar_path)!;
+	append(tar_args, "-C")!;
+	append(tar_args, zhen_dir)!;
+	append(tar_args, "--strip-components=1")!;
+	if (!run_cmd(tar_args, o.nocolor)) {
+		cprint(C_RED, "FAIL", "Extract failed!", o.nocolor);
+		os::exit(1);
+	};
+
+	// chmod +x
+	let chmod_args: []str = alloc([], 4)!;
+	defer free(chmod_args);
+	append(chmod_args, "chmod")!;
+	append(chmod_args, "+x")!;
+	append(chmod_args, zhen_run)!;
+	let _ = run_cmd(chmod_args, o.nocolor);
+
+	// Verificer
+	if (os::exists(zhen_run)) {
+		if (!o.quiet) {
+			fmt::println("")!;
+			cprint(C_GREEN, "ZHEN", "Engine ready! The Dragon Warrior has arrived.", o.nocolor);
+			fmt::printfln("  Path: {}", zhen_run)!;
+		};
+	} else {
+		cprint(C_RED, "FAIL", "umu-run not found after extract!", o.nocolor);
+		os::exit(1);
+	};
+};
+
 fn do_epic(o: *opts, gamename: str) void = {
 	if (!check_tool("legendary")) {
 		cprint(C_RED, "ERR", "legendary not found! Install: pipx install legendary-gl", o.nocolor);
@@ -954,7 +1040,7 @@ fn do_epic(o: *opts, gamename: str) void = {
 		fmt::printfln("  Game:   {}", gamename)!;
 		if (!o.nocolor) fmt::print(C_RESET)!;
 		fmt::println("")!;
-		cprint(C_GREEN, "HPO", "Skadoosh! Launching legendary...", o.nocolor);
+		cprint(C_GREEN, "ZHEN", "Dragon Warrior engine activated! Launching legendary...", o.nocolor);
 		fmt::println("")!;
 	};
 	// Setup umu-launcher env for launch action - per-game prefix
@@ -1004,7 +1090,9 @@ fn do_epic(o: *opts, gamename: str) void = {
 		case void => yield "/tmp";
 		};
 		static let umu_buf: [512]u8 = [0...];
-		const umu_path = fmt::bsprintf(umu_buf, "{}/.var/app/com.heroicgameslauncher.hgl/config/heroic/tools/runtimes/umu/umu-run", home2)!;
+		const zhen_path = fmt::bsprintf(umu_buf, "{}/.local/share/hpo/zhen/umu-run", home2)!;
+		const heroic_path = fmt::bsprintf(umu_buf, "{}/.var/app/com.heroicgameslauncher.hgl/config/heroic/tools/runtimes/umu/umu-run", home2)!;
+		const umu_path = if (os::exists(zhen_path)) zhen_path else heroic_path;
 		append(args, "--no-wine")!;
 		append(args, "--wrapper")!;
 		append(args, umu_path)!;
@@ -1372,6 +1460,7 @@ export fn main() void = {
                 cookie  = "",
 		epic    = false,
 		epic_cmd = "",
+		zhen_setup = false,
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -1422,6 +1511,8 @@ export fn main() void = {
                         };
                         o.epic = true;
                         o.epic_cmd = args[i];
+                } else if (a == "--zhen-setup") {
+                        o.zhen_setup = true;
                 } else if (a == "--cookie") {
                         i += 1;
                         if (i >= len(args)) {
@@ -1464,6 +1555,10 @@ export fn main() void = {
 		} else {
 			o.url = a;
 		};
+	};
+	if (o.zhen_setup) {
+		do_zhen_setup(&o);
+		return;
 	};
 	if (o.epic) {
 		do_epic(&o, o.url);
