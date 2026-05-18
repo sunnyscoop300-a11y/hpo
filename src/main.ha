@@ -7,7 +7,7 @@ use bufio;
 use time;
 use fs;
 
-def VERSION = "3.2.1";
+def VERSION = "3.2.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1615,38 +1615,6 @@ fn do_download(o: *opts) void = {
 	};
 };
 
-fn print_help() void = {
-	fmt::println("hpo - The Hare Download Manager v2.1.0\n")!;
-	fmt::println("USAGE:")!;
-	fmt::println("  hpo <url|magnet|rooster> [options]\n")!;
-	fmt::println("OPTIONS:")!;
-	fmt::println("  -o <path>     Output file (HTTP/GDrive) or directory (magnet)")!;
-	fmt::println("                Default: ~/Downloads/")!;
-	fmt::println("  -r            Resume interrupted HTTP download")!;
-	fmt::println("  -R <speed>    Rate limit (e.g. 500k, 2m, 1g)")!;
-	fmt::println("  -u <agent>    Custom User-Agent (HTTP only)")!;
-	fmt::println("  -s <mins>     Seed time after torrent (default: 0)")!;
-	fmt::println("  --lock <url>  Create a Rooster link (encrypted URL)")!;
-	fmt::println("  --token <tok>   Bearer token for authenticated downloads
-  --cookie <str>  Cookie string for session-based downloads
-  --code <key>   Secret code for Rooster links")!;
-	fmt::println("  -v            Verbose output")!;
-	fmt::println("  -q            Quiet mode")!;
-	fmt::println("  --no-color    Disable colors")!;
-	fmt::println("  -h            This help\n")!;
-	fmt::println("EXAMPLES:")!;
-	fmt::println("  hpo https://example.com/file.zip")!;
-	fmt::println("  hpo https://example.com/video.mp4 -R 2m")!;
-	fmt::println("  hpo https://drive.google.com/file/d/FILE_ID/view")!;
-	fmt::println("  hpo --lock https://secret.com/file.zip --code mykey")!;
-	fmt::println("  hpo \"rooster:?xt=AES256:...\" --code mykey")!;
-	fmt::println("  hpo \"magnet:?xt=urn:btih:abc123...\"\n")!;
-	fmt::println("BACKENDS:")!;
-	fmt::println("  HTTP/HTTPS/FTP  -> curl (dragon progress bar)")!;
-	fmt::println("  Google Drive    -> gdown")!;
-	fmt::println("  magnet:         -> aria2c")!;
-	fmt::println("  rooster:        -> openssl (AES-256-CBC)\n")!;
-};
 
 fn play_bell() void = {
 	const home = match (os::getenv("HOME")) {
@@ -1678,6 +1646,64 @@ fn play_bell() void = {
 	exec::wait(&proc)!;
 };
 
+fn print_help() void = {
+	fmt::println("hpo - The Hare Download & Game Manager v3.2.1")!;
+	fmt::println("")!;
+	fmt::println("USAGE:")!;
+	fmt::println("  hpo <url|magnet|rooster> [options]   Download mode")!;
+	fmt::println("  hpo --epic <action> <game>           Epic Games launcher")!;
+	fmt::println("  hpo --steam <action|alias> [arg]     Steam launcher")!;
+	fmt::println("  hpo --zhen-setup [--proton]          Install Zhen engine")!;
+	fmt::println("  hpo oogway                           10-min guided meditation")!;
+	fmt::println("")!;
+	fmt::println("DOWNLOAD OPTIONS:")!;
+	fmt::println("  -o <path>       Output file or directory (default: ~/Downloads/)")!;
+	fmt::println("  -r              Resume interrupted HTTP download")!;
+	fmt::println("  -R <speed>      Rate limit (e.g. 500k, 2m, 1g)")!;
+	fmt::println("  -u <agent>      Custom User-Agent (HTTP only)")!;
+	fmt::println("  -s <mins>       Seed time after torrent (default: 0)")!;
+	fmt::println("  --lock <url>    Create a Rooster link (encrypted URL)")!;
+	fmt::println("  --token <tok>   Bearer token for authenticated downloads")!;
+	fmt::println("  --cookie <str>  Cookie string for session-based downloads")!;
+	fmt::println("  --code <key>    Secret code for Rooster links")!;
+	fmt::println("  -v              Verbose output")!;
+	fmt::println("  -q              Quiet mode")!;
+	fmt::println("  --no-color      Disable colors")!;
+	fmt::println("  -h              This help")!;
+	fmt::println("")!;
+	fmt::println("EPIC GAMES (via legendary + Zhen engine):")!;
+	fmt::println("  hpo --epic list                    List all Epic games")!;
+	fmt::println("  hpo --epic install <app|alias>     Install a game")!;
+	fmt::println("  hpo --epic launch <app|alias>      Launch a game")!;
+	fmt::println("")!;
+	fmt::println("STEAM (via URI handler + Zhen GE-Proton):")!;
+	fmt::println("  hpo --steam list                   List installed Steam games")!;
+	fmt::println("  hpo --steam install <appid|alias>  Install a game")!;
+	fmt::println("  hpo --steam launch <appid|alias>   Launch a game")!;
+	fmt::println("  hpo --steam <alias>                Short syntax (auto-launch)")!;
+	fmt::println("  Aliases stored in ~/.config/hpo/steam_aliases.txt")!;
+	fmt::println("")!;
+	fmt::println("ZHEN ENGINE (self-contained gaming runtime):")!;
+	fmt::println("  hpo --zhen-setup                   Install umu-launcher only")!;
+	fmt::println("  hpo --zhen-setup --proton          Also install GE-Proton10-34")!;
+	fmt::println("")!;
+	fmt::println("EXAMPLES:")!;
+	fmt::println("  hpo https://example.com/file.zip")!;
+	fmt::println("  hpo --epic launch celeste")!;
+	fmt::println("  hpo --steam kao                    Launch Kao the Kangaroo")!;
+	fmt::println("  hpo --steam launch 1370140")!;
+	fmt::println("  hpo --zhen-setup --proton")!;
+	fmt::println("  hpo oogway                         Find inner peace")!;
+	fmt::println("")!;
+	fmt::println("DOWNLOAD BACKENDS:")!;
+	fmt::println("  HTTP/HTTPS/FTP  -> curl (dragon progress bar)")!;
+	fmt::println("  Google Drive    -> gdown")!;
+	fmt::println("  magnet:         -> aria2c")!;
+	fmt::println("  rooster:        -> openssl (AES-256-CBC)")!;
+	fmt::println("  Suno music      -> curl + ffmpeg (auto MP3 convert)")!;
+	fmt::println("")!;
+	fmt::println("Skadoosh! The Dragon Warrior delivers.")!;
+};
 fn do_oogway(o: *opts) void = {
 	let _ = o;
 
