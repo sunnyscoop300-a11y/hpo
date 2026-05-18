@@ -7,7 +7,7 @@ use bufio;
 use time;
 use fs;
 
-def VERSION = "3.2.0";
+def VERSION = "3.2.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1648,6 +1648,36 @@ fn print_help() void = {
 	fmt::println("  rooster:        -> openssl (AES-256-CBC)\n")!;
 };
 
+fn play_bell() void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "";
+	};
+	static let path_buf: [512]u8 = [0...];
+	const bell_path = fmt::bsprintf(path_buf, "{}/.local/share/hpo/bell.mp3", home)!;
+	if (!os::exists(bell_path)) {
+		fmt::print("\a")!;
+		bufio::flush(os::stdout)!;
+		return;
+	};
+	const cmd = match (exec::cmd("mpv", "--no-video", "--really-quiet", bell_path)) {
+	case let c: exec::command => yield c;
+	case => return;
+	};
+	const null_file = match (os::open("/dev/null", fs::flag::WRONLY)) {
+	case let f: io::file => yield f;
+	case => return;
+	};
+	defer io::close(null_file)!;
+	exec::addfile(&cmd, os::stdout_file, null_file)!;
+	exec::addfile(&cmd, os::stderr_file, null_file)!;
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case => return;
+	};
+	exec::wait(&proc)!;
+};
+
 fn do_oogway(o: *opts) void = {
 	let _ = o;
 
@@ -1691,11 +1721,9 @@ fn do_oogway(o: *opts) void = {
 	fmt::println("                \x1b[32m`OOOOOOOOOOOOOOOOOO'\x1b[0m")!;
 	fmt::println("")!;
 
-	fmt::print("\a")!;
-	bufio::flush(os::stdout)!;
-	time::sleep(300 * time::MILLISECOND);
-	fmt::print("\a")!;
-	bufio::flush(os::stdout)!;
+	// Start-bell: lille ding
+	play_bell();
+	time::sleep(500 * time::MILLISECOND);
 
 	fmt::println("")!;
 	fmt::println("        \x1b[36mPress Ctrl+C to end early\x1b[0m")!;
@@ -1752,11 +1780,11 @@ fn do_oogway(o: *opts) void = {
 	fmt::println("")!;
 	fmt::println("")!;
 
+	// Triple bell ved slutning
 	let b = 0u;
 	for (b < 3u; b += 1) {
-		fmt::print("\a")!;
-		bufio::flush(os::stdout)!;
-		time::sleep(400 * time::MILLISECOND);
+		play_bell();
+		time::sleep(800 * time::MILLISECOND);
 	};
 
 	fmt::println("                       \x1b[33m🔔  Ding...  🔔\x1b[0m")!;
