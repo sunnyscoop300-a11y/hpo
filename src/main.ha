@@ -7,7 +7,7 @@ use bufio;
 use time;
 use fs;
 
-def VERSION = "3.2.2";
+def VERSION = "3.2.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -37,6 +37,7 @@ fn tiger_quote() str = {
 
 type opts = struct {
 	oogway: bool,
+	oogway_sec: uint,
 	url:     str,
 	output:  str,
 	resume:  bool,
@@ -1705,7 +1706,6 @@ fn print_help() void = {
 	fmt::println("Skadoosh! The Dragon Warrior delivers.")!;
 };
 fn do_oogway(o: *opts) void = {
-	let _ = o;
 
 	const messages: [](uint, str) = [
 		(0u,   "Welcome, young one. Come, sit with me."),
@@ -1724,7 +1724,7 @@ fn do_oogway(o: *opts) void = {
 		(595u, "Open your eyes when you are ready."),
 	];
 
-	const total_seconds = 600u;
+	const total_seconds = o.oogway_sec;
 	let elapsed = 0u;
 	let msg_idx = 0z;
 
@@ -1843,6 +1843,7 @@ export fn main() void = {
 		zhen_setup = false,
 		zhen_proton = false,
 		oogway = false,
+		oogway_sec = 600u,
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -1907,6 +1908,28 @@ export fn main() void = {
                         o.zhen_proton = true;
                 } else if (a == "oogway") {
                         o.oogway = true;
+                        // Check om næste arg er et tal (custom varighed i sek)
+                        if (i + 1 < len(args)) {
+                                const next = strings::toutf8(args[i + 1]);
+                                let is_number = len(next) > 0;
+                                let j = 0z;
+                                for (j < len(next); j += 1) {
+                                        const ch = next[j];
+                                        if (ch < '0': u8 || ch > '9': u8) {
+                                                is_number = false;
+                                                break;
+                                        };
+                                };
+                                if (is_number) {
+                                        let n = 0u;
+                                        let k = 0z;
+                                        for (k < len(next); k += 1) {
+                                                n = n * 10u + (next[k] - '0': u8): uint;
+                                        };
+                                        o.oogway_sec = n;
+                                        i += 1;
+                                };
+                        };
                 } else if (a == "--cookie") {
                         i += 1;
                         if (i >= len(args)) {
