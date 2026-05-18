@@ -7,7 +7,7 @@ use bufio;
 use time;
 use fs;
 
-def VERSION = "3.3.2";
+def VERSION = "3.3.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1252,7 +1252,45 @@ fn do_steam(o: *opts, target: str) void = {
 	};
 };
 
-fn do_epic(o: *opts, gamename: str) void = {
+fn do_epic(o: *opts, gamename_in: str) void = {
+	// Læs Epic alias-fil og resolve gamename hvis det er et alias
+	const home_a = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let ealias_buf: [512]u8 = [0...];
+	const ealias_path = fmt::bsprintf(ealias_buf, "{}/.config/hpo/epic_aliases.txt", home_a)!;
+	let gamename = gamename_in;
+	match (os::open(ealias_path)) {
+	case let f: io::file =>
+		static let erbuf: [4096]u8 = [0...];
+		const en = match (io::read(f, erbuf)) {
+		case let n: size => yield n;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		const econtents = strings::fromutf8(erbuf[..en])!;
+		const elines = match (strings::split(econtents, "\n")) {
+		case let s: []str => yield s;
+		case => yield []: []str;
+		};
+		defer free(elines);
+		for (let i = 0z; i < len(elines); i += 1) {
+			const line = strings::trim(elines[i]);
+			if (len(line) == 0) continue;
+			const parts = match (strings::split(line, "=")) {
+			case let s: []str => yield s;
+			case => yield []: []str;
+			};
+			defer free(parts);
+			if (len(parts) >= 2 && strings::trim(parts[0]) == gamename_in) {
+				gamename = strings::trim(parts[1]);
+				break;
+			};
+		};
+	case => void;
+	};
+
 	// WSL bridge: brug Epic Games Launcher URI handler i Windows
 	if (is_wsl()) {
 		if (o.epic_cmd == "list") {
@@ -1271,14 +1309,14 @@ fn do_epic(o: *opts, gamename: str) void = {
 			fmt::println("")!;
 		};
 		static let epic_uri_buf: [512]u8 = [0...];
-		const epic_uri = fmt::bsprintf(epic_uri_buf, "com.epicgames.launcher://apps/{}?action={}", gamename, o.epic_cmd)!;
-		let epic_args: []str = alloc([], 5)!;
+		const epic_uri = fmt::bsprintf(epic_uri_buf, "com.epicgames.launcher://apps/{}?action={}&locale=en-US", gamename, o.epic_cmd)!;
+		static let cmd_str_buf: [1024]u8 = [0...];
+		const cmd_str = fmt::bsprintf(cmd_str_buf, "set LANG=en_US.UTF-8 && set LC_ALL=C && start \"\" {}", epic_uri)!;
+		let epic_args: []str = alloc([], 4)!;
 		defer free(epic_args);
 		append(epic_args, "cmd.exe")!;
 		append(epic_args, "/c")!;
-		append(epic_args, "start")!;
-		append(epic_args, "")!;
-		append(epic_args, epic_uri)!;
+		append(epic_args, cmd_str)!;
 		if (run_cmd(epic_args, o.nocolor)) {
 			if (!o.quiet) cprint(C_GREEN, "OK", "Epic action complete! The Dragon Warrior delivers!", o.nocolor);
 		} else {
@@ -1332,6 +1370,8 @@ fn do_epic(o: *opts, gamename: str) void = {
 		os::setenv("DXVK_ASYNC", "1")!;
 		os::setenv("WINE_FULLSCREEN_FSR", "1")!;
 		os::setenv("PROTON_ENABLE_NVAPI", "1")!;
+		os::setenv("LANG", "en_US.UTF-8")!;
+		os::setenv("LC_ALL", "en_US.UTF-8")!;
 		os::setenv("DXVK_NVAPI_ALLOW_OTHER_DRIVERS", "1")!;
 		os::setenv("PROTON_HIDE_NVIDIA_GPU", "0")!;
 		os::setenv("WINEESYNC", "1")!;
