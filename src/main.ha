@@ -7,7 +7,7 @@ use bufio;
 use time;
 use fs;
 
-def VERSION = "3.3.3";
+def VERSION = "3.3.4";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1310,13 +1310,13 @@ fn do_epic(o: *opts, gamename_in: str) void = {
 		};
 		static let epic_uri_buf: [512]u8 = [0...];
 		const epic_uri = fmt::bsprintf(epic_uri_buf, "com.epicgames.launcher://apps/{}?action={}&locale=en-US", gamename, o.epic_cmd)!;
-		static let cmd_str_buf: [1024]u8 = [0...];
-		const cmd_str = fmt::bsprintf(cmd_str_buf, "set LANG=en_US.UTF-8 && set LC_ALL=C && start \"\" {}", epic_uri)!;
-		let epic_args: []str = alloc([], 4)!;
+		let epic_args: []str = alloc([], 5)!;
 		defer free(epic_args);
 		append(epic_args, "cmd.exe")!;
 		append(epic_args, "/c")!;
-		append(epic_args, cmd_str)!;
+		append(epic_args, "start")!;
+		append(epic_args, "")!;
+		append(epic_args, epic_uri)!;
 		if (run_cmd(epic_args, o.nocolor)) {
 			if (!o.quiet) cprint(C_GREEN, "OK", "Epic action complete! The Dragon Warrior delivers!", o.nocolor);
 		} else {
