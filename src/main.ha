@@ -6,7 +6,7 @@ use strings;
 use time;
 use fs;
 
-def VERSION = "3.1.2";
+def VERSION = "3.1.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1247,12 +1247,13 @@ fn do_epic(o: *opts, gamename: str) void = {
 		const prefix = fmt::bsprintf(prefix_buf, "{}/{}", base, gamename)!;
 		os::mkdir(prefix, 0o755): void;
 		static let proton_buf: [512]u8 = [0...];
-			const zhen_proton_path = fmt::bsprintf(proton_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton10-34", home)!;
-		static let proton_buf2: [512]u8 = [0...];
-		const heroic_proton_path = fmt::bsprintf(proton_buf2, "{}/.var/app/com.heroicgameslauncher.hgl/config/heroic/tools/proton/GE-Proton10-34", home)!;
-		const proton_path = if (os::exists(zhen_proton_path)) zhen_proton_path else heroic_proton_path;
+		const proton_path = fmt::bsprintf(proton_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton10-34", home)!;
+		if (!os::exists(proton_path)) {
+			cprint(C_RED, "ERR", "Zhen Proton not found! Run: hpo --zhen-setup --proton", o.nocolor);
+			os::exit(1);
+		};
 		static let steam_buf: [512]u8 = [0...];
-		const steam_path = fmt::bsprintf(steam_buf, "{}/.var/app/com.heroicgameslauncher.hgl/.steam/steam", home)!;
+		const steam_path = fmt::bsprintf(steam_buf, "{}/.local/share/hpo/zhen", home)!;
 		os::setenv("WINEPREFIX", prefix)!;
 		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
 		os::setenv("STEAM_COMPAT_CLIENT_INSTALL_PATH", steam_path)!;
@@ -1275,21 +1276,31 @@ fn do_epic(o: *opts, gamename: str) void = {
 	};
 	let args: []str = alloc([], 8)!;
 	defer free(args);
+	if (o.epic_cmd == "install") {
+		// Python 3.14 multiprocessing forkserver workaround
+		os::setenv("PYTHON_MULTIPROCESSING_START_METHOD", "spawn")!;
+	};
 	append(args, "legendary")!;
 	append(args, o.epic_cmd)!;
 	append(args, gamename)!;
+	if (o.epic_cmd == "install") {
+		append(args, "--max-workers")!;
+		append(args, "1")!;
+	};
 	if (o.epic_cmd == "launch") {
 		const home2 = match (os::getenv("HOME")) {
 		case let s: str => yield s;
 		case void => yield "/tmp";
 		};
-		static let umu_buf: [512]u8 = [0...];
-		const zhen_path = fmt::bsprintf(umu_buf, "{}/.local/share/hpo/zhen/umu-run", home2)!;
-		const heroic_path = fmt::bsprintf(umu_buf, "{}/.var/app/com.heroicgameslauncher.hgl/config/heroic/tools/runtimes/umu/umu-run", home2)!;
-		const umu_path = if (os::exists(zhen_path)) zhen_path else heroic_path;
+		static let zhen_buf: [512]u8 = [0...];
+		const zhen_path = fmt::bsprintf(zhen_buf, "{}/.local/share/hpo/zhen/umu-run", home2)!;
+		if (!os::exists(zhen_path)) {
+			cprint(C_RED, "ERR", "Zhen engine not found! Run: hpo --zhen-setup --proton", o.nocolor);
+			os::exit(1);
+		};
 		append(args, "--no-wine")!;
 		append(args, "--wrapper")!;
-		append(args, umu_path)!;
+		append(args, zhen_path)!;
 	};
 	if (run_cmd(args, o.nocolor)) {
 		if (!o.quiet) {
