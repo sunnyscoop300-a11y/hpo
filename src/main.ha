@@ -7,7 +7,7 @@ use bufio;
 use time;
 use fs;
 
-def VERSION = "3.3.1";
+def VERSION = "3.3.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1253,6 +1253,41 @@ fn do_steam(o: *opts, target: str) void = {
 };
 
 fn do_epic(o: *opts, gamename: str) void = {
+	// WSL bridge: brug Epic Games Launcher URI handler i Windows
+	if (is_wsl()) {
+		if (o.epic_cmd == "list") {
+			cprint(C_RED, "ERR", "list action requires legendary (not available via WSL bridge)", o.nocolor);
+			os::exit(1);
+		};
+		if (!o.quiet) {
+			cprint(C_BLUE, "HPO", "Epic Games detected! Bridging to Windows...", o.nocolor);
+			if (!o.nocolor) fmt::print(C_YELLOW)!;
+			fmt::printfln("  Action: {}", o.epic_cmd)!;
+			fmt::printfln("  Game:   {}", gamename)!;
+			if (!o.nocolor) fmt::print(C_RESET)!;
+			fmt::println("")!;
+			cprint(C_YELLOW, "ZHEN", "Bridging to Windows Epic Launcher via WSL...", o.nocolor);
+			cprint(C_GREEN, "EPIC", "Skadoosh! Po races to Epic through the Zhen bridge!", o.nocolor);
+			fmt::println("")!;
+		};
+		static let epic_uri_buf: [512]u8 = [0...];
+		const epic_uri = fmt::bsprintf(epic_uri_buf, "com.epicgames.launcher://apps/{}?action={}", gamename, o.epic_cmd)!;
+		let epic_args: []str = alloc([], 5)!;
+		defer free(epic_args);
+		append(epic_args, "cmd.exe")!;
+		append(epic_args, "/c")!;
+		append(epic_args, "start")!;
+		append(epic_args, "")!;
+		append(epic_args, epic_uri)!;
+		if (run_cmd(epic_args, o.nocolor)) {
+			if (!o.quiet) cprint(C_GREEN, "OK", "Epic action complete! The Dragon Warrior delivers!", o.nocolor);
+		} else {
+			if (!o.quiet) cprint(C_RED, "FAIL", "Epic action failed!", o.nocolor);
+			os::exit(1);
+		};
+		return;
+	};
+
 	if (!check_tool("legendary")) {
 		cprint(C_RED, "ERR", "legendary not found! Install: pipx install legendary-gl", o.nocolor);
 		os::exit(1);
