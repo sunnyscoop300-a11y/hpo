@@ -7,7 +7,7 @@ use bufio;
 use time;
 use fs;
 
-def VERSION = "3.2.3";
+def VERSION = "3.3.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1090,6 +1090,21 @@ fn do_zhen_setup(o: *opts) void = {
 	};
 };
 
+fn is_wsl() bool = {
+	const f = match (os::open("/proc/version")) {
+	case let file: io::file => yield file;
+	case => return false;
+	};
+	defer io::close(f)!;
+	static let buf: [512]u8 = [0...];
+	const n = match (io::read(f, buf)) {
+	case let nn: size => yield nn;
+	case => return false;
+	};
+	const s = strings::fromutf8(buf[..n])!;
+	return strings::contains(s, "Microsoft") || strings::contains(s, "microsoft") || strings::contains(s, "WSL");
+};
+
 fn do_steam(o: *opts, target: str) void = {
 	const home = match (os::getenv("HOME")) {
 	case let s: str => yield s;
@@ -1171,14 +1186,17 @@ fn do_steam(o: *opts, target: str) void = {
 	const action = if (o.steam_cmd == "install") "install" else "rungameid";
 	const uri = fmt::bsprintf(uri_buf, "steam://{}/{}", action, appid)!;
 
-	// Auto-link Zhen's GE-Proton til Steam så Steam-spil bruger samme engine
+	// WSL detection: hvis vi er på WSL, bridge til Windows Steam i stedet
+	const on_wsl = is_wsl();
+
+	// Auto-link Zhen's GE-Proton til Steam (kun på native Linux, ikke WSL)
 	static let zhen_src_buf: [512]u8 = [0...];
 	const zhen_proton_src = fmt::bsprintf(zhen_src_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton10-34", home)!;
 	static let steam_compat_buf: [512]u8 = [0...];
 	const steam_compat_dir = fmt::bsprintf(steam_compat_buf, "{}/.var/app/com.valvesoftware.Steam/.local/share/Steam/compatibilitytools.d", home)!;
 	static let steam_target_buf: [512]u8 = [0...];
 	const steam_target = fmt::bsprintf(steam_target_buf, "{}/GE-Proton10-34", steam_compat_dir)!;
-	if (os::exists(zhen_proton_src) && !os::exists(steam_target)) {
+	if (!on_wsl && os::exists(zhen_proton_src) && !os::exists(steam_target)) {
 		if (!o.quiet) cprint(C_YELLOW, "ZHEN", "Linking Zhen's GE-Proton to Steam...", o.nocolor);
 		os::mkdir(steam_compat_dir, 0o755): void;
 		let ln_args: []str = alloc([], 5)!;
@@ -1197,14 +1215,24 @@ fn do_steam(o: *opts, target: str) void = {
 		fmt::printfln("  AppID:  {}", appid)!;
 		if (!o.nocolor) fmt::print(C_RESET)!;
 		fmt::println("")!;
-		cprint(C_GREEN, "STEAM", "Skadoosh! Po races to Steam with Zhen's engine!", o.nocolor);
+		if (on_wsl) {
+			cprint(C_GREEN, "WSL", "Skadoosh! Po bridges to Windows Steam!", o.nocolor);
+		} else {
+			cprint(C_GREEN, "STEAM", "Skadoosh! Po races to Steam with Zhen's engine!", o.nocolor);
+		};
 		fmt::println("")!;
 	};
 
-	// Bestem om vi bruger Flatpak eller native steam
+	// Bestem launch-metode: WSL → cmd.exe, native Linux → steam/flatpak
 	let steam_args: []str = alloc([], 6)!;
 	defer free(steam_args);
-	if (check_tool("steam")) {
+	if (on_wsl) {
+		append(steam_args, "cmd.exe")!;
+		append(steam_args, "/c")!;
+		append(steam_args, "start")!;
+		append(steam_args, "")!;
+		append(steam_args, uri)!;
+	} else if (check_tool("steam")) {
 		append(steam_args, "steam")!;
 		append(steam_args, uri)!;
 	} else {
