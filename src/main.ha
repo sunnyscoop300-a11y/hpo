@@ -7,7 +7,7 @@ use bufio;
 use time;
 use fs;
 
-def VERSION = "3.3.0";
+def VERSION = "3.3.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1216,8 +1216,10 @@ fn do_steam(o: *opts, target: str) void = {
 		if (!o.nocolor) fmt::print(C_RESET)!;
 		fmt::println("")!;
 		if (on_wsl) {
-			cprint(C_GREEN, "WSL", "Skadoosh! Po bridges to Windows Steam!", o.nocolor);
+			cprint(C_YELLOW, "ZHEN", "Bridging to Windows Steam via WSL...", o.nocolor);
+			cprint(C_GREEN, "STEAM", "Skadoosh! Po races to Steam through the Zhen bridge!", o.nocolor);
 		} else {
+			cprint(C_YELLOW, "ZHEN", "Dragon Warrior engine activated!", o.nocolor);
 			cprint(C_GREEN, "STEAM", "Skadoosh! Po races to Steam with Zhen's engine!", o.nocolor);
 		};
 		fmt::println("")!;
