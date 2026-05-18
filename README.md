@@ -1,52 +1,51 @@
-# hpo 🐯
-**The Hare Download Manager** — built with [Hare](https://harelang.org)
+# hpo 🐯🐉
 
-```
-  _    _  _____   ___  
- | |  | ||  __ \ / _ \ 
- | |__| || |__) | | | |
- |  __  ||  ___/| | | |
- | |  | || |    | |_| |
- |_|  |_||_|     \___/ 
-```
+**The Hare Download & Game Manager** — built with [Hare](https://harelang.org)
+> *"There are no accidents."* — Master Oogway
 
-> *"Anything is possible when you have inner peace."* — Tigress
+A self-contained CLI tool that downloads files, launches Epic and Steam games via a custom self-built engine, and even guides you through a 10-minute meditation with Master Oogway and a real Tibetan bell.
 
 ---
 
-## Features
+## ✨ Features
 
-- **HTTP/HTTPS/FTP** downloads with a dragon progress bar
-- **Magnet links** via aria2c with Tigress wisdom on completion 🐯
-- **Google Drive** downloads via gdown
-- **Rooster links** — AES-256-CBC encrypted URLs you can share safely
-- Resume interrupted downloads with `-r`
-- Rate limiting with `-R`
-- Quiet and no-color modes
+### 🎮 Game Launchers
+- **Epic Games** via [legendary](https://github.com/derrod/legendary) + Zhen engine
+- **Steam** via URI handler with auto Zhen-Proton symlinking
+- **Zhen engine** — self-contained gaming runtime (umu-launcher + GE-Proton)
+- No dependency on Heroic, Lutris, or other launchers
+- Short alias syntax: `hpo --steam kao` launches Kao the Kangaroo
+
+### 📥 Downloads
+- **HTTP/HTTPS/FTP** with dragon progress bar
+- **Google Drive** via gdown
+- **Magnet links** via aria2c
+- **Rooster links** — AES-256-CBC encrypted URLs
+- **Suno music** with HTML entity decoder + auto MP3 conversion
+- **Bearer token** and **cookie** auth support
+- Resume, rate limiting, custom User-Agent
+
+### 🐢 Inner Peace
+- `hpo oogway` — 10-minute guided meditation
+- 14 timed coaching messages from Master Oogway
+- Visual breathing guide (4s in, 4s hold, 4s out)
+- Real meditation bell from Big Sur, CA (CC0)
 
 ---
 
-## Dependencies
+## 📦 Installation
 
-| Tool | Purpose |
-|------|---------|
-| `curl` | HTTP/HTTPS/FTP downloads |
-| `aria2c` | Magnet/torrent downloads |
-| `openssl` | Rooster link encryption |
-| `gdown` | Google Drive downloads |
-
-Install on Debian/Ubuntu/Mint:
+### Dependencies
 ```bash
-sudo apt install curl aria2 openssl
-pip install gdown
+# Debian/Ubuntu/FluxLinux
+sudo apt install curl aria2 openssl ffmpeg python3-pip mpv
+pipx install gdown legendary-gl
+
+# Void Linux
+sudo xbps-install -S curl aria2 openssl ffmpeg legendary mpv
 ```
 
----
-
-## Build
-
-Requires the [Hare toolchain](https://harelang.org).
-
+### Build hpo
 ```bash
 git clone https://github.com/sunnyscoop300-a11y/hpo.git
 cd hpo
@@ -54,86 +53,106 @@ hare build -o hpo src/main.ha
 sudo install -m755 hpo /usr/local/bin/hpo
 ```
 
----
-
-## Usage
-
+### Install Zhen engine (for game launching)
+```bash
+hpo --zhen-setup --proton   # ~700 MB download
 ```
-hpo <url|magnet|rooster> [options]
 
-OPTIONS:
-  -o <path>     Output file or directory
-  -r            Resume interrupted download
-  -R <speed>    Rate limit (e.g. 500k, 2m, 1g)
-  -u <agent>    Custom User-Agent
-  -s <mins>     Seed time after torrent (default: 0)
-  --lock <url>  Create a Rooster link (encrypted URL)
-  --code <key>  Secret code for Rooster links
-  -v            Verbose output
-  -q            Quiet mode
-  --no-color    Disable colors
-  -h            Help
+### Install meditation bell (optional, for hpo oogway)
+```bash
+mkdir -p ~/.local/share/hpo
+curl -L -o ~/.local/share/hpo/bell.mp3 \
+  "https://archive.org/download/LovelyMeditationBell/STE-015.mp3"
 ```
 
 ---
 
-## Examples
+## 🚀 Usage
 
-**HTTP download:**
+### Downloads
 ```bash
 hpo https://example.com/file.zip
-```
-
-**Rate limited download:**
-```bash
-hpo https://example.com/file.zip -R 2m
-```
-
-**Resume interrupted download:**
-```bash
-hpo https://example.com/file.zip -o /tmp/file.zip -r
-```
-
-**Magnet link:**
-```bash
+hpo https://example.com/big.iso -R 2m -r
 hpo "magnet:?xt=urn:btih:abc123..."
+hpo --lock https://secret.com/file.zip --code mykey
+hpo "rooster:?xt=AES256:..." --code mykey
 ```
 
-**Google Drive:**
+### Epic Games
 ```bash
-hpo https://drive.google.com/file/d/FILE_ID/view
+hpo --epic list
+hpo --epic install Salt
+hpo --epic launch celeste
 ```
 
-**Encrypt a URL into a Rooster link:**
+### Steam
 ```bash
-hpo --lock https://example.com/secret.zip --code mysecret
-# Outputs: rooster:?xt=AES256:...
+hpo --steam list
+hpo --steam install 1370140
+hpo --steam launch kao
+hpo --steam kao
 ```
 
-**Download via Rooster link:**
+Steam aliases live in `~/.config/hpo/steam_aliases.txt`:
+### Meditation
 ```bash
-hpo "rooster:?xt=AES256:..." --code mysecret
-```
-
-**Rooster + Magnet (ultimate combo):**
-```bash
-hpo --lock "magnet:?xt=urn:btih:abc123..." --code mysecret
-hpo "rooster:?xt=AES256:..." --code mysecret
+hpo oogway
 ```
 
 ---
 
-## Backends
+## 🐉 The Zhen Engine
 
-| URL type | Backend |
-|----------|---------|
-| `http://` / `https://` / `ftp://` | curl |
-| `magnet:` | aria2c |
-| `https://drive.google.com/` | gdown |
-| `rooster:` | openssl → resolved backend |
+Zhen is hpo's self-contained gaming runtime, named after the fox who becomes the next Dragon Warrior in Kung Fu Panda 4. It bundles:
+
+- **umu-launcher** 1.4.0 (Wine/Proton wrapper)
+- **GE-Proton10-34** (Glorious Eggroll's Proton fork)
+
+Installed to `~/.local/share/hpo/zhen/`. No system Wine needed. Steam games auto-symlink GE-Proton to Steam's `compatibilitytools.d`.
 
 ---
 
-## Version
+## 🎮 Confirmed Working Games
 
-hpo 1.4.1
+**FluxLinux (GTX 1070):**
+- ABZU, GRIME (Epic)
+- DreamWorks All-Star Kart Racing 🐼 (Steam)
+- Kao the Kangaroo 🦘 (Steam)
+
+**Void Linux (Intel iGPU, gen 8 i5):**
+- Celeste 🏔️ (Epic, via XNA/FNA)
+
+---
+
+## 🛠️ Architecture
+
+Written in [Hare](https://harelang.org) — a small systems programming language with manual memory management and no garbage collection. The entire launcher, download manager, and meditation session is one statically-linked binary.
+
+**Backends invoked via `os::exec`:**
+- HTTP/HTTPS/FTP → `curl`
+- Google Drive → `gdown`
+- Magnet → `aria2c`
+- Rooster → `openssl`
+- Suno → `curl` + `ffmpeg`
+- Epic → `legendary` + Zhen umu-run
+- Steam → URI handler (`xdg-open steam://...`)
+- Meditation bell → `mpv`
+
+---
+
+## 🐢 Philosophy
+
+> *"Yesterday is history. Tomorrow is a mystery. But today is a gift. That is why it is called the present."*
+> — Master Oogway
+
+hpo is a hobby project. It is not perfect. But it is mine, and it is what I wanted to build. Skadoosh!
+
+---
+
+## 📄 License
+
+MIT
+
+---
+
+*Built with Hare, GE-Proton, Big Sur bells, and Kung Fu Panda energy.* 🥋🍍
