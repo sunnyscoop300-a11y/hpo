@@ -3,10 +3,11 @@ use io;
 use os;
 use os::exec;
 use strings;
+use bufio;
 use time;
 use fs;
 
-def VERSION = "3.1.3";
+def VERSION = "3.2.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -35,6 +36,7 @@ fn tiger_quote() str = {
 };
 
 type opts = struct {
+	oogway: bool,
 	url:     str,
 	output:  str,
 	resume:  bool,
@@ -1646,6 +1648,123 @@ fn print_help() void = {
 	fmt::println("  rooster:        -> openssl (AES-256-CBC)\n")!;
 };
 
+fn do_oogway(o: *opts) void = {
+	let _ = o;
+
+	const messages: [](uint, str) = [
+		(0u,   "Welcome, young one. Come, sit with me."),
+		(20u,  "Let your shoulders fall. Release the day's burdens."),
+		(50u,  "Breathe like the mountain breathes. Slow. Steady."),
+		(90u,  "Your mind is like this water. When agitated, it is hard to see."),
+		(140u, "But if you allow it to settle... the answer becomes clear."),
+		(200u, "There are no accidents. You are exactly where you need to be."),
+		(260u, "Halfway. You are doing well. The path itself is the goal."),
+		(320u, "Yesterday is history. Tomorrow is a mystery."),
+		(360u, "But today... today is a gift. That is why it is called the present."),
+		(420u, "There is just news. There is no good or bad."),
+		(480u, "The mark of a true hero is humility."),
+		(540u, "Soon you will return. Carry this stillness with you."),
+		(580u, "Slowly... begin to come back to the world."),
+		(595u, "Open your eyes when you are ready."),
+	];
+
+	const total_seconds = 600u;
+	let elapsed = 0u;
+	let msg_idx = 0z;
+
+	fmt::print("\x1b[2J\x1b[H")!;
+	fmt::println("")!;
+	fmt::println("                    \x1b[33m🐢  HPO OOGWAY  🐢\x1b[0m")!;
+	fmt::println("")!;
+	fmt::println("                  \x1b[36m┏━━━━━━━━━━━━━━━━━━━━━━┓\x1b[0m")!;
+	fmt::println("                  \x1b[36m┃  Inner Peace Session  ┃\x1b[0m")!;
+	fmt::println("                  \x1b[36m┗━━━━━━━━━━━━━━━━━━━━━━┛\x1b[0m")!;
+	fmt::println("")!;
+	fmt::println("                         \x1b[32m___\x1b[0m")!;
+	fmt::println("                     \x1b[32m,uadOOOOOOOba.,\x1b[0m")!;
+	fmt::println("                  \x1b[32m,uOOOOOOOOOOOOOOOb,\x1b[0m")!;
+	fmt::println("                \x1b[32m,OOOOOOOOOOOOOOOOOOOOb,\x1b[0m")!;
+	fmt::println("               \x1b[32mdOOOOOOOOO\x1b[33m_,_\x1b[32mOOOOOOOOOb\x1b[0m")!;
+	fmt::println("              \x1b[32mdOOOOOOOO\x1b[33m( o o )\x1b[32mOOOOOOOOb\x1b[0m")!;
+	fmt::println("              \x1b[32mOOOOOOOO\x1b[33m  \\_/  \x1b[32mOOOOOOOOO\x1b[0m")!;
+	fmt::println("              \x1b[32m`OOOOOOOOOOOOOOOOOOOOOO\x1b[0m'")!;
+	fmt::println("                \x1b[32m`OOOOOOOOOOOOOOOOOO'\x1b[0m")!;
+	fmt::println("")!;
+
+	fmt::print("\a")!;
+	bufio::flush(os::stdout)!;
+	time::sleep(300 * time::MILLISECOND);
+	fmt::print("\a")!;
+	bufio::flush(os::stdout)!;
+
+	fmt::println("")!;
+	fmt::println("        \x1b[36mPress Ctrl+C to end early\x1b[0m")!;
+	fmt::println("")!;
+
+	for (elapsed < total_seconds) {
+		const remaining = total_seconds - elapsed;
+		const minutes = remaining / 60;
+		const seconds = remaining % 60;
+
+		if (msg_idx < len(messages) && messages[msg_idx].0 == elapsed) {
+			fmt::println("")!;
+			fmt::printfln("        \x1b[35m\"{}\"\x1b[0m", messages[msg_idx].1)!;
+			fmt::println("                              \x1b[33m— Oogway\x1b[0m")!;
+			fmt::println("")!;
+			msg_idx += 1;
+		};
+
+		const breath_phase = elapsed % 12u;
+		const breath_label = if (breath_phase < 4u) "\x1b[34mBreathe in...\x1b[0m  "
+			else if (breath_phase < 8u) "\x1b[36mHold...      \x1b[0m  "
+			else "\x1b[34mBreathe out..\x1b[0m  ";
+
+		const bar_pos = if (breath_phase < 4u) breath_phase * 2u
+			else if (breath_phase < 8u) 8u
+			else 8u - (breath_phase - 8u) * 2u;
+
+		let bar_str = strings::concat("[")!;
+		defer free(bar_str);
+		let bi = 0u;
+		for (bi < 8u; bi += 1) {
+			const old = bar_str;
+			if (bi < bar_pos) {
+				bar_str = strings::concat(old, "●")!;
+			} else {
+				bar_str = strings::concat(old, "○")!;
+			};
+			free(old);
+		};
+		const closed = strings::concat(bar_str, "]")!;
+		defer free(closed);
+
+		const min_str = if (minutes < 10) "0" else "";
+		const sec_str = if (seconds < 10) "0" else "";
+		fmt::printf("\r  \x1b[33m{}{}:{}{}\x1b[0m  {}  \x1b[32m{}\x1b[0m   ",
+			min_str, minutes, sec_str, seconds, breath_label, closed)!;
+		bufio::flush(os::stdout)!;
+
+		time::sleep(1 * time::SECOND);
+		elapsed += 1;
+	};
+
+	fmt::println("")!;
+	fmt::println("")!;
+	fmt::println("")!;
+
+	let b = 0u;
+	for (b < 3u; b += 1) {
+		fmt::print("\a")!;
+		bufio::flush(os::stdout)!;
+		time::sleep(400 * time::MILLISECOND);
+	};
+
+	fmt::println("                       \x1b[33m🔔  Ding...  🔔\x1b[0m")!;
+	fmt::println("")!;
+	fmt::println("        \x1b[32mInner peace achieved. Skadoosh.\x1b[0m")!;
+	fmt::println("                              \x1b[33m— Master Oogway\x1b[0m")!;
+	fmt::println("")!;
+};
 export fn main() void = {
 	const args = os::args;
 	if (len(args) < 2) {
@@ -1669,6 +1788,7 @@ export fn main() void = {
 		steam_cmd = "",
 		zhen_setup = false,
 		zhen_proton = false,
+		oogway = false,
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -1731,6 +1851,8 @@ export fn main() void = {
                         o.zhen_setup = true;
                 } else if (a == "--proton") {
                         o.zhen_proton = true;
+                } else if (a == "oogway") {
+                        o.oogway = true;
                 } else if (a == "--cookie") {
                         i += 1;
                         if (i >= len(args)) {
@@ -1773,6 +1895,10 @@ export fn main() void = {
 		} else {
 			o.url = a;
 		};
+	};
+	if (o.oogway) {
+		do_oogway(&o);
+		return;
 	};
 	if (o.zhen_setup) {
 		do_zhen_setup(&o);
