@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.7.2";
+def VERSION = "3.7.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1250,6 +1250,10 @@ fn do_steam(o: *opts, target: str) void = {
 	} else {
 		append(steam_args, "flatpak")!;
 		append(steam_args, "run")!;
+		// ZHEN: Pass GE-Proton override into Flatpak sandbox
+		if (os::exists(steam_target)) {
+			append(steam_args, "--env=STEAM_COMPAT_TOOL_OVERRIDE=GE-Proton10-34")!;
+		};
 		append(steam_args, "com.valvesoftware.Steam")!;
 		append(steam_args, uri)!;
 	};
