@@ -1232,6 +1232,10 @@ fn do_steam(o: *opts, target: str) void = {
 	};
 
 	// Bestem launch-metode: WSL → cmd.exe, native Linux → steam/flatpak
+	// ZHEN: Force GE-Proton som default compatibility tool
+	if (!on_wsl && os::exists(steam_target)) {
+		os::setenv("STEAM_COMPAT_TOOL_OVERRIDE", "GE-Proton10-34")!;
+	};
 	let steam_args: []str = alloc([], 6)!;
 	defer free(steam_args);
 	if (on_wsl) {
