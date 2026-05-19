@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.4.0";
+def VERSION = "3.4.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -40,6 +40,7 @@ type opts = struct {
 	oogway: bool,
 	oogway_sec: uint,
 	roz: bool,
+	roz_city: str,
 	url:     str,
 	output:  str,
 	resume:  bool,
@@ -2006,6 +2007,30 @@ fn parse_json_str(json: str, key: str) str = {
 	return strings::dup(strings::sub(no_quote, 0, end))!;
 };
 
+fn url_encode(s: str) str = {
+	// Simpel URL-encoder for non-ASCII bytes
+	const bytes = strings::toutf8(s);
+	let result = strings::dup("")!;
+	for (let i = 0z; i < len(bytes); i += 1) {
+		const b = bytes[i];
+		if ((b >= 'A': u8 && b <= 'Z': u8) || (b >= 'a': u8 && b <= 'z': u8) || (b >= '0': u8 && b <= '9': u8) || b == '-': u8 || b == '_': u8 || b == '.': u8 || b == '~': u8) {
+			static let cbuf: [2]u8 = [0...];
+			cbuf[0] = b;
+			cbuf[1] = 0;
+			const old = result;
+			result = strings::concat(old, strings::fromutf8(cbuf[..1])!)!;
+			free(old);
+		} else {
+			static let hex_buf: [8]u8 = [0...];
+			const encoded = fmt::bsprintf(hex_buf, "%{:x}", b)!;
+			const old = result;
+			result = strings::concat(old, encoded)!;
+			free(old);
+		};
+	};
+	return result;
+};
+
 fn do_roz(o: *opts) void = {
 	let _ = o;
 
@@ -2027,14 +2052,22 @@ fn do_roz(o: *opts) void = {
 
 	cprint(C_CYAN, "ROZ", "Locating sensor position...", false);
 
-	// Step 1: Få lat/lon/city fra ipapi.co
-	let loc_args: []str = alloc([], 4)!;
+	// Step 1: Få lat/lon/city - geocoding hvis by er givet, ellers IP
+	let loc_args: []str = alloc([], 5)!;
 	defer free(loc_args);
 	append(loc_args, "curl")!;
 	append(loc_args, "-s")!;
 	append(loc_args, "--max-time")!;
 	append(loc_args, "10")!;
-	append(loc_args, "https://ipapi.co/json/")!;
+	if (len(o.roz_city) > 0) {
+		const encoded_city = url_encode(o.roz_city);
+		defer free(encoded_city);
+		static let geo_url_buf: [512]u8 = [0...];
+		const geo_url = fmt::bsprintf(geo_url_buf, "https://geocoding-api.open-meteo.com/v1/search?name={}&count=1", encoded_city)!;
+		append(loc_args, geo_url)!;
+	} else {
+		append(loc_args, "http://ip-api.com/json/")!;
+	};
 
 	const loc_cmd = match (exec::cmd("curl", loc_args[1..]...)) {
 	case let c: exec::command => yield c;
@@ -2060,10 +2093,27 @@ fn do_roz(o: *opts) void = {
 	exec::wait(&loc_proc)!;
 	const loc_json = strings::fromutf8(loc_buf[..loc_n])!;
 
-	const lat = parse_json_num(loc_json, "latitude");
-	const lon = parse_json_num(loc_json, "longitude");
-	const city = parse_json_str(loc_json, "city");
-	const country = parse_json_str(loc_json, "country_name");
+	let lat: f64 = 0.0;
+	let lon: f64 = 0.0;
+	let city: str = "";
+	let country: str = "";
+	if (len(o.roz_city) > 0) {
+		// Open-Meteo geocoding API - skip forbi "results":[{ til selve resultatet
+		const sliced = match (strings::index(loc_json, "\"results\":[{")) {
+		case let idx: size => yield strings::sub(loc_json, idx, strings::end);
+		case void => yield loc_json;
+		};
+		lat = parse_json_num(sliced, "latitude");
+		lon = parse_json_num(sliced, "longitude");
+		city = parse_json_str(sliced, "name");
+		country = parse_json_str(sliced, "country");
+	} else {
+		// ip-api.com
+		lat = parse_json_num(loc_json, "lat");
+		lon = parse_json_num(loc_json, "lon");
+		city = parse_json_str(loc_json, "city");
+		country = parse_json_str(loc_json, "country");
+	};
 
 	cprint(C_CYAN, "ROZ", "Scanning sky conditions...", false);
 	fmt::println("")!;
@@ -2152,6 +2202,7 @@ export fn main() void = {
 		oogway = false,
 		oogway_sec = 600u,
 		roz = false,
+		roz_city = "",
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -2222,6 +2273,11 @@ export fn main() void = {
                                 if (next == "vejr" || next == "weather" || next == "-w") {
                                         i += 1;
                                 };
+                        };
+                        // Tjek om der er en by-arg efter "vejr"
+                        if (i + 1 < len(args)) {
+                                o.roz_city = args[i + 1];
+                                i += 1;
                         };
                 } else if (a == "oogway") {
                         o.oogway = true;
