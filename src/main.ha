@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.5.0";
+def VERSION = "3.5.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2220,6 +2220,31 @@ fn do_shifu(o: *opts) void = {
 	let user_lon: f64 = 0.0;
 	let user_city: str = "";
 
+	// Tjek cache for IP-location (kun hvis ingen city-override)
+	const home_x = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let cache_dir_buf: [512]u8 = [0...];
+	const cache_dir = fmt::bsprintf(cache_dir_buf, "{}/.cache/hpo", home_x)!;
+	os::mkdir(cache_dir, 0o755): void;
+	static let loc_cache_buf: [512]u8 = [0...];
+	const loc_cache_path = fmt::bsprintf(loc_cache_buf, "{}/location.json", cache_dir)!;
+
+	let use_cache = false;
+	if (len(o.shifu_city) == 0 && os::exists(loc_cache_path)) {
+		// Tjek alder på cache via stat
+		match (os::stat(loc_cache_path)) {
+		case let st: fs::filestat =>
+			const now = time::now(time::clock::REALTIME);
+			const age_sec = now.sec - st.mtime.sec;
+			if (age_sec < 604800) { // 7 dage
+				use_cache = true;
+			};
+		case => void;
+		};
+	};
+
 	let loc_args: []str = alloc([], 5)!;
 	defer free(loc_args);
 	append(loc_args, "curl")!;
@@ -2242,21 +2267,44 @@ fn do_shifu(o: *opts) void = {
 		cprint(C_RED, "SHIFU", "Cannot locate sensor position.", false);
 		return;
 	};
-	const loc_pipe = exec::pipe();
-	exec::addfile(&loc_cmd, os::stdout_file, loc_pipe.1)!;
-	const loc_proc = match (exec::start(&loc_cmd)) {
-	case let p: exec::process => yield p;
-	case => return;
-	};
-	io::close(loc_pipe.1)!;
+	let loc_json: str = "";
 	static let loc_buf: [4096]u8 = [0...];
-	const loc_n = match (io::read(loc_pipe.0, loc_buf)) {
-	case let nn: size => yield nn;
-	case => yield 0z;
+
+	if (use_cache) {
+		cprint(C_CYAN, "SHIFU", "Using cached location...", false);
+		const cf = os::open(loc_cache_path)!;
+		defer io::close(cf)!;
+		const cn = match (io::read(cf, loc_buf)) {
+		case let nn: size => yield nn;
+		case => yield 0z;
+		};
+		loc_json = strings::fromutf8(loc_buf[..cn])!;
+	} else {
+		const loc_pipe = exec::pipe();
+		exec::addfile(&loc_cmd, os::stdout_file, loc_pipe.1)!;
+		const loc_proc = match (exec::start(&loc_cmd)) {
+		case let p: exec::process => yield p;
+		case => return;
+		};
+		io::close(loc_pipe.1)!;
+		const loc_n = match (io::read(loc_pipe.0, loc_buf)) {
+		case let nn: size => yield nn;
+		case => yield 0z;
+		};
+		io::close(loc_pipe.0)!;
+		exec::wait(&loc_proc)!;
+		loc_json = strings::fromutf8(loc_buf[..loc_n])!;
+
+		// Gem til cache (kun hvis IP-lookup)
+		if (len(o.shifu_city) == 0) {
+			match (os::create(loc_cache_path, 0o644)) {
+			case let wf: io::file =>
+				io::writeall(wf, strings::toutf8(loc_json))!;
+				io::close(wf)!;
+			case => void;
+			};
+		};
 	};
-	io::close(loc_pipe.0)!;
-	exec::wait(&loc_proc)!;
-	const loc_json = strings::fromutf8(loc_buf[..loc_n])!;
 
 	if (len(o.shifu_city) > 0) {
 		const sliced = match (strings::index(loc_json, "\"results\":[{")) {
@@ -2327,6 +2375,23 @@ fn do_shifu(o: *opts) void = {
 	fmt::printfln("\x1b[36m[SHIFU]\x1b[0m Searching cinemas near \x1b[33m{}\x1b[0m...", user_city)!;
 	fmt::println("")!;
 
+	// Tjek cinemas-cache (key: lat+lon, gælder 7 dage)
+	static let cin_cache_buf: [512]u8 = [0...];
+	const cin_cache_path = fmt::bsprintf(cin_cache_buf, "{}/cinemas_{}_{}.json", cache_dir, user_lat: int, user_lon: int)!;
+
+	let use_cin_cache = false;
+	if (os::exists(cin_cache_path)) {
+		match (os::stat(cin_cache_path)) {
+		case let st: fs::filestat =>
+			const now = time::now(time::clock::REALTIME);
+			const age_sec = now.sec - st.mtime.sec;
+			if (age_sec < 604800) {
+				use_cin_cache = true;
+			};
+		case => void;
+		};
+	};
+
 	// Step 2: Overpass query
 	static let q_buf: [512]u8 = [0...];
 	const q = fmt::bsprintf(q_buf, "[out:json];nwr[amenity=cinema](around:50000,{},{});out center;", user_lat, user_lon)!;
@@ -2347,31 +2412,55 @@ fn do_shifu(o: *opts) void = {
 	append(args, "Accept: application/json")!;
 	append(args, url)!;
 
-	const cmd = match (exec::cmd("curl", args[1..]...)) {
-	case let c: exec::command => yield c;
-	case => return;
-	};
-	const pipe = exec::pipe();
-	exec::addfile(&cmd, os::stdout_file, pipe.1)!;
-	const proc = match (exec::start(&cmd)) {
-	case let p: exec::process => yield p;
-	case => return;
-	};
-	io::close(pipe.1)!;
 	static let resp_buf: [65536]u8 = [0...];
 	let total: size = 0;
-	for (true) {
-		const n = match (io::read(pipe.0, resp_buf[total..])) {
-		case let nn: size => yield nn;
-		case io::EOF => break;
-		case => break;
+	if (use_cin_cache) {
+		cprint(C_CYAN, "SHIFU", "Using cached cinema data...", false);
+		const cf = os::open(cin_cache_path)!;
+		defer io::close(cf)!;
+		for (true) {
+			const n = match (io::read(cf, resp_buf[total..])) {
+			case let nn: size => yield nn;
+			case io::EOF => break;
+			case => break;
+			};
+			if (n == 0) break;
+			total += n;
+			if (total >= len(resp_buf)) break;
 		};
-		if (n == 0) break;
-		total += n;
-		if (total >= len(resp_buf)) break;
+	} else {
+		const cmd = match (exec::cmd("curl", args[1..]...)) {
+		case let c: exec::command => yield c;
+		case => return;
+		};
+		const pipe = exec::pipe();
+		exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+		const proc = match (exec::start(&cmd)) {
+		case let p: exec::process => yield p;
+		case => return;
+		};
+		io::close(pipe.1)!;
+		for (true) {
+			const n = match (io::read(pipe.0, resp_buf[total..])) {
+			case let nn: size => yield nn;
+			case io::EOF => break;
+			case => break;
+			};
+			if (n == 0) break;
+			total += n;
+			if (total >= len(resp_buf)) break;
+		};
+		io::close(pipe.0)!;
+		exec::wait(&proc)!;
+
+		// Gem til cache
+		match (os::create(cin_cache_path, 0o644)) {
+		case let wf: io::file =>
+			io::writeall(wf, resp_buf[..total])!;
+			io::close(wf)!;
+		case => void;
+		};
 	};
-	io::close(pipe.0)!;
-	exec::wait(&proc)!;
 
 	const resp = strings::fromutf8(resp_buf[..total])!;
 
