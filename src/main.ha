@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.6.0";
+def VERSION = "3.6.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2204,15 +2204,45 @@ fn dist_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) f64 = {
 
 fn do_shifu(o: *opts) void = {
 	fmt::println("")!;
-	fmt::println("                  \x1b[33m🐭  [MASTER SHIFU]  🐭\x1b[0m")!;
-	fmt::println("                     \x1b[36mCinema Guidance Mode\x1b[0m")!;
+	fmt::println("              \x1b[33m🐭  [MASTER SHIFU]  🐭\x1b[0m")!;
+	fmt::println("                 \x1b[36mCinema Guidance Mode\x1b[0m")!;
 	fmt::println("")!;
-	fmt::println("                       \x1b[35m    .--.\x1b[0m")!;
-	fmt::println("                       \x1b[35m   ( oo )\x1b[0m")!;
-	fmt::println("                       \x1b[35m    \\__/\x1b[0m")!;
-	fmt::println("                       \x1b[35m    /  \\\x1b[0m")!;
-	fmt::println("                       \x1b[35m   <    >\x1b[0m")!;
-	fmt::println("                       \x1b[35m    \\__/\x1b[0m")!;
+
+	// Custom ASCII art fra ~/.config/hpo/art/shifu.txt (Bossun's egen tegning)
+	const home_s = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let art_path_buf: [512]u8 = [0...];
+	const art_path = fmt::bsprintf(art_path_buf, "{}/.config/hpo/art/shifu.txt", home_s)!;
+	let drew_art = false;
+	match (os::open(art_path)) {
+	case let af: io::file =>
+		static let art_buf: [8192]u8 = [0...];
+		const an = match (io::read(af, art_buf)) {
+		case let nn: size => yield nn;
+		case => yield 0z;
+		};
+		io::close(af)!;
+		if (an > 0) {
+			const art_text = strings::fromutf8(art_buf[..an])!;
+			if (!o.nocolor) fmt::print("\x1b[35m")!;
+			fmt::print(art_text)!;
+			if (!o.nocolor) fmt::print("\x1b[0m")!;
+			drew_art = true;
+		};
+	case => void;
+	};
+
+	// Fallback: simpel ASCII hvis ingen art-fil
+	if (!drew_art) {
+		fmt::println("                       \x1b[35m    .--.\x1b[0m")!;
+		fmt::println("                       \x1b[35m   ( oo )\x1b[0m")!;
+		fmt::println("                       \x1b[35m    \\__/\x1b[0m")!;
+		fmt::println("                       \x1b[35m    /  \\\x1b[0m")!;
+		fmt::println("                       \x1b[35m   <    >\x1b[0m")!;
+		fmt::println("                       \x1b[35m    \\__/\x1b[0m")!;
+	};
 	fmt::println("")!;
 
 	// Step 1: lat/lon - by-override eller IP
