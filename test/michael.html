@@ -1,0 +1,916 @@
+
+<!DOCTYPE html>
+<html lang="en" class="wide wow-animation">
+<head>
+    <script src="https://checkout.reepay.com/checkout.js"></script>
+
+    <script type="text/javascript">
+        var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+        var messageEvent = eventMethod === "addEventListener" ? "message" : "onMessage";
+        window[eventMethod](messageEvent, function (event) {
+            if (event.data.iframeId) {
+                console.log('[PARENT] Message received! Event data: ');
+                console.log(event.data);
+                var iframe = document.getElementById(event.data.iframeId);
+                if (iframe && event.data) {
+
+                    var iframeHeight = event.data.iframeHeight;
+                    if (iframeHeight) {
+                        var newHeight = iframeHeight + 120;
+                        iframe.height = newHeight;
+                        iframe.style.height = newHeight + 'px';
+                        //console.log('[PARENT] iframe.height and iframe.style.height set to: ' + newHeight + '(' + iframeHeight + ' + 20px)');
+                    }
+                    if (event.data.scrollToTop) {
+                        var height = document.querySelector('.rd-navbar').offsetHeight + 45;
+
+                        var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+                        if (vw < 767) {
+                            height = document.querySelector('.logo').offsetHeight + 60;
+                        }
+
+                        var scrollPositionOfCurrentIframe = iframe.offsetTop - height;
+                        window.scrollTo(0, scrollPositionOfCurrentIframe);
+                        console.log('Scrolling to: ' + scrollPositionOfCurrentIframe);
+                    }
+                }
+                if (event.data.reepay) {
+                    const reepay = event.data.reepay;
+                    console.log('[PARENT] Message received! Event data: ');
+                    new window.Reepay.WindowCheckout(reepay.sessionId);
+                }
+            }
+        });
+
+    </script>
+
+
+    <meta property="og:type" content="website" />
+
+    <!-- Site Title -->
+
+
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    
+
+    <title>Michael | Kosmorama Haderslev</title>
+    <meta property="og:title" content="Michael | Kosmorama Haderslev" />
+    <meta name="twitter:title" content="Michael | Kosmorama Haderslev" />
+    <meta property="og:image" content="https://poster.ebillet.dk/Michael-2026.hd.jpg">
+    <meta property="og:image:width" content="1080">
+    <meta property="og:image:height" content="1600">
+    <meta name="description" content="”Michael” skildrer en af de mest indflydelsesrige kunstnere nogensinde.
+Filmen fort&#230;ller historien om Michael Jacksons liv og f&#248;lger ham starten som forsanger i pop- og soulgruppen Jackson Five frem til den vision&#230;re kunstner, hvis kreative ambition n&#230;rede en ubarmhjertig str&#230;ben efter at blive verdens st&#248;rste entertainer.
+Kilde: UIP">
+    <meta name="twitter:description" content="”Michael” skildrer en af de mest indflydelsesrige kunstnere nogensinde.
+Filmen fort&#230;ller historien om Michael Jacksons liv og f&#248;lger ham starten som forsanger i pop- og soulgruppen Jackson Five frem til den vision&#230;re kunstner, hvis kreative ambition n&#230;rede en ubarmhjertig str&#230;ben efter at blive verdens st&#248;rste entertainer.
+Kilde: UIP" />
+    <meta property="og:description" content="”Michael” skildrer en af de mest indflydelsesrige kunstnere nogensinde.
+Filmen fort&#230;ller historien om Michael Jacksons liv og f&#248;lger ham starten som forsanger i pop- og soulgruppen Jackson Five frem til den vision&#230;re kunstner, hvis kreative ambition n&#230;rede en ubarmhjertig str&#230;ben efter at blive verdens st&#248;rste entertainer.
+Kilde: UIP" />
+
+    <!-- Stylesheets -->
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+<link href='//fonts.googleapis.com/css?family=Oswald:400,700%7COpen+Sans:400,400italic,700' rel='stylesheet' type='text/css'>
+    
+        <link href='/assets/bootstrap/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
+        <link href='/assets/bootstrap/css/always-burger.css' rel='stylesheet' type='text/css'>
+    
+    <link href="//fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500&display=swap" rel="stylesheet">
+    <link href="/bundles/revolutionStyles?v=3B7CewLu0q5mMTZid2JdOVTh8tK8DlIHXH5Lz5RsNAo1" rel="stylesheet"/>
+
+    <link href="/bundles/css?v=VkY0D3Hsy8WNcrXhObgJcfJVBwiQXNsOH-iTBNroJyA1" rel="stylesheet"/>
+
+    <link href="/bundles/owlCss?v=o_SaICeEW8rR_GxC77shiDNINr2_a_75Jt1IXhbZ9Hk1" rel="stylesheet"/>
+
+    <link href='/css/customer.css' rel='stylesheet' type='text/css'>
+    
+<!-- Facebook Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '876861282877066');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=876861282877066&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Facebook Pixel Code -->        <!--[if lt IE 10]>
+        <div style='background: #212121; padding: 10px 0; box-shadow: 3px 3px 5px 0 rgba(0, 0, 0, .3); clear: both; text-align: center; position: relative; z-index: 1;'>
+            <a href="http://windows.microsoft.com/en-US/internet-explorer/..">
+                <img src="images/ie8-panel/warning_bar_0000_us.jpg" border="0"
+                     height="42" width="820"
+                     alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today."/>
+            </a>
+        </div>
+    <![endif]-->
+    <style>
+        @media only screen and (min-width: 787px) {
+            .rd-navbar-brand img, .header-layout-2 img {
+                max-width: none;
+                width: 130px !important;
+            }
+
+                
+.rd-navbar--is-stuck .logo { width: 65px if; }
+
+            
+        }
+
+        @media only screen and (max-width: 786px) {
+            .rd-navbar-brand img, .header-layout-2 img {
+                max-width: none;
+                width: 120px;
+            }
+        }
+    </style>
+
+        <style>
+            #mega-menu .navbar-brand img {
+                width: 130px !important;
+            }
+        </style>
+        
+
+<style>
+
+    .page-header { background: #6b2420; }
+    .rd-navbar { background: #6b2420; }
+
+    .rd-navbar-static:after, .rd-navbar-fullwidth:after { background: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-panel:before { background: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-nav, .rd-navbar-sidebar { background: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-nav li > a, .rd-navbar-sidebar .rd-navbar-nav li > a:hover { background: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-nav li.active > a, .rd-navbar-sidebar .rd-navbar-nav li.active > a { background: #6b2420; }
+
+    .rd-navbar-static .rd-navbar-dropdown > li.focus > a, .rd-navbar-fullwidth .rd-navbar-dropdown > li.focus > a { background: #6b2420; }
+
+    .rd-navbar-static .rd-navbar-nav > li.focus > a, .rd-navbar-static .rd-navbar-nav > li > a:hover, .rd-navbar-static .rd-navbar-nav > li.active > a, .rd-navbar-fullwidth .rd-navbar-nav > li.focus > a, .rd-navbar-fullwidth .rd-navbar-nav > li > a:hover, .rd-navbar-fullwidth .rd-navbar-nav > li.active > a { background: #6b2420; }
+
+    .navbar-header {
+        background: #6b2420;
+    }
+
+    .navbar-collapse.collapse {
+        background: #6b2420;
+    }
+
+        .rd-navbar-static .rd-navbar-dropdown {
+            background: #6b2420;
+        }
+
+    #logo2-dropdown .rd-navbar-dropdown {
+        background: #6b2420 !important;
+    }
+
+    .rd-navbar-static .rd-navbar-megamenu, .rd-navbar-fullwidth .rd-navbar-megamenu {
+        background-color: #6b2420;
+        border-color: #6b2420;
+    }
+
+    .rd-navbar-static .rd-navbar-dropdown, .rd-navbar-fullwidth .rd-navbar-dropdown {
+        display: block;
+        color: white;
+        background: #6b2420;
+    }
+
+    
+
+    .rd-navbar-static .rd-navbar-nav > li > .rd-navbar-dropdown, .rd-navbar-fullwidth .rd-navbar-nav > li > .rd-navbar-dropdown {
+        background-color: #6b2420;
+    }
+
+    .rd-navbar-toggle span:after, .rd-navbar-toggle span:before, .rd-navbar-toggle span { background-color: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-nav li:hover > a, .rd-navbar-fixed .rd-navbar-nav li:hover > a:hover, .rd-navbar-fixed .rd-navbar-nav li.focus > a, .rd-navbar-fixed .rd-navbar-nav li.focus > a:hover { background-color: #6b2420; }
+
+    .ui-to-top:hover { color: #6b2420; }
+
+    p a:hover { color: #6b2420 !important; }
+
+    .rd-navbar-fixed .rd-navbar-nav li:hover > a, .rd-navbar-fixed .rd-navbar-nav li:hover > a:hover, .rd-navbar-fixed .rd-navbar-nav li.focus > a, .rd-navbar-fixed .rd-navbar-nav li.focus > a:hover { background: rgba(107, 36, 32, 0.75); }
+
+    .rd-navbar-fixed .rd-navbar-nav li.opened > a {
+        background: rgba(
+                        107, 36
+                ,
+                        32, 0.75);
+    }
+
+
+    .page-footer {
+        background-color: #6b2420;
+        color: white;
+    }
+
+    .page-footer a.icon-default { color: #6b2420; }
+
+    .page-footer a:hover { color: #6b2420 !important; }
+
+
+
+    .ui-to-top { color: #6b2420; }
+
+    .bg-primary { background: #6b2420; }
+
+
+
+
+
+
+    .btn-primary, .btn-primary:hover, .btn-primary:active {
+        background: #6b2420;
+        border-color: #6b2420;
+    }
+
+    .user-message {
+        background-color: #6b2420;
+    }
+
+    .thumb:before { background: rgba(107, 36, 32, 0.75); }
+
+    
+.rd-navbar-toggle span::after, .rd-navbar-toggle span::before, .rd-navbar-toggle span { background-color: #ffffff; }
+
+    
+
+
+    
+        p {
+        color:
+             #000000;
+    }
+
+
+
+    
+    
+.bg-gradient { background-image: linear-gradient(305deg, #242424, #333333) !important; }
+
+    
+
+
+    
+h1, h2, h3, h4, h5, h6, .heading-1, .heading-2, .heading-3, .heading-4, .heading-5, .heading-6 { color: #0a0a0a; }
+
+    .text-secondary { color: #0a0a0a !important; }
+
+    .para-with-primary-text h1, .para-with-primary-text h2, .para-with-primary-text h3, .para-with-primary-text h4, .para-with-primary-text h5, .para-with-primary-text h6 {
+        color: #0a0a0a !important;
+    }
+
+    .faq .plus-minus-toggle:before, .faq .plus-minus-toggle:after {
+        background: #0a0a0a;
+    }
+
+    .rd-parallax .contact-info-1 .heading-6 {
+        color: #0a0a0a !important;
+    }
+    
+    
+.bg-primary h1, .bg-primary h2, .bg-primary h3, .bg-primary h4, .bg-primary h5, .bg-primary h6, .bg-primary .heading-1, .bg-primary .heading-2, .bg-primary .heading-3, .bg-primary .heading-4, .bg-primary .heading-5, .bg-primary .heading-6 { color: #fafafa; }
+
+    .page-footer h3 { color: #fafafa !important; }
+
+    .para-with-secondary-text h1, .para-with-secondary-text h2, .para-with-secondary-text h3, .para-with-secondary-text h4, .para-with-secondary-text h5, .para-with-secondary-text h6 {
+        color: #fafafa !important;
+    }
+
+    .bg-primary .faq .plus-minus-toggle:before, .bg-primary .faq .plus-minus-toggle:after {
+        background: #fafafa;
+    }
+    .para-with-primary-text p {
+        color: #fafafa !important;
+    }
+    
+                
+            .bg-primary p {
+        color: #fafafa;
+    }
+
+    .page-footer p, .page-footer address, .page-footer .icon, .page-footer a.icon-default, .page-footer a { color: #fafafa; }
+
+    .para-with-secondary-text p {
+        color: #fafafa !important;
+    }
+
+    .user-message__body {
+        color: #fafafa !important;
+    }
+
+    .user-message__body p {
+        color: #fafafa !important;
+    }
+
+    
+    
+.bg-primary { background: #0a0a0a; }
+
+    .rs-background-video-layer { background: #0a0a0a !important; }
+
+    .tp-parallax-wrap, tp-fullwidth-forcer { background: #0a0a0a !important; }
+
+    #rev_slider_486_1_forcefullwidth, #rev_slider_486_1_wrapper { background: #0a0a0a !important; }
+
+    
+
+    
+body { font-family: 'Fira Sans', sans-serif; font-weight:300 !important; !important; }
+
+    .tp-caption.NotGeneric-Button, .NotGeneric-Button {
+        font-family: 'Fira Sans', sans-serif; font-weight:300 !important; !important;
+    }
+    .tp-caption{
+        font-family: 'Fira Sans', sans-serif; font-weight:300 !important; !important;
+    }
+    
+    
+    h1, h2, h3, h4, h5, h6, .heading-1, .heading-2, .heading-3, .heading-4, .heading-5, .heading-6 {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+    .tp-caption.Newspaper-Title, .Newspaper-Title, .erinyen .tp-tab-desc {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+
+    .tp-caption.Newspaper-Button, .Newspaper-Button {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+
+    .tp-splitted {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+
+    .tp-caption.Newspaper-Subtitle, .Newspaper-Subtitle {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+
+    .tp-caption.NotGeneric-Title, .NotGeneric-Title {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+    
+    
+    
+                        .page-footer {
+        background-color: #6b2420;
+    }
+
+    
+        
+    .navbar-inverse .navbar-toggle .icon-bar {
+        color: #ffffff;
+        background-color: #ffffff;
+    }
+    
+        
+    .rd-navbar-static.rd-navbar--is-clone, .rd-navbar-fullwidth.rd-navbar--is-clone {
+        display: none !important;
+    }
+
+
+    
+
+
+    .hermes .tp-tab-title{
+        font-weight:500;
+        text-transform:none;
+    }
+    .tp-tab-desc {
+        color: white;
+    }
+</style>
+
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js"></script>
+    <script>
+        window.addEventListener("load",
+            function() {
+                window.cookieconsent.initialise({
+                    "palette": {
+                        "popup": {
+                            "background": "#6b2420"
+                        },
+                        "button": {
+                            "background": "#6b2420"
+                        }
+                    },
+                    "theme": "edgeless",
+                    "content": {
+                        "message": "Denne hjemmeside benytter sig af cookies, som husker dine tidligere handlinger. Hvis du klikker videre p&#229; vores side, accepterer du dette.",
+                        "dismiss": "LUK",
+                        "link": "Læs mere",
+                        "href": "/info/cookie-og-privatlivspolitik/"
+                    }
+                })
+            });
+    </script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <link href='/assets/css/mega-menu.min.css' rel='stylesheet' type='text/css'>
+
+</head>
+
+
+<body>
+    <!-- The Main Wrapper -->
+    <div class="page">
+        <!--========================================================
+        HEADER
+        =========================================================-->
+
+<header role="menu" class="page-header" id="page-header">
+    <!-- RD Navbar -->
+    <div class="rd-navbar-wrap">
+        <nav role="navigation" class="rd-navbar" data-rd-navbar-lg="rd-navbar-static" style="z-index: 9999">
+            <div class="rd-navbar-inner" id="navbar-inner">
+                    <!-- RD Navbar Panel -->
+                    <div class="rd-navbar-panel">
+                        <!-- RD Navbar Toggle -->
+                        <button class="rd-navbar-toggle" data-rd-navbar-toggle=".rd-navbar">
+                            <span></span>
+                        </button>
+                        <!-- END RD Navbar Toggle -->
+                        <!-- RD Navbar Brand -->
+                        <div class="rd-navbar-brand">
+
+                            <a href="/" class="brand-name primary-color" >
+                                    <img src="/media/1198/nyt-kosmorama6100-logo.png" alt="logo" class="offset-1 logo"/>
+                            </a>
+                            <div style="position: relative">
+                            </div>
+                        </div>
+                        <!-- END RD Navbar Brand -->
+                    </div>
+                    <!-- END RD Navbar Panel -->
+                <div class="rd-navbar-nav-wrap" >
+                    <!-- RD Navbar Nav -->
+                    <ul class="rd-navbar-nav">
+                        
+                            <li >
+                                <a href="/" >Program</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown first-dd">
+                                            <li>
+                                                <a target="_self" href="/program/dagens-program/">Dagens program</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/alle-programlagte-film/">Alle programlagte film</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/babybio/">BabyBio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/forpremiere/">Forpremiere</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/tidlig-torsdag/">Tidlig torsdag</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/foredrag/">Foredrag</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/koncertbio/">KoncertBio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/art-bio/">Art Bio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/cinemateket-praesenterer/">Cinemateket pr&#230;senterer</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li >
+                                <a target="_self" href="/event/" >Event</a>
+                                <!-- RD Navbar Dropdown -->
+                                                            </li>
+                            <li >
+                                <a target="_self" href="/kommende-film/" >Kommende film</a>
+                                <!-- RD Navbar Dropdown -->
+                                                            </li>
+                            <li >
+                                <a target="_self" href="/operabio/" >OperaBio</a>
+                                <!-- RD Navbar Dropdown -->
+                                                            </li>
+                            <li >
+                                <a href="/gavekort/gavekort-pakker-kosmorama/" >Gavekort</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown ">
+                                            <li>
+                                                <a target="_self" href="/gavekort/gavekort-pakker-kosmorama/">Gavekort/ -pakker - Kosmorama</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/gavekort/gavebudetdk-landsdaekkende/">Gavebudet.dk - landsd&#230;kkende</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li >
+                                <a >Filmklubber</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown ">
+                                            <li>
+                                                <a target="_self" href="/filmklubber/&#230;ldre-sagen/">&#198;ldre Sagen</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/filmklubber/boernefilmklubben-vib/">B&#248;rnefilmklubben VIB</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/filmklubber/haderslev-skolebio/">Haderslev Skolebio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/filmklubber/filmporten/">Filmporten</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/filmklubber/biografklub-danmark-saeson-2526/">Biografklub Danmark - S&#230;son 25/26</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li style=cursor:default>
+                                <a target="_self" href="#" style=cursor:default>Business</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown ">
+                                            <li>
+                                                <a target="_self" href="/business/reklamer/">Reklamer</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/business/firmaevent-konference-moeder/">Firmaevent / Konference / M&#248;der</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/business/gavepakker/">Gavepakker</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/business/aktuelle-b2b-muligheder/">Aktuelle B2B muligheder</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li style=cursor:default>
+                                <a target="_self" href="#" style=cursor:default>Info</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown ">
+                                            <li>
+                                                <a target="_self" href="/info/&#229;bningstider/">&#197;bningstider</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/kontaktinformation/">Kontaktinformation</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/billetpriser/">Billetpriser</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/spoergsmaal-vedr-billetter/">Sp&#248;rgsm&#229;l vedr. billetter</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/saet-den-gode-scene/">S&#230;t den gode scene</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/parkering-ved-kosmorama/">Parkering ved Kosmorama</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/salene-i-kosmorama/">Salene i Kosmorama</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/job-i-kosmorama/">Job i Kosmorama</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/boernefoedselsdag/">B&#248;rnef&#248;dselsdag</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/babybio/">BabyBio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/tidlig-torsdag/">Tidlig torsdag</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/censur/">Censur</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/cookie-og-privatlivspolitik/">Cookie og privatlivspolitik</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/fokus-biograferne/">Fokus Biograferne</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_blank" href="https://www.findsmiley.dk/750747">Smiley</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/subreader/">Subreader</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/teleslynge/">Teleslynge</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/nyhedsmail/">Nyhedsmail</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li >
+                                <a target="_self" href="/mine-billetter/" >Mine billetter</a>
+                                <!-- RD Navbar Dropdown -->
+                                                            </li>
+                                                                                                                                            </ul>
+                    <!-- END RD Navbar Nav -->
+                </div>
+                                    <div class="secondary-logo" id="logo2">
+            
+                        <div class="rd-navbar-brand">
+                            <a href="/kosmoclub/" class="brand-name primary-color">
+                                    <img src="/media/1199/opdateret-logo.png" alt="logo" class="offset-1 logo"  style="" />
+                            </a>
+                                <div id="logo2-dropdown">
+                                    <ul class="rd-navbar-dropdown first-dd">
+                                            <li>
+                                                <a href="/kosmoclub/bliv-medlem/">Bliv medlem</a>
+                                                <!-- RD Navbar Dropdown -->
+                                            </li>
+                                            <li>
+                                                <a href="/kosmoclub/log-ind/">Log ind</a>
+                                                <!-- RD Navbar Dropdown -->
+                                            </li>
+                                            <li>
+                                                <a href="/kosmoclub/medlemsvilkaar/">Medlemsvilk&#229;r</a>
+                                                <!-- RD Navbar Dropdown -->
+                                            </li>
+                                            <li>
+                                                <a href="/kosmoclub/faq/">FAQ</a>
+                                                <!-- RD Navbar Dropdown -->
+                                            </li>
+                                    </ul>
+                                </div>
+                        </div>
+               
+                    </div>
+            </div>
+        </nav>
+    </div>
+    <!-- END RD Navbar -->
+
+</header>
+        <!--========================================================
+        CONTENT
+        =========================================================-->
+        <main role="main" class="page-content" id="page-content">
+                        
+
+<section class="well-xs bg-primary bg-gradient">
+    <div class="container text-sm-left">
+        
+        <iframe title="ebillet-iframe" src="https://billet.kosmorama6100.dk/film-info/35714?org=226&amp;sitetype=2&amp;origin=http://www.kosmorama6100.dk&amp;CardNumber=&amp;iframeid=eBilletIFrame-a4ad0355-d744-491a-863d-82a7da5a4cf8" height="500" id="eBilletIFrame-a4ad0355-d744-491a-863d-82a7da5a4cf8" scrolling="no" allow="fullscreen">
+            <p>Your browser does not support iframes.</p>
+        </iframe>
+
+    </div>
+</section>
+
+
+        </main>
+        <!--========================================================
+        FOOTER
+        ==========================================================-->
+        <footer class="page-footer">
+            <div class="container well text-sm-left">
+                <div class="row flow-offset-1">
+                        <div class="col-sm-6 col-md-3 wow fadeInUp">
+                            <h3 style="margin-bottom: 20px;">Info</h3>
+                                        <a style="display: block" href="/info/kontaktinformation/" target="">Kontakt</a>
+                                        <a style="display: block" href="/info/&#229;bningstider/" target="">&#197;bningstider</a>
+                                        <a style="display: block" href="/info/cookie-og-privatlivspolitik/" target="">Cookie- og privatlivspolitik</a>
+                        </div>
+                                            <div class="col-sm-6 col-md-3 wow fadeInUp">
+                            <h3 style="margin-bottom: 20px;">Sitemap</h3>
+                                        <a style="display:block" class="para-with-secondary-text h2" href="/gavekort/gavekort-pakker-kosmorama/" target="">Gavekort</a>
+                                        <a style="display:block" class="para-with-secondary-text h2" href="/business/firmaevent-konference-moeder/" target="">Business</a>
+                                        <a style="display:block" class="para-with-secondary-text h2" href="/info/boernefoedselsdag/" target="">Hold luksusf&#248;dselsdag i Kosmorama</a>
+                        </div>
+                                            <div class="col-sm-6 col-md-3 col-sm-push-2 wow fadeInUp">
+                            <h3>Social</h3>
+                            <ul class="inline-list">
+                                    <li>
+                                        <a target="_blank" href="https://www.facebook.com/kosmorama6100/" class="icon icon-default icon-xs fa-facebook"></a>
+                                    </li>
+                                                                                                                                    <li>
+                                        <a target="_blank" href="https://www.instagram.com/kosmorama6100/" class="icon icon-default icon-xs fa-instagram"></a>
+                                    </li>
+
+                            </ul>
+                        </div>
+                                            <div class="col-sm-6 col-md-3 col-sm-push-2 wow fadeInUp">
+                                    <img src="/media/1198/nyt-kosmorama6100-logo.png" style="max-width: 100%; margin-bottom: 20px;" alt="logo" />
+                            <address>
+                                Kosmorama Haderslev
+                                <br />
+                                Jomfrustien 34 • 6100 Haderslev
+                            </address>
+                            <address class="contact-info">
+                                <dl>
+                                    <dt>
+                                        Telefon:
+                                    </dt>
+                                    <dd>
+                                        <a href="tel:74523478">74523478</a>
+                                    </dd>
+                                </dl>
+                                <dl>
+                                    <dt>Email:</dt>
+                                    <dd>
+                                        <a href="mailto:info@kosmorama6100.dk">info@kosmorama6100.dk</a>
+                                    </dd>
+                                </dl>
+                            </address>
+                                <p>
+                                    <a href='1111'>Åbningstider</a>
+                                    <!-- {%FOOTER_LINK} -->
+                                </p>
+                                                        <p>
+                                <a href='/info/cookie-og-privatlivspolitik/'>Cookie- og privatlivspolitik</a>
+                                <!-- {%FOOTER_LINK} -->
+                            </p>
+                        </div>
+                    
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 text-center" style="font-size: 13px">
+                        <a href="http://ebillet.dk" target="_blank">Website og billetsystem fra ebillet a/s</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Core Scripts -->
+    <script type="text/javascript" src="https://player.vimeo.com/api/player.js"></script>
+    <script src="/bundles/js?v=z9BXSo_n9zefN9dziz_VLXUbla7hIv3DOAm0H4_NUVA1"></script>
+
+    <script src="/bundles/owlScripts?v="></script>
+
+    <script type="text/javascript" src="/assets/bootstrap/js/bootstrap.min.js"></script>
+    
+    <script src="/bundles/slidersAll?v=TpuHGRUJR4fJlYgroxL31o2XO80-UagVVBQLH3hqoAQ1"></script>
+
+    <script type="text/javascript" src="/assets/js/lc-lightbox/js/lc_lightbox.lite.min.js"></script>
+    <link href='/assets/js/lc-lightbox/css/lc_lightbox.min.css' rel='stylesheet' type='text/css'>
+
+
+
+        <script>
+
+            function adjustPadding() {
+                var viewportWidth = $(window).width();
+                console.log(viewportWidth);
+                if (viewportWidth >= 1200) {
+                    var headerHeight = $("#navbar-inner").height();
+                    console.log("Header height: " + headerHeight);
+                    $("#page-content").css('padding-top', headerHeight - 5);
+                } else {
+                    $("#page-content").css('padding-top', 0);
+                }
+            }
+            $(document).ready(function () {
+                adjustPadding();
+
+                window.addEventListener('resize', adjustPadding);
+            });
+
+
+        </script>
+    <script>
+
+    $(document).ready(function () {
+        $(".video-wrapper").fitVids();
+        var $obj = lc_lightbox('#lcl_elems_wrapper a');
+        
+        $("#logo2").mouseenter(
+            function () {
+                console.log('Test');
+                $("#logo2-dropdown").show();
+            });
+        $("#logo2").mouseleave(
+            function() {
+                $("#logo2-dropdown").hide();
+            });
+    });
+
+    function setCookie(name,value,days) {
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days*24*60*60*1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    }
+    function getCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+
+    $(".secondary-menu-item").mouseenter(function () {
+        var primaryImage = $(this).find('.primary-img');
+        var secondaryImage = $(this).find('.secondary-img');
+        console.log(primaryImage);
+        console.log(secondaryImage);
+        if (secondaryImage != null) {
+            primaryImage.hide();
+            secondaryImage.show();
+            return;
+        }
+    }).mouseleave(function () {
+        var primaryImage = $(this).find('.primary-img');
+        var secondaryImage = $(this).find('.secondary-img');
+        if (secondaryImage != null) {
+            secondaryImage.hide();
+            primaryImage.show();
+            return;
+
+        }
+    });
+
+    if ($("#search-icon").length > 0) {
+
+        $("#search-icon").on('click',
+            function (e) {
+                e.preventDefault();
+                var holder = $("#search-input-holder");
+                if (holder.is(":visible")) {
+                    holder.hide();
+
+                } else {
+                    holder.show();
+                    $("#search-input").focus();
+                    $(".rd-navbar-fixed").first().removeClass('active');
+                }
+            });
+
+    }
+
+    </script>
+    
+    <script>
+        $('ul.dropdown-menu [data-toggle=dropdown]').on('click', function (event) {
+            // Avoid following the href location when clicking
+            event.preventDefault();
+            // Avoid having the menu to close when clicking
+            event.stopPropagation();
+            // If a menu is already open we close it
+            $('ul.dropdown-menu [data-toggle=dropdown]').parent().removeClass('open');
+            // opening the one you clicked on
+            $(this).parent().addClass('open');
+
+        });
+
+    </script>
+
+</body>
+</html>

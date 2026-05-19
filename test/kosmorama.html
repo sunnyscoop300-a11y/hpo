@@ -1,0 +1,2125 @@
+
+<!DOCTYPE html>
+<html lang="en" class="wide wow-animation">
+<head>
+    <script src="https://checkout.reepay.com/checkout.js"></script>
+
+    <script type="text/javascript">
+        var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+        var messageEvent = eventMethod === "addEventListener" ? "message" : "onMessage";
+        window[eventMethod](messageEvent, function (event) {
+            if (event.data.iframeId) {
+                console.log('[PARENT] Message received! Event data: ');
+                console.log(event.data);
+                var iframe = document.getElementById(event.data.iframeId);
+                if (iframe && event.data) {
+
+                    var iframeHeight = event.data.iframeHeight;
+                    if (iframeHeight) {
+                        var newHeight = iframeHeight + 120;
+                        iframe.height = newHeight;
+                        iframe.style.height = newHeight + 'px';
+                        //console.log('[PARENT] iframe.height and iframe.style.height set to: ' + newHeight + '(' + iframeHeight + ' + 20px)');
+                    }
+                    if (event.data.scrollToTop) {
+                        var height = document.querySelector('.rd-navbar').offsetHeight + 45;
+
+                        var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+                        if (vw < 767) {
+                            height = document.querySelector('.logo').offsetHeight + 60;
+                        }
+
+                        var scrollPositionOfCurrentIframe = iframe.offsetTop - height;
+                        window.scrollTo(0, scrollPositionOfCurrentIframe);
+                        console.log('Scrolling to: ' + scrollPositionOfCurrentIframe);
+                    }
+                }
+                if (event.data.reepay) {
+                    const reepay = event.data.reepay;
+                    console.log('[PARENT] Message received! Event data: ');
+                    new window.Reepay.WindowCheckout(reepay.sessionId);
+                }
+            }
+        });
+
+    </script>
+
+
+    <meta property="og:type" content="website" />
+
+    <!-- Site Title -->
+        <title>Kosmorama Haderslev</title>
+        <meta property="og:title" content="Kosmorama Haderslev" />
+        <meta name="twitter:title" content="Kosmorama Haderslev" />
+
+
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+    
+    <!-- Stylesheets -->
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
+<link href='//fonts.googleapis.com/css?family=Oswald:400,700%7COpen+Sans:400,400italic,700' rel='stylesheet' type='text/css'>
+    
+        <link href='/assets/bootstrap/css/bootstrap.min.css' rel='stylesheet' type='text/css'>
+        <link href='/assets/bootstrap/css/always-burger.css' rel='stylesheet' type='text/css'>
+    
+    <link href="//fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500&display=swap" rel="stylesheet">
+    <link href="/bundles/revolutionStyles?v=3B7CewLu0q5mMTZid2JdOVTh8tK8DlIHXH5Lz5RsNAo1" rel="stylesheet"/>
+
+    <link href="/bundles/css?v=VkY0D3Hsy8WNcrXhObgJcfJVBwiQXNsOH-iTBNroJyA1" rel="stylesheet"/>
+
+    <link href="/bundles/owlCss?v=o_SaICeEW8rR_GxC77shiDNINr2_a_75Jt1IXhbZ9Hk1" rel="stylesheet"/>
+
+    <link href='/css/customer.css' rel='stylesheet' type='text/css'>
+    
+
+
+<!-- Facebook Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '876861282877066');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=876861282877066&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Facebook Pixel Code -->        <!--[if lt IE 10]>
+        <div style='background: #212121; padding: 10px 0; box-shadow: 3px 3px 5px 0 rgba(0, 0, 0, .3); clear: both; text-align: center; position: relative; z-index: 1;'>
+            <a href="http://windows.microsoft.com/en-US/internet-explorer/..">
+                <img src="images/ie8-panel/warning_bar_0000_us.jpg" border="0"
+                     height="42" width="820"
+                     alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today."/>
+            </a>
+        </div>
+    <![endif]-->
+    <style>
+        @media only screen and (min-width: 787px) {
+            .rd-navbar-brand img, .header-layout-2 img {
+                max-width: none;
+                width: 130px !important;
+            }
+
+                
+.rd-navbar--is-stuck .logo { width: 65px if; }
+
+            
+        }
+
+        @media only screen and (max-width: 786px) {
+            .rd-navbar-brand img, .header-layout-2 img {
+                max-width: none;
+                width: 120px;
+            }
+        }
+    </style>
+
+        <style>
+            #mega-menu .navbar-brand img {
+                width: 130px !important;
+            }
+        </style>
+        
+
+<style>
+
+    .page-header { background: #6b2420; }
+    .rd-navbar { background: #6b2420; }
+
+    .rd-navbar-static:after, .rd-navbar-fullwidth:after { background: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-panel:before { background: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-nav, .rd-navbar-sidebar { background: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-nav li > a, .rd-navbar-sidebar .rd-navbar-nav li > a:hover { background: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-nav li.active > a, .rd-navbar-sidebar .rd-navbar-nav li.active > a { background: #6b2420; }
+
+    .rd-navbar-static .rd-navbar-dropdown > li.focus > a, .rd-navbar-fullwidth .rd-navbar-dropdown > li.focus > a { background: #6b2420; }
+
+    .rd-navbar-static .rd-navbar-nav > li.focus > a, .rd-navbar-static .rd-navbar-nav > li > a:hover, .rd-navbar-static .rd-navbar-nav > li.active > a, .rd-navbar-fullwidth .rd-navbar-nav > li.focus > a, .rd-navbar-fullwidth .rd-navbar-nav > li > a:hover, .rd-navbar-fullwidth .rd-navbar-nav > li.active > a { background: #6b2420; }
+
+    .navbar-header {
+        background: #6b2420;
+    }
+
+    .navbar-collapse.collapse {
+        background: #6b2420;
+    }
+
+        .rd-navbar-static .rd-navbar-dropdown {
+            background: #6b2420;
+        }
+
+    #logo2-dropdown .rd-navbar-dropdown {
+        background: #6b2420 !important;
+    }
+
+    .rd-navbar-static .rd-navbar-megamenu, .rd-navbar-fullwidth .rd-navbar-megamenu {
+        background-color: #6b2420;
+        border-color: #6b2420;
+    }
+
+    .rd-navbar-static .rd-navbar-dropdown, .rd-navbar-fullwidth .rd-navbar-dropdown {
+        display: block;
+        color: white;
+        background: #6b2420;
+    }
+
+    
+
+    .rd-navbar-static .rd-navbar-nav > li > .rd-navbar-dropdown, .rd-navbar-fullwidth .rd-navbar-nav > li > .rd-navbar-dropdown {
+        background-color: #6b2420;
+    }
+
+    .rd-navbar-toggle span:after, .rd-navbar-toggle span:before, .rd-navbar-toggle span { background-color: #6b2420; }
+
+    .rd-navbar-fixed .rd-navbar-nav li:hover > a, .rd-navbar-fixed .rd-navbar-nav li:hover > a:hover, .rd-navbar-fixed .rd-navbar-nav li.focus > a, .rd-navbar-fixed .rd-navbar-nav li.focus > a:hover { background-color: #6b2420; }
+
+    .ui-to-top:hover { color: #6b2420; }
+
+    p a:hover { color: #6b2420 !important; }
+
+    .rd-navbar-fixed .rd-navbar-nav li:hover > a, .rd-navbar-fixed .rd-navbar-nav li:hover > a:hover, .rd-navbar-fixed .rd-navbar-nav li.focus > a, .rd-navbar-fixed .rd-navbar-nav li.focus > a:hover { background: rgba(107, 36, 32, 0.75); }
+
+    .rd-navbar-fixed .rd-navbar-nav li.opened > a {
+        background: rgba(
+                        107, 36
+                ,
+                        32, 0.75);
+    }
+
+
+    .page-footer {
+        background-color: #6b2420;
+        color: white;
+    }
+
+    .page-footer a.icon-default { color: #6b2420; }
+
+    .page-footer a:hover { color: #6b2420 !important; }
+
+
+
+    .ui-to-top { color: #6b2420; }
+
+    .bg-primary { background: #6b2420; }
+
+
+
+
+
+
+    .btn-primary, .btn-primary:hover, .btn-primary:active {
+        background: #6b2420;
+        border-color: #6b2420;
+    }
+
+    .user-message {
+        background-color: #6b2420;
+    }
+
+    .thumb:before { background: rgba(107, 36, 32, 0.75); }
+
+    
+.rd-navbar-toggle span::after, .rd-navbar-toggle span::before, .rd-navbar-toggle span { background-color: #ffffff; }
+
+    
+
+
+    
+        p {
+        color:
+             #000000;
+    }
+
+
+
+    
+    
+.bg-gradient { background-image: linear-gradient(305deg, #242424, #333333) !important; }
+
+    
+
+
+    
+h1, h2, h3, h4, h5, h6, .heading-1, .heading-2, .heading-3, .heading-4, .heading-5, .heading-6 { color: #0a0a0a; }
+
+    .text-secondary { color: #0a0a0a !important; }
+
+    .para-with-primary-text h1, .para-with-primary-text h2, .para-with-primary-text h3, .para-with-primary-text h4, .para-with-primary-text h5, .para-with-primary-text h6 {
+        color: #0a0a0a !important;
+    }
+
+    .faq .plus-minus-toggle:before, .faq .plus-minus-toggle:after {
+        background: #0a0a0a;
+    }
+
+    .rd-parallax .contact-info-1 .heading-6 {
+        color: #0a0a0a !important;
+    }
+    
+    
+.bg-primary h1, .bg-primary h2, .bg-primary h3, .bg-primary h4, .bg-primary h5, .bg-primary h6, .bg-primary .heading-1, .bg-primary .heading-2, .bg-primary .heading-3, .bg-primary .heading-4, .bg-primary .heading-5, .bg-primary .heading-6 { color: #fafafa; }
+
+    .page-footer h3 { color: #fafafa !important; }
+
+    .para-with-secondary-text h1, .para-with-secondary-text h2, .para-with-secondary-text h3, .para-with-secondary-text h4, .para-with-secondary-text h5, .para-with-secondary-text h6 {
+        color: #fafafa !important;
+    }
+
+    .bg-primary .faq .plus-minus-toggle:before, .bg-primary .faq .plus-minus-toggle:after {
+        background: #fafafa;
+    }
+    .para-with-primary-text p {
+        color: #fafafa !important;
+    }
+    
+                
+            .bg-primary p {
+        color: #fafafa;
+    }
+
+    .page-footer p, .page-footer address, .page-footer .icon, .page-footer a.icon-default, .page-footer a { color: #fafafa; }
+
+    .para-with-secondary-text p {
+        color: #fafafa !important;
+    }
+
+    .user-message__body {
+        color: #fafafa !important;
+    }
+
+    .user-message__body p {
+        color: #fafafa !important;
+    }
+
+    
+    
+.bg-primary { background: #0a0a0a; }
+
+    .rs-background-video-layer { background: #0a0a0a !important; }
+
+    .tp-parallax-wrap, tp-fullwidth-forcer { background: #0a0a0a !important; }
+
+    #rev_slider_486_1_forcefullwidth, #rev_slider_486_1_wrapper { background: #0a0a0a !important; }
+
+    
+
+    
+body { font-family: 'Fira Sans', sans-serif; font-weight:300 !important; !important; }
+
+    .tp-caption.NotGeneric-Button, .NotGeneric-Button {
+        font-family: 'Fira Sans', sans-serif; font-weight:300 !important; !important;
+    }
+    .tp-caption{
+        font-family: 'Fira Sans', sans-serif; font-weight:300 !important; !important;
+    }
+    
+    
+    h1, h2, h3, h4, h5, h6, .heading-1, .heading-2, .heading-3, .heading-4, .heading-5, .heading-6 {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+    .tp-caption.Newspaper-Title, .Newspaper-Title, .erinyen .tp-tab-desc {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+
+    .tp-caption.Newspaper-Button, .Newspaper-Button {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+
+    .tp-splitted {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+
+    .tp-caption.Newspaper-Subtitle, .Newspaper-Subtitle {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+
+    .tp-caption.NotGeneric-Title, .NotGeneric-Title {
+        font-family:  'Fira Sans', sans-serif;font-weight:500 !important; !important;
+    }
+    
+    
+    
+                        .page-footer {
+        background-color: #6b2420;
+    }
+
+    
+        
+    .navbar-inverse .navbar-toggle .icon-bar {
+        color: #ffffff;
+        background-color: #ffffff;
+    }
+    
+        
+    .rd-navbar-static.rd-navbar--is-clone, .rd-navbar-fullwidth.rd-navbar--is-clone {
+        display: none !important;
+    }
+
+
+    
+
+
+    .hermes .tp-tab-title{
+        font-weight:500;
+        text-transform:none;
+    }
+    .tp-tab-desc {
+        color: white;
+    }
+</style>
+
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js"></script>
+    <script>
+        window.addEventListener("load",
+            function() {
+                window.cookieconsent.initialise({
+                    "palette": {
+                        "popup": {
+                            "background": "#6b2420"
+                        },
+                        "button": {
+                            "background": "#6b2420"
+                        }
+                    },
+                    "theme": "edgeless",
+                    "content": {
+                        "message": "Denne hjemmeside benytter sig af cookies, som husker dine tidligere handlinger. Hvis du klikker videre p&#229; vores side, accepterer du dette.",
+                        "dismiss": "LUK",
+                        "link": "Læs mere",
+                        "href": "/info/cookie-og-privatlivspolitik/"
+                    }
+                })
+            });
+    </script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <link href='/assets/css/mega-menu.min.css' rel='stylesheet' type='text/css'>
+
+</head>
+
+
+<body>
+    <!-- The Main Wrapper -->
+    <div class="page">
+        <!--========================================================
+        HEADER
+        =========================================================-->
+
+<header role="menu" class="page-header" id="page-header">
+    <!-- RD Navbar -->
+    <div class="rd-navbar-wrap">
+        <nav role="navigation" class="rd-navbar" data-rd-navbar-lg="rd-navbar-static" style="z-index: 9999">
+            <div class="rd-navbar-inner" id="navbar-inner">
+                    <!-- RD Navbar Panel -->
+                    <div class="rd-navbar-panel">
+                        <!-- RD Navbar Toggle -->
+                        <button class="rd-navbar-toggle" data-rd-navbar-toggle=".rd-navbar">
+                            <span></span>
+                        </button>
+                        <!-- END RD Navbar Toggle -->
+                        <!-- RD Navbar Brand -->
+                        <div class="rd-navbar-brand">
+
+                            <a href="/" class="brand-name primary-color" >
+                                    <img src="/media/1198/nyt-kosmorama6100-logo.png" alt="logo" class="offset-1 logo"/>
+                            </a>
+                            <div style="position: relative">
+                            </div>
+                        </div>
+                        <!-- END RD Navbar Brand -->
+                    </div>
+                    <!-- END RD Navbar Panel -->
+                <div class="rd-navbar-nav-wrap" >
+                    <!-- RD Navbar Nav -->
+                    <ul class="rd-navbar-nav">
+                        
+                            <li >
+                                <a href="/" >Program</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown first-dd">
+                                            <li>
+                                                <a target="_self" href="/program/dagens-program/">Dagens program</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/alle-programlagte-film/">Alle programlagte film</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/babybio/">BabyBio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/forpremiere/">Forpremiere</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/tidlig-torsdag/">Tidlig torsdag</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/foredrag/">Foredrag</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/koncertbio/">KoncertBio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/art-bio/">Art Bio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/program/cinemateket-praesenterer/">Cinemateket pr&#230;senterer</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li >
+                                <a target="_self" href="/event/" >Event</a>
+                                <!-- RD Navbar Dropdown -->
+                                                            </li>
+                            <li >
+                                <a target="_self" href="/kommende-film/" >Kommende film</a>
+                                <!-- RD Navbar Dropdown -->
+                                                            </li>
+                            <li >
+                                <a target="_self" href="/operabio/" >OperaBio</a>
+                                <!-- RD Navbar Dropdown -->
+                                                            </li>
+                            <li >
+                                <a href="/gavekort/gavekort-pakker-kosmorama/" >Gavekort</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown ">
+                                            <li>
+                                                <a target="_self" href="/gavekort/gavekort-pakker-kosmorama/">Gavekort/ -pakker - Kosmorama</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/gavekort/gavebudetdk-landsdaekkende/">Gavebudet.dk - landsd&#230;kkende</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li >
+                                <a >Filmklubber</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown ">
+                                            <li>
+                                                <a target="_self" href="/filmklubber/&#230;ldre-sagen/">&#198;ldre Sagen</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/filmklubber/boernefilmklubben-vib/">B&#248;rnefilmklubben VIB</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/filmklubber/haderslev-skolebio/">Haderslev Skolebio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/filmklubber/filmporten/">Filmporten</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/filmklubber/biografklub-danmark-saeson-2526/">Biografklub Danmark - S&#230;son 25/26</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li style=cursor:default>
+                                <a target="_self" href="#" style=cursor:default>Business</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown ">
+                                            <li>
+                                                <a target="_self" href="/business/reklamer/">Reklamer</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/business/firmaevent-konference-moeder/">Firmaevent / Konference / M&#248;der</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/business/gavepakker/">Gavepakker</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/business/aktuelle-b2b-muligheder/">Aktuelle B2B muligheder</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li style=cursor:default>
+                                <a target="_self" href="#" style=cursor:default>Info</a>
+                                <!-- RD Navbar Dropdown -->
+                                                                    <ul class="rd-navbar-dropdown ">
+                                            <li>
+                                                <a target="_self" href="/info/&#229;bningstider/">&#197;bningstider</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/kontaktinformation/">Kontaktinformation</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/billetpriser/">Billetpriser</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/spoergsmaal-vedr-billetter/">Sp&#248;rgsm&#229;l vedr. billetter</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/saet-den-gode-scene/">S&#230;t den gode scene</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/parkering-ved-kosmorama/">Parkering ved Kosmorama</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/salene-i-kosmorama/">Salene i Kosmorama</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/job-i-kosmorama/">Job i Kosmorama</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/boernefoedselsdag/">B&#248;rnef&#248;dselsdag</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/babybio/">BabyBio</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/tidlig-torsdag/">Tidlig torsdag</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/censur/">Censur</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/cookie-og-privatlivspolitik/">Cookie og privatlivspolitik</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/fokus-biograferne/">Fokus Biograferne</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_blank" href="https://www.findsmiley.dk/750747">Smiley</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/subreader/">Subreader</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/teleslynge/">Teleslynge</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                            <li>
+                                                <a target="_self" href="/info/nyhedsmail/">Nyhedsmail</a>
+                                                <!-- RD Navbar Dropdown -->
+                                                                                            </li>
+                                    </ul>
+                            </li>
+                            <li >
+                                <a target="_self" href="/mine-billetter/" >Mine billetter</a>
+                                <!-- RD Navbar Dropdown -->
+                                                            </li>
+                                                                                                                                            </ul>
+                    <!-- END RD Navbar Nav -->
+                </div>
+                                    <div class="secondary-logo" id="logo2">
+            
+                        <div class="rd-navbar-brand">
+                            <a href="/kosmoclub/" class="brand-name primary-color">
+                                    <img src="/media/1199/opdateret-logo.png" alt="logo" class="offset-1 logo"  style="" />
+                            </a>
+                                <div id="logo2-dropdown">
+                                    <ul class="rd-navbar-dropdown first-dd">
+                                            <li>
+                                                <a href="/kosmoclub/bliv-medlem/">Bliv medlem</a>
+                                                <!-- RD Navbar Dropdown -->
+                                            </li>
+                                            <li>
+                                                <a href="/kosmoclub/log-ind/">Log ind</a>
+                                                <!-- RD Navbar Dropdown -->
+                                            </li>
+                                            <li>
+                                                <a href="/kosmoclub/medlemsvilkaar/">Medlemsvilk&#229;r</a>
+                                                <!-- RD Navbar Dropdown -->
+                                            </li>
+                                            <li>
+                                                <a href="/kosmoclub/faq/">FAQ</a>
+                                                <!-- RD Navbar Dropdown -->
+                                            </li>
+                                    </ul>
+                                </div>
+                        </div>
+               
+                    </div>
+            </div>
+        </nav>
+    </div>
+    <!-- END RD Navbar -->
+
+</header>
+        <!--========================================================
+        CONTENT
+        =========================================================-->
+        <main role="main" class="page-content" id="page-content">
+                        
+<!--Parallax-->
+
+
+
+
+    <div class="umb-grid">
+                <div class="grid-section">
+        <div bgPrimary="1" fullWidth="0" negativeMarginBottom="0" class="well-sm well-sm--inset-4 bg-primary " style="">
+            <div class='container'>
+            <div class="row clearfix">
+                    <div class="col-md-12 column ">
+                        <div >
+                                    
+    
+        
+               
+
+
+<div>
+
+<style>
+
+</style>
+<div class="mobile-slider">
+    <div id="rev_slider_486_2_wrapper fullwidthbanner-container">
+        <!-- START REVOLUTION SLIDER 5.4.1 fullwidth mode -->
+        <div id="ea4d3d65-8dd2-4df6-a50a-14128af7d5f0" class="rev_slider fullwidthabanner" style="display:none;" data-version="5.4.8">
+            <ul>
+
+                    <li data-delay="6000" data-index="rs-1" data-transition="parallaxright" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default" data-easeout="default" data-masterspeed="default" data-thumb="https://ebillet.dk/poster/advertisement/michael.slm.jpg" data-rotate="0" data-saveperformance="off" data-title="" data-description="">
+                        <!-- MAIN IMAGE -->
+                            <img src="https://ebillet.dk/poster/advertisement/michael.sll.jpg" alt="_slide_poster" data-bgposition="top left" data-bgfit="contain">
+                        
+                        <!-- LAYERS -->
+                        <!-- LAYER NR. 5 -->
+                        
+                            <div class="tp-caption tp-shape tp-shapewrapper   tp-resizeme"
+                                 id="slide-1-layer-3"
+                                 data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                                 data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
+                                 data-width="full"
+                                 data-height="full"
+                                 data-whitespace="normal"
+                                 data-type="shape"
+                                 data-basealign="slide"
+                                 data-responsive_offset="on"
+                                 data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":1000,"ease":"Power3.easeInOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power3.easeInOut"}]'
+                                 data-textAlign="['left','left','left','left']"
+                                 data-paddingtop="[0,0,0,0]"
+                                 data-paddingright="[0,0,0,0]"
+                                 data-paddingbottom="[0,0,0,0]"
+                                 data-paddingleft="[0,0,0,0]"
+                                 style="z-index: 9;text-transform:left;background-color:rgba(0, 0, 0, 0.15);border-color:rgba(0, 0, 0, 1.00);border-width:0px;"></div>
+                        
+                        <!-- LAYER NR. 6 -->
+                        
+                        <div class="tp-caption Newspaper-Title   tp-resizeme"
+                             id="slide-1-layer-1"
+                             data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                             data-y="['top','top','top','top']" data-voffset="['140','110','80','100']"
+                             data-fontsize="['50','50','50','30']"
+                             data-lineheight="['55','55','55','35']"
+                             data-width="['600','600','600','420']"
+                             data-height="none"
+                             data-whitespace="normal"
+                             data-type="text"
+                             data-responsive_offset="on"
+                               data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[10,10,10,10]"
+                             data-paddingleft="[0,0,0,0]"
+                             style="z-index: 10; min-width: 600px; max-width: 600px; white-space: normal;text-transform:left;"></div>
+                        <!-- LAYER NR. 7 -->
+
+                            <!-- LAYER NR. 8 -->
+                            <a style="z-index: 999; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;" class="tp-caption Newspaper-Button rev-btn" target="_self" href="/filmdetaljer?movieId=35714"
+                               id="slide-1-layer-5"
+                               data-x="['left','left','left','left']" data-hoffset="['53','53','53','30']"
+                               data-y="['top','top','top','top']" data-voffset="['361','331','301','245']"
+                               data-width="none"
+                               data-height="none"   
+                               data-whitespace="nowrap"
+                               data-type="button"
+                               data-responsive_offset="on"
+                               data-responsive="off"
+                                 data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                  data-textAlign="['left','left','left','left']"
+                               data-paddingtop="[12,12,12,12]"
+                               data-paddingright="[35,35,35,35]"
+                               data-paddingbottom="[12,12,12,12]"
+                               data-paddingleft="[35,35,35,35]"
+                               style="z-index: 12; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;">Billetter</a>
+
+                    </li>
+                    <li data-delay="6000" data-index="rs-2" data-transition="parallaxright" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default" data-easeout="default" data-masterspeed="default" data-thumb="https://ebillet.dk/poster/advertisement/thedevilwearsprada2.slm.jpg" data-rotate="0" data-saveperformance="off" data-title="" data-description="">
+                        <!-- MAIN IMAGE -->
+                            <img src="https://ebillet.dk/poster/advertisement/thedevilwearsprada2.sll.jpg" alt="_slide_poster" data-bgposition="top left" data-bgfit="contain">
+                        
+                        <!-- LAYERS -->
+                        <!-- LAYER NR. 5 -->
+                        
+                            <div class="tp-caption tp-shape tp-shapewrapper   tp-resizeme"
+                                 id="slide-2-layer-3"
+                                 data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                                 data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
+                                 data-width="full"
+                                 data-height="full"
+                                 data-whitespace="normal"
+                                 data-type="shape"
+                                 data-basealign="slide"
+                                 data-responsive_offset="on"
+                                 data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":1000,"ease":"Power3.easeInOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power3.easeInOut"}]'
+                                 data-textAlign="['left','left','left','left']"
+                                 data-paddingtop="[0,0,0,0]"
+                                 data-paddingright="[0,0,0,0]"
+                                 data-paddingbottom="[0,0,0,0]"
+                                 data-paddingleft="[0,0,0,0]"
+                                 style="z-index: 9;text-transform:left;background-color:rgba(0, 0, 0, 0.15);border-color:rgba(0, 0, 0, 1.00);border-width:0px;"></div>
+                        
+                        <!-- LAYER NR. 6 -->
+                        
+                        <div class="tp-caption Newspaper-Title   tp-resizeme"
+                             id="slide-2-layer-1"
+                             data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                             data-y="['top','top','top','top']" data-voffset="['140','110','80','100']"
+                             data-fontsize="['50','50','50','30']"
+                             data-lineheight="['55','55','55','35']"
+                             data-width="['600','600','600','420']"
+                             data-height="none"
+                             data-whitespace="normal"
+                             data-type="text"
+                             data-responsive_offset="on"
+                               data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[10,10,10,10]"
+                             data-paddingleft="[0,0,0,0]"
+                             style="z-index: 10; min-width: 600px; max-width: 600px; white-space: normal;text-transform:left;"></div>
+                        <!-- LAYER NR. 7 -->
+
+                            <!-- LAYER NR. 8 -->
+                            <a style="z-index: 999; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;" class="tp-caption Newspaper-Button rev-btn" target="_self" href="/filmdetaljer?movieId=36896"
+                               id="slide-2-layer-5"
+                               data-x="['left','left','left','left']" data-hoffset="['53','53','53','30']"
+                               data-y="['top','top','top','top']" data-voffset="['361','331','301','245']"
+                               data-width="none"
+                               data-height="none"   
+                               data-whitespace="nowrap"
+                               data-type="button"
+                               data-responsive_offset="on"
+                               data-responsive="off"
+                                 data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                  data-textAlign="['left','left','left','left']"
+                               data-paddingtop="[12,12,12,12]"
+                               data-paddingright="[35,35,35,35]"
+                               data-paddingbottom="[12,12,12,12]"
+                               data-paddingleft="[35,35,35,35]"
+                               style="z-index: 12; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;">Billetter</a>
+
+                    </li>
+                    <li data-delay="6000" data-index="rs-3" data-transition="parallaxright" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default" data-easeout="default" data-masterspeed="default" data-thumb="https://ebillet.dk/poster/advertisement/affektionsvaerdi.slm.jpg" data-rotate="0" data-saveperformance="off" data-title="" data-description="">
+                        <!-- MAIN IMAGE -->
+                            <img src="https://ebillet.dk/poster/advertisement/affektionsvaerdi.sll.jpg" alt="_slide_poster" data-bgposition="top left" data-bgfit="contain">
+                        
+                        <!-- LAYERS -->
+                        <!-- LAYER NR. 5 -->
+                        
+                            <div class="tp-caption tp-shape tp-shapewrapper   tp-resizeme"
+                                 id="slide-3-layer-3"
+                                 data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                                 data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
+                                 data-width="full"
+                                 data-height="full"
+                                 data-whitespace="normal"
+                                 data-type="shape"
+                                 data-basealign="slide"
+                                 data-responsive_offset="on"
+                                 data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":1000,"ease":"Power3.easeInOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power3.easeInOut"}]'
+                                 data-textAlign="['left','left','left','left']"
+                                 data-paddingtop="[0,0,0,0]"
+                                 data-paddingright="[0,0,0,0]"
+                                 data-paddingbottom="[0,0,0,0]"
+                                 data-paddingleft="[0,0,0,0]"
+                                 style="z-index: 9;text-transform:left;background-color:rgba(0, 0, 0, 0.15);border-color:rgba(0, 0, 0, 1.00);border-width:0px;"></div>
+                        
+                        <!-- LAYER NR. 6 -->
+                        
+                        <div class="tp-caption Newspaper-Title   tp-resizeme"
+                             id="slide-3-layer-1"
+                             data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                             data-y="['top','top','top','top']" data-voffset="['140','110','80','100']"
+                             data-fontsize="['50','50','50','30']"
+                             data-lineheight="['55','55','55','35']"
+                             data-width="['600','600','600','420']"
+                             data-height="none"
+                             data-whitespace="normal"
+                             data-type="text"
+                             data-responsive_offset="on"
+                               data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[10,10,10,10]"
+                             data-paddingleft="[0,0,0,0]"
+                             style="z-index: 10; min-width: 600px; max-width: 600px; white-space: normal;text-transform:left;"></div>
+                        <!-- LAYER NR. 7 -->
+
+                            <!-- LAYER NR. 8 -->
+                            <a style="z-index: 999; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;" class="tp-caption Newspaper-Button rev-btn" target="_self" href="/filmdetaljer?movieId=35655"
+                               id="slide-3-layer-5"
+                               data-x="['left','left','left','left']" data-hoffset="['53','53','53','30']"
+                               data-y="['top','top','top','top']" data-voffset="['361','331','301','245']"
+                               data-width="none"
+                               data-height="none"   
+                               data-whitespace="nowrap"
+                               data-type="button"
+                               data-responsive_offset="on"
+                               data-responsive="off"
+                                 data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                  data-textAlign="['left','left','left','left']"
+                               data-paddingtop="[12,12,12,12]"
+                               data-paddingright="[35,35,35,35]"
+                               data-paddingbottom="[12,12,12,12]"
+                               data-paddingleft="[35,35,35,35]"
+                               style="z-index: 12; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;">Billetter</a>
+
+                    </li>
+                    <li data-delay="6000" data-index="rs-4" data-transition="parallaxright" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default" data-easeout="default" data-masterspeed="default" data-thumb="https://ebillet.dk/poster/advertisement/super-mario-galacy.slm.jpg" data-rotate="0" data-saveperformance="off" data-title="" data-description="">
+                        <!-- MAIN IMAGE -->
+                            <img src="https://ebillet.dk/poster/advertisement/supermariogalaxy.sll.jpg" alt="_slide_poster" data-bgposition="top left" data-bgfit="contain">
+                        
+                        <!-- LAYERS -->
+                        <!-- LAYER NR. 5 -->
+                        
+                            <div class="tp-caption tp-shape tp-shapewrapper   tp-resizeme"
+                                 id="slide-4-layer-3"
+                                 data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                                 data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
+                                 data-width="full"
+                                 data-height="full"
+                                 data-whitespace="normal"
+                                 data-type="shape"
+                                 data-basealign="slide"
+                                 data-responsive_offset="on"
+                                 data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":1000,"ease":"Power3.easeInOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power3.easeInOut"}]'
+                                 data-textAlign="['left','left','left','left']"
+                                 data-paddingtop="[0,0,0,0]"
+                                 data-paddingright="[0,0,0,0]"
+                                 data-paddingbottom="[0,0,0,0]"
+                                 data-paddingleft="[0,0,0,0]"
+                                 style="z-index: 9;text-transform:left;background-color:rgba(0, 0, 0, 0.15);border-color:rgba(0, 0, 0, 1.00);border-width:0px;"></div>
+                        
+                        <!-- LAYER NR. 6 -->
+                        
+                        <div class="tp-caption Newspaper-Title   tp-resizeme"
+                             id="slide-4-layer-1"
+                             data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                             data-y="['top','top','top','top']" data-voffset="['140','110','80','100']"
+                             data-fontsize="['50','50','50','30']"
+                             data-lineheight="['55','55','55','35']"
+                             data-width="['600','600','600','420']"
+                             data-height="none"
+                             data-whitespace="normal"
+                             data-type="text"
+                             data-responsive_offset="on"
+                               data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[10,10,10,10]"
+                             data-paddingleft="[0,0,0,0]"
+                             style="z-index: 10; min-width: 600px; max-width: 600px; white-space: normal;text-transform:left;"></div>
+                        <!-- LAYER NR. 7 -->
+
+                            <!-- LAYER NR. 8 -->
+                            <a style="z-index: 999; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;" class="tp-caption Newspaper-Button rev-btn" target="_self" href="/filmdetaljer?movieId=36771"
+                               id="slide-4-layer-5"
+                               data-x="['left','left','left','left']" data-hoffset="['53','53','53','30']"
+                               data-y="['top','top','top','top']" data-voffset="['361','331','301','245']"
+                               data-width="none"
+                               data-height="none"   
+                               data-whitespace="nowrap"
+                               data-type="button"
+                               data-responsive_offset="on"
+                               data-responsive="off"
+                                 data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                  data-textAlign="['left','left','left','left']"
+                               data-paddingtop="[12,12,12,12]"
+                               data-paddingright="[35,35,35,35]"
+                               data-paddingbottom="[12,12,12,12]"
+                               data-paddingleft="[35,35,35,35]"
+                               style="z-index: 12; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;">Billetter</a>
+
+                    </li>
+
+            </ul>
+            
+        </div>
+    </div><!-- END REVOLUTION SLIDER -->
+</div>
+<div class="desktop-slider">
+    <div id="rev_slider_486_3_wrapper fullwidthbanner-container">
+        <!-- START REVOLUTION SLIDER 5.4.1 fullwidth mode -->
+        <div id="e0c45753-24ae-4421-bf47-cf2fdc829697" class="rev_slider fullwidthabanner" style="display:none;" data-version="5.4.8">
+            <ul>
+
+                <li data-delay="6000" data-index="rs-1" data-transition="parallaxright" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default" data-easeout="default" data-masterspeed="default" data-thumb="https://ebillet.dk/poster/advertisement/michael.slm.jpg" data-rotate="0" data-saveperformance="off" data-title="" data-description="" >
+                    <!-- MAIN IMAGE -->
+                        <img src="https://ebillet.dk/poster/advertisement/michael.slm.jpg" alt="_slide_poster" data-bgposition="top left" data-bgfit="contain">
+                    
+                    <!-- LAYERS -->
+                    <!-- LAYER NR. 5 -->
+
+                    <!-- LAYER NR. 6 -->
+     
+                        <div class="tp-caption tp-shape tp-shapewrapper   tp-resizeme"
+                             id="slide-1-layer-3"
+                             data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                             data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
+                             data-width="full"
+                             data-height="full"
+                             data-whitespace="normal"
+                             data-type="shape"
+                             data-basealign="slide"
+                             data-responsive_offset="on"
+                             data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":1000,"ease":"Power3.easeInOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power3.easeInOut"}]'
+                             data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[0,0,0,0]"
+                             data-paddingleft="[0,0,0,0]"
+                             style="z-index: 9;text-transform:left;background-color:rgba(0, 0, 0, 0.15);border-color:rgba(0, 0, 0, 1.00);border-width:0px;"></div>
+                        <div class="tp-caption Newspaper-Subtitle   tp-resizeme"
+                             id="slide-1-layer-2"
+                             data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                             data-y="['top','top','top','top']" data-voffset="['275','230','200','200']"
+                             data-width="none"
+                             data-height="none"
+                             data-whitespace="nowrap"
+                             data-type="text"
+                             data-responsive_offset="on"
+                               data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[0,0,0,0]"
+                             data-paddingleft="[200,200,150,0]"
+                             style="z-index: 11; white-space: nowrap;text-transform:left;"></div>
+                            <div class="tp-caption Newspaper-Title   tp-resizeme"
+                                 id="slide-1-layer-1"
+                                 data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                                 data-y="['top','top','top','top']" data-voffset="['140','110','80','100']"
+                                 data-fontsize="['50','50','50','30']"
+                                 data-lineheight="['55','55','55','35']"
+                                 data-width="['900','900','900','420']"
+                                 data-height="none"
+                                 data-whitespace="normal"
+                                 data-type="text"
+                                 data-responsive_offset="on"
+                                   data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                    data-textAlign="['left','left','left','left']"
+                                 data-paddingtop="[0,0,0,0]"
+                                 data-paddingright="[0,0,0,0]"
+                                 data-paddingbottom="[10,10,10,10]"
+                                 data-paddingleft="[200,200,150,0]"
+                                 style="z-index: 10; min-width: 900px; max-width: 900px; white-space: normal;text-transform:left;"></div>
+                            
+                    <!-- LAYER NR. 7 -->
+
+                        <!-- LAYER NR. 8 -->
+                        <a style="z-index: 999; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;" target="_self" class="tp-caption Newspaper-Button rev-btn" href="/filmdetaljer?movieId=35714"
+                           id="slide-1-layer-5"
+                           data-x="['left','left','left','left']" data-hoffset="[&#39;250&#39;,&#39;200&#39;,&#39;200&#39;,&#39;130&#39;]"
+                           data-y="['top','top','top','top']" data-voffset="['461','431','401','320']"
+                           data-width="none"
+                           data-height="none"
+                           data-whitespace="nowrap"
+                           data-type="button"
+                           data-responsive_offset="on"
+                           data-responsive="off"
+                             data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                              data-textAlign="['left','left','left','left']"
+                           data-paddingtop="[12,12,12,12]"
+                           data-paddingright="[35,35,35,35]"
+                           data-paddingbottom="[12,12,12,12]"
+                           data-paddingleft="[35,35,35,35]"
+                           >Billetter</a>
+
+                </li>
+                <li data-delay="6000" data-index="rs-2" data-transition="parallaxright" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default" data-easeout="default" data-masterspeed="default" data-thumb="https://ebillet.dk/poster/advertisement/thedevilwearsprada2.slm.jpg" data-rotate="0" data-saveperformance="off" data-title="" data-description="" >
+                    <!-- MAIN IMAGE -->
+                        <img src="https://ebillet.dk/poster/advertisement/thedevilwearsprada2.slm.jpg" alt="_slide_poster" data-bgposition="top left" data-bgfit="contain">
+                    
+                    <!-- LAYERS -->
+                    <!-- LAYER NR. 5 -->
+
+                    <!-- LAYER NR. 6 -->
+     
+                        <div class="tp-caption tp-shape tp-shapewrapper   tp-resizeme"
+                             id="slide-2-layer-3"
+                             data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                             data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
+                             data-width="full"
+                             data-height="full"
+                             data-whitespace="normal"
+                             data-type="shape"
+                             data-basealign="slide"
+                             data-responsive_offset="on"
+                             data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":1000,"ease":"Power3.easeInOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power3.easeInOut"}]'
+                             data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[0,0,0,0]"
+                             data-paddingleft="[0,0,0,0]"
+                             style="z-index: 9;text-transform:left;background-color:rgba(0, 0, 0, 0.15);border-color:rgba(0, 0, 0, 1.00);border-width:0px;"></div>
+                        <div class="tp-caption Newspaper-Subtitle   tp-resizeme"
+                             id="slide-2-layer-2"
+                             data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                             data-y="['top','top','top','top']" data-voffset="['275','230','200','200']"
+                             data-width="none"
+                             data-height="none"
+                             data-whitespace="nowrap"
+                             data-type="text"
+                             data-responsive_offset="on"
+                               data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[0,0,0,0]"
+                             data-paddingleft="[200,200,150,0]"
+                             style="z-index: 11; white-space: nowrap;text-transform:left;"></div>
+                            <div class="tp-caption Newspaper-Title   tp-resizeme"
+                                 id="slide-2-layer-1"
+                                 data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                                 data-y="['top','top','top','top']" data-voffset="['140','110','80','100']"
+                                 data-fontsize="['50','50','50','30']"
+                                 data-lineheight="['55','55','55','35']"
+                                 data-width="['900','900','900','420']"
+                                 data-height="none"
+                                 data-whitespace="normal"
+                                 data-type="text"
+                                 data-responsive_offset="on"
+                                   data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                    data-textAlign="['left','left','left','left']"
+                                 data-paddingtop="[0,0,0,0]"
+                                 data-paddingright="[0,0,0,0]"
+                                 data-paddingbottom="[10,10,10,10]"
+                                 data-paddingleft="[200,200,150,0]"
+                                 style="z-index: 10; min-width: 900px; max-width: 900px; white-space: normal;text-transform:left;"></div>
+                            
+                    <!-- LAYER NR. 7 -->
+
+                        <!-- LAYER NR. 8 -->
+                        <a style="z-index: 999; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;" target="_self" class="tp-caption Newspaper-Button rev-btn" href="/filmdetaljer?movieId=36896"
+                           id="slide-2-layer-5"
+                           data-x="['left','left','left','left']" data-hoffset="[&#39;250&#39;,&#39;200&#39;,&#39;200&#39;,&#39;130&#39;]"
+                           data-y="['top','top','top','top']" data-voffset="['461','431','401','320']"
+                           data-width="none"
+                           data-height="none"
+                           data-whitespace="nowrap"
+                           data-type="button"
+                           data-responsive_offset="on"
+                           data-responsive="off"
+                             data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                              data-textAlign="['left','left','left','left']"
+                           data-paddingtop="[12,12,12,12]"
+                           data-paddingright="[35,35,35,35]"
+                           data-paddingbottom="[12,12,12,12]"
+                           data-paddingleft="[35,35,35,35]"
+                           >Billetter</a>
+
+                </li>
+                <li data-delay="6000" data-index="rs-3" data-transition="parallaxright" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default" data-easeout="default" data-masterspeed="default" data-thumb="https://ebillet.dk/poster/advertisement/affektionsvaerdi.slm.jpg" data-rotate="0" data-saveperformance="off" data-title="" data-description="" >
+                    <!-- MAIN IMAGE -->
+                        <img src="https://ebillet.dk/poster/advertisement/affektionsvaerdi.slm.jpg" alt="_slide_poster" data-bgposition="top left" data-bgfit="contain">
+                    
+                    <!-- LAYERS -->
+                    <!-- LAYER NR. 5 -->
+
+                    <!-- LAYER NR. 6 -->
+     
+                        <div class="tp-caption tp-shape tp-shapewrapper   tp-resizeme"
+                             id="slide-3-layer-3"
+                             data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                             data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
+                             data-width="full"
+                             data-height="full"
+                             data-whitespace="normal"
+                             data-type="shape"
+                             data-basealign="slide"
+                             data-responsive_offset="on"
+                             data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":1000,"ease":"Power3.easeInOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power3.easeInOut"}]'
+                             data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[0,0,0,0]"
+                             data-paddingleft="[0,0,0,0]"
+                             style="z-index: 9;text-transform:left;background-color:rgba(0, 0, 0, 0.15);border-color:rgba(0, 0, 0, 1.00);border-width:0px;"></div>
+                        <div class="tp-caption Newspaper-Subtitle   tp-resizeme"
+                             id="slide-3-layer-2"
+                             data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                             data-y="['top','top','top','top']" data-voffset="['275','230','200','200']"
+                             data-width="none"
+                             data-height="none"
+                             data-whitespace="nowrap"
+                             data-type="text"
+                             data-responsive_offset="on"
+                               data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[0,0,0,0]"
+                             data-paddingleft="[200,200,150,0]"
+                             style="z-index: 11; white-space: nowrap;text-transform:left;"></div>
+                            <div class="tp-caption Newspaper-Title   tp-resizeme"
+                                 id="slide-3-layer-1"
+                                 data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                                 data-y="['top','top','top','top']" data-voffset="['140','110','80','100']"
+                                 data-fontsize="['50','50','50','30']"
+                                 data-lineheight="['55','55','55','35']"
+                                 data-width="['900','900','900','420']"
+                                 data-height="none"
+                                 data-whitespace="normal"
+                                 data-type="text"
+                                 data-responsive_offset="on"
+                                   data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                    data-textAlign="['left','left','left','left']"
+                                 data-paddingtop="[0,0,0,0]"
+                                 data-paddingright="[0,0,0,0]"
+                                 data-paddingbottom="[10,10,10,10]"
+                                 data-paddingleft="[200,200,150,0]"
+                                 style="z-index: 10; min-width: 900px; max-width: 900px; white-space: normal;text-transform:left;"></div>
+                            
+                    <!-- LAYER NR. 7 -->
+
+                        <!-- LAYER NR. 8 -->
+                        <a style="z-index: 999; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;" target="_self" class="tp-caption Newspaper-Button rev-btn" href="/filmdetaljer?movieId=35655"
+                           id="slide-3-layer-5"
+                           data-x="['left','left','left','left']" data-hoffset="[&#39;250&#39;,&#39;200&#39;,&#39;200&#39;,&#39;130&#39;]"
+                           data-y="['top','top','top','top']" data-voffset="['461','431','401','320']"
+                           data-width="none"
+                           data-height="none"
+                           data-whitespace="nowrap"
+                           data-type="button"
+                           data-responsive_offset="on"
+                           data-responsive="off"
+                             data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                              data-textAlign="['left','left','left','left']"
+                           data-paddingtop="[12,12,12,12]"
+                           data-paddingright="[35,35,35,35]"
+                           data-paddingbottom="[12,12,12,12]"
+                           data-paddingleft="[35,35,35,35]"
+                           >Billetter</a>
+
+                </li>
+                <li data-delay="6000" data-index="rs-4" data-transition="parallaxright" data-hideafterloop="0" data-hideslideonmobile="off" data-easein="default" data-easeout="default" data-masterspeed="default" data-thumb="https://ebillet.dk/poster/advertisement/super-mario-galacy.slm.jpg" data-rotate="0" data-saveperformance="off" data-title="" data-description="" >
+                    <!-- MAIN IMAGE -->
+                        <img src="https://ebillet.dk/poster/advertisement/super-mario-galacy.slm.jpg" alt="_slide_poster" data-bgposition="top left" data-bgfit="contain">
+                    
+                    <!-- LAYERS -->
+                    <!-- LAYER NR. 5 -->
+
+                    <!-- LAYER NR. 6 -->
+     
+                        <div class="tp-caption tp-shape tp-shapewrapper   tp-resizeme"
+                             id="slide-4-layer-3"
+                             data-x="['center','center','center','center']" data-hoffset="['0','0','0','0']"
+                             data-y="['middle','middle','middle','middle']" data-voffset="['0','0','0','0']"
+                             data-width="full"
+                             data-height="full"
+                             data-whitespace="normal"
+                             data-type="shape"
+                             data-basealign="slide"
+                             data-responsive_offset="on"
+                             data-frames='[{"from":"opacity:0;","speed":1500,"to":"o:1;","delay":1000,"ease":"Power3.easeInOut"},{"delay":"wait","speed":1000,"to":"opacity:0;","ease":"Power3.easeInOut"}]'
+                             data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[0,0,0,0]"
+                             data-paddingleft="[0,0,0,0]"
+                             style="z-index: 9;text-transform:left;background-color:rgba(0, 0, 0, 0.15);border-color:rgba(0, 0, 0, 1.00);border-width:0px;"></div>
+                        <div class="tp-caption Newspaper-Subtitle   tp-resizeme"
+                             id="slide-4-layer-2"
+                             data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                             data-y="['top','top','top','top']" data-voffset="['275','230','200','200']"
+                             data-width="none"
+                             data-height="none"
+                             data-whitespace="nowrap"
+                             data-type="text"
+                             data-responsive_offset="on"
+                               data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                data-textAlign="['left','left','left','left']"
+                             data-paddingtop="[0,0,0,0]"
+                             data-paddingright="[0,0,0,0]"
+                             data-paddingbottom="[0,0,0,0]"
+                             data-paddingleft="[200,200,150,0]"
+                             style="z-index: 11; white-space: nowrap;text-transform:left;"></div>
+                            <div class="tp-caption Newspaper-Title   tp-resizeme"
+                                 id="slide-4-layer-1"
+                                 data-x="['left','left','left','left']" data-hoffset="['50','50','50','30']"
+                                 data-y="['top','top','top','top']" data-voffset="['140','110','80','100']"
+                                 data-fontsize="['50','50','50','30']"
+                                 data-lineheight="['55','55','55','35']"
+                                 data-width="['900','900','900','420']"
+                                 data-height="none"
+                                 data-whitespace="normal"
+                                 data-type="text"
+                                 data-responsive_offset="on"
+                                   data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                                    data-textAlign="['left','left','left','left']"
+                                 data-paddingtop="[0,0,0,0]"
+                                 data-paddingright="[0,0,0,0]"
+                                 data-paddingbottom="[10,10,10,10]"
+                                 data-paddingleft="[200,200,150,0]"
+                                 style="z-index: 10; min-width: 900px; max-width: 900px; white-space: normal;text-transform:left;"></div>
+                            
+                    <!-- LAYER NR. 7 -->
+
+                        <!-- LAYER NR. 8 -->
+                        <a style="z-index: 999; white-space: nowrap;text-transform:left;outline:none;box-shadow:none;box-sizing:border-box;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;cursor:pointer;" target="_self" class="tp-caption Newspaper-Button rev-btn" href="/filmdetaljer?movieId=36771"
+                           id="slide-4-layer-5"
+                           data-x="['left','left','left','left']" data-hoffset="[&#39;250&#39;,&#39;200&#39;,&#39;200&#39;,&#39;130&#39;]"
+                           data-y="['top','top','top','top']" data-voffset="['461','431','401','320']"
+                           data-width="none"
+                           data-height="none"
+                           data-whitespace="nowrap"
+                           data-type="button"
+                           data-responsive_offset="on"
+                           data-responsive="off"
+                             data-frames='[{"delay":0,"speed":300,"frame":"0","to":"o:1;","ease":"Power3.easeInOut"},{"delay":"wait","speed":300,"frame":"999","to":"auto:auto;","ease":"Power3.easeInOut"}]'                              data-textAlign="['left','left','left','left']"
+                           data-paddingtop="[12,12,12,12]"
+                           data-paddingright="[35,35,35,35]"
+                           data-paddingbottom="[12,12,12,12]"
+                           data-paddingleft="[35,35,35,35]"
+                           >Billetter</a>
+
+                </li>
+
+            </ul>
+            
+        </div>
+    </div><!-- END REVOLUTION SLIDER -->
+</div>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+        if ($("#ea4d3d65-8dd2-4df6-a50a-14128af7d5f0").length > 0) {
+
+            if ($("#ea4d3d65-8dd2-4df6-a50a-14128af7d5f0").revolution == undefined) {
+                revslider_showDoubleJqueryError("#rev_slider_486_2");
+            } else {
+                revapi486 = $("#ea4d3d65-8dd2-4df6-a50a-14128af7d5f0").show().revolution({
+                    //sliderType: "standard",
+                    jsFileLocation: "revolution/js/",
+                    sliderLayout: "fullwidth",
+                    dottedOverlay: "none",
+                    delay: 9000,
+                    navigation: {
+                        keyboardNavigation: "on",
+                        keyboard_direction: "horizontal",
+                        mouseScrollNavigation: "off",
+                        mouseScrollReverse: "default",
+                        onHoverStop: "off",
+                        touch: {
+                            touchenabled: "on",
+                            swipe_threshold: 75,
+                            swipe_min_touches: 1,
+                            swipe_direction: "horizontal",
+                            drag_block_vertical: false
+                        }
+                        ,
+                        arrows: {
+                            style: "gyges",
+                            enable: true,
+                            hide_onmobile: false,
+                            hide_over: 778,
+                            hide_onleave: false,
+                            tmp: '',
+                            left: {
+                                h_align: "right",
+                                v_align: "bottom",
+                                h_offset: 40,
+                                v_offset: 0
+                            },
+                            right: {
+                                h_align: "right",
+                                v_align: "bottom",
+                                h_offset: 0,
+                                v_offset: 0
+                            }
+                        },
+                        //bullets: {
+                        //    enable: true,
+                        //    style: 'hermes',
+                        //    hide_onleave: false,
+                        //    hide_onmobile: false,
+                        //    direction: "horizontal",
+                        //    h_align: "center",
+                        //    v_align: "bottom",
+                        //    h_offset: 0,
+                        //    v_offset: 20,
+                        //    space: 5,
+                        //},
+                        tabs: {
+                            style: "erinyen",
+                            enable: true,
+                            width: 250,
+                            height: 100,
+                            min_width: 250,
+                            wrapper_padding: 0,
+                            wrapper_color: "transparent",
+                            wrapper_opacity: "0",
+                            tmp: '<div class="tp-tab-desc">{{title}}</div><div class="tp-tab-title">{{description}}</div>',
+                            visibleAmount: 3,
+                            hide_onmobile: true,
+                            hide_under: 778,
+                            hide_onleave: false,
+                            hide_delay: 200,
+                            direction: "vertical",
+                            span: false,
+                            position: "inner",
+                            space: 10,
+                            h_align: "right",
+                            v_align: "center",
+                            h_offset: 30,
+                            v_offset: 0
+                        }
+                    },
+                    //viewPort: {
+                    //    enable: true,
+                    //    outof: "pause",
+                    //    visible_area: "80%",
+                    //    presize: false
+                    //},
+                    responsiveLevels: [2500, 2100, 1920, 1240, 1024, 640],
+                    visibilityLevels: [2500, 2100, 1920, 1240, 1024, 640],
+                    gridwidth: [2500, 2100, 1920, 1240, 640],
+                    gridheight: [769, 700, 590, 3811, 345],
+                    lazyType: "none",
+                    shadow: 0,
+                    spinner: "off",
+                    stopLoop: "off",
+                    stopAfterLoops: -1,
+                    stopAtSlide: -1,
+                    shuffle: "off",
+                    autoHeight: "on",
+                    fullWidth: "on",
+                    hideThumbsOnMobile: "off",
+                    hideSliderAtLimit: 0,
+                    hideCaptionAtLimit: 0,
+                    hideAllCaptionAtLilmit: 0,
+                    debugMode: false,
+                    fallbacks: {
+                        simplifyAll: "off",
+                        nextSlideOnWindowFocus: "off",
+                        disableFocusListener: false,
+                    }
+                });
+            }
+
+        }
+
+        if ($("#e0c45753-24ae-4421-bf47-cf2fdc829697").length > 0) {
+
+            if ($("#e0c45753-24ae-4421-bf47-cf2fdc829697").revolution == undefined) {
+                revslider_showDoubleJqueryError("#e0c45753-24ae-4421-bf47-cf2fdc829697");
+            } else {
+                revapi486 = $("#e0c45753-24ae-4421-bf47-cf2fdc829697").show().revolution({
+                    //sliderType: "standard",
+                    jsFileLocation: "revolution/js/",
+                    sliderLayout: "fullwidth",
+                    dottedOverlay: "none",
+                    delay: 9000,
+                    navigation: {
+                        keyboardNavigation: "on",
+                        keyboard_direction: "horizontal",
+                        mouseScrollNavigation: "off",
+                        mouseScrollReverse: "default",
+                        onHoverStop: "off",
+                        touch: {
+                            touchenabled: "on",
+                            swipe_threshold: 75,
+                            swipe_min_touches: 1,
+                            swipe_direction: "horizontal",
+                            drag_block_vertical: false
+                        }
+                        ,
+                        arrows: {
+                            style: "gyges",
+                            enable: true,
+                            hide_onmobile: false,
+                            hide_over: 778,
+                            hide_onleave: false,
+                            tmp: '',
+                            left: {
+                                h_align: "right",
+                                v_align: "bottom",
+                                h_offset: 40,
+                                v_offset: 0
+                            },
+                            right: {
+                                h_align: "right",
+                                v_align: "bottom",
+                                h_offset: 0,
+                                v_offset: 0
+                            }
+                        },
+                        bullets: {
+                            enable: true,
+                            style: 'hermes',
+                            hide_onleave: false,
+                            hide_onmobile: false,
+                            direction: "horizontal",
+                            h_align: "center",
+                            v_align: "bottom",
+                            h_offset: 0,
+                            v_offset: 20,
+                            space: 5,
+                        },
+                    },
+                    //viewPort: {
+                    //    enable: true,
+                    //    outof: "pause",
+                    //    visible_area: "80%",
+                    //    presize: false
+                    //},
+	                
+                    responsiveLevels: [2500, 2100, 1920, 1240],
+                    visibilityLevels: [2500, 2100, 1920, 1240],
+                    gridwidth: [2500, 2100, 1920, 1240],
+                    gridheight: [769, 700, 590, 381],
+                    autoHeight: "on",
+                    fullWidth: "on",
+                    
+
+                    lazyType: "none",
+                    shadow: 0,
+                    spinner: "off",
+                    stopLoop: "off",
+                    stopAfterLoops: -1,
+                    stopAtSlide: -1,
+                    shuffle: "off",
+
+                    hideThumbsOnMobile: "off",
+                    hideSliderAtLimit: 0,
+                    hideCaptionAtLimit: 0,
+                    hideAllCaptionAtLilmit: 0,
+                    debugMode: false,
+                    fallbacks: {
+                        simplifyAll: "off",
+                        nextSlideOnWindowFocus: "off",
+                        disableFocusListener: false,
+                    }
+                });
+            }
+
+        }
+    });
+
+
+    //Slim end
+</script>
+<style>
+    @media(min-width:1200px){
+        .Newspaper-Title {
+            font-size: 56px !important;
+        }
+        .Newspaper-Subtitle b {
+            font-size: 25px !important;
+            font-weight: 300 !important;
+        }
+    }
+
+    @media(min-width:768px) {
+        .Newspaper-Title {
+            font-size: 29px !important;
+        }
+        .Newspaper-Subtitle {
+            font-size: 19px !important;
+            font-weight: 300 !important;
+            line-height:1.1 !important;
+        }
+            .Newspaper-Subtitle b {
+                font-size: 19px !important;
+                font-weight: 300 !important;
+            }
+    }
+</style>
+</div>
+
+
+
+        
+
+
+
+                                    
+    
+<h3 style="padding-left: 60px;" align="center"><strong>Få de bedste pladser - køb din billet online</strong></h3>
+<h3 style="padding-left: 60px;" align="center"><strong>- og vi har byens bedste bland selv slik</strong></h3>
+
+
+                        </div>
+                    </div>            </div>
+            </div>
+        </div>
+        <div bgPrimary="1" background-colour="#802927" bgGradient="0" negativeMarginBottom="1" class="well-sm well-sm--inset-4 bg-primary " style="margin-bottom: -1.21rem;padding-top:45px;background-color:#802927!important;">
+            <div class='container'>
+            <div class="row clearfix">
+                    <div class="col-md-12 column ">
+                        <div >
+                                    
+    
+        
+               
+
+
+<iframe data-cookieconsent="ignore" title="ebillet-iframe"  src="https://billet.kosmorama6100.dk/program-og-fremtidige-film?cols=5&amp;datebuttons=true&amp;org=226&amp;sitetype=2&amp;base=False&amp;iframeid=eBilletIFrame-cd21a1b7-d033-4f63-ad60-762f3a86b9fc&amp;origin=http://www.kosmorama6100.dk&amp;CardNumber=&amp;days=0" id="eBilletIFrame-cd21a1b7-d033-4f63-ad60-762f3a86b9fc" scrolling="no" style="min-height: 500px; margin-top:0" allow="fullscreen" >
+    <p>Your browser does not support iframes.</p>
+</iframe>
+
+
+        
+
+
+
+                                    
+    
+<h3 class="western" style="padding-left: 30px;" align="center"><strong>- Kontakt os pr. telefon inden forestillingens start for returnering, hvis du bliver forhindret.</strong></h3>
+<h3 class="western" style="padding-left: 30px;" align="center"><strong>Er forestillingen afviklet refunderes billetterne ikke.</strong></h3>
+<p style="padding-left: 30px;" class="western" align="center"> </p>
+
+
+                        </div>
+                    </div>            </div>
+            </div>
+        </div>
+        <div bgPrimary="1" negativeMarginBottom="1" class="well-sm well-sm--inset-4 bg-primary " style="margin-bottom: -1.21rem;padding-top:45px;">
+            <div class='container'>
+            <div class="row clearfix">
+                    <div class="col-md-12 column ">
+                        <div >
+                                    
+    
+    
+        <h2>Den kommende tid skal du gl&#230;de dig til:</h2>
+    
+
+
+                        </div>
+                    </div>            </div>
+            </div>
+        </div>
+        <div bgPrimary="1" bgGradient="0" class="well-sm well-sm--inset-4 bg-primary " style="">
+            <div class='container'>
+            <div class="row clearfix">
+                    <div class="col-md-8 column wow fadeInLeft">
+                        <div cellAnimation="fadeInLeft">
+                                    
+    
+        
+               
+    
+
+
+      
+<!-- Owl Carousel -->
+<div class="owl-carousel" data-stage-padding="16" data-xs-stage-padding="0"
+     data-sm-stage-padding="0" data-lg-stage-padding="0" data-loop="false" data-autoplay="false"  data-margin="0"
+     data-items="1" data-sm-items="1" data-lg-items="3" >
+
+            <div class="owl-item wow fadeInLeft multiple-items" data-wow-delay=.3s style="margin-right: 10px;">
+                <a href="/filmdetaljer?movieId=36862" class="thumb">
+                    <img src="https://poster.ebillet.dk/starwarsgrogu2025.large.jpg" alt="Star Wars: The Mandalorian and Grogu_poster" />
+                </a>
+            </div>
+            <div class="owl-item wow fadeInLeft multiple-items" data-wow-delay=.2s style="margin-right: 10px;">
+                <a href="/filmdetaljer?movieId=36775" class="thumb">
+                    <img src="https://poster.ebillet.dk/toy-story-5-2026.large.jpg" alt="Toy Story 5 - Med dansk tale_poster" />
+                </a>
+            </div>
+            <div class="owl-item wow fadeInLeft multiple-items" data-wow-delay=.1s style="margin-right: 10px;">
+                <a href="/filmdetaljer?movieId=35657" class="thumb">
+                    <img src="https://poster.ebillet.dk/VoresLoefte-2026.large.jpg" alt="Vores l&#248;fte_poster" />
+                </a>
+            </div>
+</div>
+
+
+
+
+
+
+        
+
+
+
+                        </div>
+                    </div>                    <div class="col-md-4 column wow fadeInRight">
+                        <div cellAnimation="fadeInRight">
+                                    
+    
+        
+               
+
+
+<div class="banner" style="background-color:#0a0a0a;" >
+        <h6 class="text-secondary" style="color:#fafafa !important;">Flere film oplevelser</h6>
+            <p style="color:#fafafa !important; white-space: pre-wrap;">Se flere titler der er på vej til Kosmorama</p>
+            <a  href="/kommende-film/" target="" class="btn btn-primary btn-md">Kommende film</a>
+
+</div>
+
+
+
+        
+
+
+
+                        </div>
+                    </div>            </div>
+            </div>
+        </div>
+        <div bgPrimary="1" background-colour="#080808" bgGradient="1" negativeMarginBottom="0" class="well-sm well-sm--inset-4 bg-primary bg-gradient" style="background-color:#080808!important;">
+            <div class='container'>
+            <div class="row clearfix">
+                    <div class="col-md-6 column wow fadeInLeft">
+                        <div cellAnimation="fadeInLeft">
+                                    
+    
+        
+               
+
+
+<div class="banner" style="background-image:url(&#39;/media/1100/kosmorama-sal-1-2.jpg?anchor=center&amp;mode=crop&amp;width=800&amp;rnd=132537287110000000&#39;); background-size:cover;color:#fafafa;" >
+        <h6 class="text-secondary" style="color:#fafafa !important;">F&#229; hovedrollen!</h6>
+            <p style="color:#fafafa !important; white-space: pre-wrap;">Vi sætter scenen for dit firmaevent og kan tilbyde topmoderne og fleksible rammer for din konference, produktpræsentation, kundeevent, kick-off eller lignende.
+
+Se vores business pakker - klik videre neden for</p>
+            <a  href="/business/firmaevent-konference-moeder/" target="" class="btn btn-primary btn-md">Lej en sal</a>
+
+</div>
+
+
+
+        
+
+
+
+                        </div>
+                    </div>                    <div class="col-md-6 column wow fadeInRight">
+                        <div cellAnimation="fadeInRight">
+                                    
+    
+        
+               
+
+
+<div class="banner" style="background-image:url(&#39;/media/1131/kosmorama-opslag-til-facebook_popcornpluscola.jpg?anchor=center&amp;mode=crop&amp;width=800&amp;rnd=132538106980000000&#39;); background-size:cover;color:#fafafa;" >
+        <h6 class="text-secondary" style="color:#fafafa !important;">Hold en luksusf&#248;dselsdag i Kosmorama</h6>
+            <p style="color:#fafafa !important; white-space: pre-wrap;">Book en oplevelse du sent glemmer. En fødselsdag i luksusrammer eksklusivt i egen biografsal med popcorn og sodavand. 
+
+Vi kan tilbyde 3 pakker, 
+se dem ved at klikke nedenfor.</p>
+            <a  href="/info/boernefoedselsdag/" target="" class="btn btn-primary btn-md">B&#248;rnef&#248;dselsdag</a>
+
+</div>
+
+
+
+        
+
+
+
+                        </div>
+                    </div>            </div>
+            </div>
+        </div>
+        <div bgPrimary="1" bgGradient="0" class="well-sm well-sm--inset-4 bg-primary " style="">
+            <div class='container'>
+            <div class="row clearfix">
+                    <div class="col-md-4 column wow fadeInLeft">
+                        <div cellAnimation="fadeInLeft">
+                                    
+    
+        
+               
+    <article class="news-post">
+        <img src="https://ebillet.dk/poster//Michael-2026.large.jpg" class="synopsis-image-poster" alt="Michael_poster">
+
+        <h6>Michael</h6>
+        <div class="synopsis">”Michael” skildrer en af de mest indflydelsesrige kunstnere nogensinde.
+Filmen fortæller historien om Michael Jacksons liv og følger ham starten som forsanger i pop- og soulgruppen Jackson Five frem til den visionære kunstner, hvis kreative ambition nærede en ubarmhjertig stræben efter at blive verdens største entertainer.
+Kilde: UIP</div>
+                    <a href="/filmdetaljer?movieId=35714" class="btn btn-md btn-primary">Billetter</a>
+
+
+    </article>
+
+
+        
+
+
+
+                        </div>
+                    </div>                    <div class="col-md-4 column wow {&quot;label&quot;:&quot;Ingen animation&quot;,&quot;value&quot;:&quot;&quot;}">
+                        <div cellAnimation="{&quot;label&quot;:&quot;Ingen animation&quot;,&quot;value&quot;:&quot;&quot;}">
+                                    
+    
+        
+               
+    <article class="news-post">
+        <img src="https://ebillet.dk/poster//AFV_Plakat_LOW_NY-2026.large.jpg" class="synopsis-image-poster" alt="Affektionsv&#230;rdi_poster">
+
+        <h6>Affektionsv&#230;rdi</h6>
+        <div class="synopsis">Joachim Triers nyeste film vandt Grand Prix i Cannes og har nu slået nordisk rekord med hele 9 Oscar-nomineringer! ’Affektionsværdi’ følger søstrene Nora (Renate Reinsve) og Agnes (Inga Ibsdotter Lilleaas), som genforenes med deres far Gustav (Stellan Skarsgård) - en førhen ganske feteret instruktør, som drømmer om det store comeback. Gustav tilbyder Nora hovedrollen i sin nye film, men hun tøver, og i stedet går rollen til en ung Hollywood-stjerne (Elle F...</div>
+                    <a href="/filmdetaljer?movieId=35655" class="btn btn-md btn-primary">Billetter</a>
+
+
+    </article>
+
+
+        
+
+
+
+                        </div>
+                    </div>                    <div class="col-md-4 column wow fadeInRight">
+                        <div cellAnimation="fadeInRight">
+                                    
+    
+        
+               
+    <article class="news-post">
+        <img src="https://ebillet.dk/poster//the-devil-wears-prada-3-2026.large.jpg" class="synopsis-image-poster" alt="The Devil Wears Prada 2_poster">
+
+        <h6>The Devil Wears Prada 2</h6>
+        <div class="synopsis">Over 20 år efter premieren på The Devil Wears Prada er en efterfølger endelig på vej.
+Manuskriptforfatter Aline Brosh McKenna er blevet tilknyttet projektet for Disney, og instruktøren David Frankel vender tilbage til instruktørstolen.
+I fortsættelsen forsøger Miranda Priestly at genopfinde sin karriere i en branche under pres, hvilket bringer hende i kontakt med sin tidligere assistent Emily, som nu leder et indflydelsesrigt luksusbrand.
+De oprindelige st...</div>
+                    <a href="/filmdetaljer?movieId=36896" class="btn btn-md btn-primary">Billetter</a>
+
+
+    </article>
+
+
+        
+
+
+
+                        </div>
+                    </div>            </div>
+            </div>
+        </div>
+        <!-- Parallax -->
+        <section class="rd-parallax para-with-secondary-text" style="">
+            <div class="rd-parallax-layer"
+                 data-speed="0.3"
+                 data-type="media"
+                 data-direction="inverse"
+                 data-url="/media/1074/kosmorama-sal-1.jpg"></div>
+            <div class="rd-parallax-layer well-sm well-sm--inset-4"
+                 data-speed="0.1"
+                 data-type="html">
+                <div class='container'>
+                <div class="row clearfix">
+                        <div class="col-md-12 column ">
+                            <div >
+                                        
+    
+        
+               
+
+
+
+
+        <div class="text-center">
+            <h2>Nyhedsbrevstilmelding</h2>
+
+            <h3 class="text-uppercase">F&#229; tilbud og information om kommende premierer</h3>
+        </div>
+        <div class="row inset-1 offset-2">
+            <div class="col-md-8 col-md-preffix-2">
+                <!-- RD Subscribe form -->
+                <div class="subscribe-form">
+<form action="/" class="rd-mailform" enctype="multipart/form-data" method="post">                        <!-- RD Mailform Type -->
+                        <input type="hidden" title="subscribe" name="form-type" value="subscribe" />
+                        <input type="hidden" name="mailchimpListId" />
+                        <!-- END RD Mailform Type -->
+                        <fieldset>
+                            <label id="email-label" data-add-placeholder class="inset">
+                                <input type="text"
+                                       name="email"
+                                       title="Email"
+                                       placeholder="Din e-mailadresse"
+                                       aria-labelledby="email-label"
+                                       data-constraints="@NotEmpty @Email" style="background-color: white;" />
+                            </label>
+
+                            <div class="mfControls text-center inset">
+                                <button class="btn btn-lg btn-primary" type="submit">Tilmeld</button>
+                            </div>
+                            <div class="mfInfo"></div>
+                        </fieldset>
+                            <input type="hidden" name="g-recaptcha-3" id="g-recaptcha-3" />
+<input name='ufprt' type='hidden' value='0781DB9F0EA3C1A7B8AFE8551C75652BB93F04C3D8702FBC50D530B1A4083CDBEDEEA73DCB132130B93C7A8C6880410B6571B34C3565AEBA70F9D340452590C60C5C1505D483682DA937123F4F43C7A82491CEBB71C7E33530BFB808A4D5ED54D0F652BCEB89DA41070B936CA47E785E276D108D7ACD7E993E7EEB3C49054CA76201B600DEA0432D4DDCD4623502085D1A6C02E701D38A4D276EB8624E8C7911' /></form>
+
+                </div>
+                <!-- END RD Subscribe form -->
+            </div>
+        </div>
+
+
+    <script src="https://www.google.com/recaptcha/api.js?render=6LfmhskcAAAAAFhDh5Z3a4hkYJGJeEJ6UCJY7dlo"></script>
+    <script>
+        grecaptcha.ready(function() {
+            grecaptcha.execute('6LfmhskcAAAAAFhDh5Z3a4hkYJGJeEJ6UCJY7dlo', {action: 'kontaktformular'}).then(function(token) {
+                $("#g-recaptcha-3").val(token);
+            });
+        });
+    </script>
+
+
+        
+
+
+
+                            </div>
+                        </div>                </div>
+                </div>
+            </div>
+        </section>
+                </div>
+    </div>
+
+
+
+
+
+
+        </main>
+        <!--========================================================
+        FOOTER
+        ==========================================================-->
+        <footer class="page-footer">
+            <div class="container well text-sm-left">
+                <div class="row flow-offset-1">
+                        <div class="col-sm-6 col-md-3 wow fadeInUp">
+                            <h3 style="margin-bottom: 20px;">Info</h3>
+                                        <a style="display: block" href="/info/kontaktinformation/" target="">Kontakt</a>
+                                        <a style="display: block" href="/info/&#229;bningstider/" target="">&#197;bningstider</a>
+                                        <a style="display: block" href="/info/cookie-og-privatlivspolitik/" target="">Cookie- og privatlivspolitik</a>
+                        </div>
+                                            <div class="col-sm-6 col-md-3 wow fadeInUp">
+                            <h3 style="margin-bottom: 20px;">Sitemap</h3>
+                                        <a style="display:block" class="para-with-secondary-text h2" href="/gavekort/gavekort-pakker-kosmorama/" target="">Gavekort</a>
+                                        <a style="display:block" class="para-with-secondary-text h2" href="/business/firmaevent-konference-moeder/" target="">Business</a>
+                                        <a style="display:block" class="para-with-secondary-text h2" href="/info/boernefoedselsdag/" target="">Hold luksusf&#248;dselsdag i Kosmorama</a>
+                        </div>
+                                            <div class="col-sm-6 col-md-3 col-sm-push-2 wow fadeInUp">
+                            <h3>Social</h3>
+                            <ul class="inline-list">
+                                    <li>
+                                        <a target="_blank" href="https://www.facebook.com/kosmorama6100/" class="icon icon-default icon-xs fa-facebook"></a>
+                                    </li>
+                                                                                                                                    <li>
+                                        <a target="_blank" href="https://www.instagram.com/kosmorama6100/" class="icon icon-default icon-xs fa-instagram"></a>
+                                    </li>
+
+                            </ul>
+                        </div>
+                                            <div class="col-sm-6 col-md-3 col-sm-push-2 wow fadeInUp">
+                                    <img src="/media/1198/nyt-kosmorama6100-logo.png" style="max-width: 100%; margin-bottom: 20px;" alt="logo" />
+                            <address>
+                                Kosmorama Haderslev
+                                <br />
+                                Jomfrustien 34 • 6100 Haderslev
+                            </address>
+                            <address class="contact-info">
+                                <dl>
+                                    <dt>
+                                        Telefon:
+                                    </dt>
+                                    <dd>
+                                        <a href="tel:74523478">74523478</a>
+                                    </dd>
+                                </dl>
+                                <dl>
+                                    <dt>Email:</dt>
+                                    <dd>
+                                        <a href="mailto:info@kosmorama6100.dk">info@kosmorama6100.dk</a>
+                                    </dd>
+                                </dl>
+                            </address>
+                                <p>
+                                    <a href='1111'>Åbningstider</a>
+                                    <!-- {%FOOTER_LINK} -->
+                                </p>
+                                                        <p>
+                                <a href='/info/cookie-og-privatlivspolitik/'>Cookie- og privatlivspolitik</a>
+                                <!-- {%FOOTER_LINK} -->
+                            </p>
+                        </div>
+                    
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 text-center" style="font-size: 13px">
+                        <a href="http://ebillet.dk" target="_blank">Website og billetsystem fra ebillet a/s</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Core Scripts -->
+    <script type="text/javascript" src="https://player.vimeo.com/api/player.js"></script>
+    <script src="/bundles/js?v=z9BXSo_n9zefN9dziz_VLXUbla7hIv3DOAm0H4_NUVA1"></script>
+
+    <script src="/bundles/owlScripts?v="></script>
+
+    <script type="text/javascript" src="/assets/bootstrap/js/bootstrap.min.js"></script>
+    
+    <script src="/bundles/revolutionScripts?v=F5dpiF0NfQ2pEOaAIYB66VE5aXqckojgVLrqJ_h-jwY1"></script>
+
+    <script src="/bundles/revolutionExtensionScripts?v=tIMXWYO52PDhgC-XcZAWdvBVIBrBXBdPT7vfq0VeOxg1"></script>
+
+
+
+    <script src="/bundles/slidersAll?v=TpuHGRUJR4fJlYgroxL31o2XO80-UagVVBQLH3hqoAQ1"></script>
+
+    <script type="text/javascript" src="/assets/js/lc-lightbox/js/lc_lightbox.lite.min.js"></script>
+    <link href='/assets/js/lc-lightbox/css/lc_lightbox.min.css' rel='stylesheet' type='text/css'>
+
+
+
+        <script>
+
+            function adjustPadding() {
+                var viewportWidth = $(window).width();
+                console.log(viewportWidth);
+                if (viewportWidth >= 1200) {
+                    var headerHeight = $("#navbar-inner").height();
+                    console.log("Header height: " + headerHeight);
+                    $("#page-content").css('padding-top', headerHeight - 5);
+                } else {
+                    $("#page-content").css('padding-top', 0);
+                }
+            }
+            $(document).ready(function () {
+                adjustPadding();
+
+                window.addEventListener('resize', adjustPadding);
+            });
+
+
+        </script>
+    <script>
+
+    $(document).ready(function () {
+        $(".video-wrapper").fitVids();
+        var $obj = lc_lightbox('#lcl_elems_wrapper a');
+        
+        $("#logo2").mouseenter(
+            function () {
+                console.log('Test');
+                $("#logo2-dropdown").show();
+            });
+        $("#logo2").mouseleave(
+            function() {
+                $("#logo2-dropdown").hide();
+            });
+    });
+
+    function setCookie(name,value,days) {
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days*24*60*60*1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    }
+    function getCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+    }
+
+    $(".secondary-menu-item").mouseenter(function () {
+        var primaryImage = $(this).find('.primary-img');
+        var secondaryImage = $(this).find('.secondary-img');
+        console.log(primaryImage);
+        console.log(secondaryImage);
+        if (secondaryImage != null) {
+            primaryImage.hide();
+            secondaryImage.show();
+            return;
+        }
+    }).mouseleave(function () {
+        var primaryImage = $(this).find('.primary-img');
+        var secondaryImage = $(this).find('.secondary-img');
+        if (secondaryImage != null) {
+            secondaryImage.hide();
+            primaryImage.show();
+            return;
+
+        }
+    });
+
+    if ($("#search-icon").length > 0) {
+
+        $("#search-icon").on('click',
+            function (e) {
+                e.preventDefault();
+                var holder = $("#search-input-holder");
+                if (holder.is(":visible")) {
+                    holder.hide();
+
+                } else {
+                    holder.show();
+                    $("#search-input").focus();
+                    $(".rd-navbar-fixed").first().removeClass('active');
+                }
+            });
+
+    }
+
+    </script>
+    
+    <script>
+        $('ul.dropdown-menu [data-toggle=dropdown]').on('click', function (event) {
+            // Avoid following the href location when clicking
+            event.preventDefault();
+            // Avoid having the menu to close when clicking
+            event.stopPropagation();
+            // If a menu is already open we close it
+            $('ul.dropdown-menu [data-toggle=dropdown]').parent().removeClass('open');
+            // opening the one you clicked on
+            $(this).parent().addClass('open');
+
+        });
+
+    </script>
+
+</body>
+</html>

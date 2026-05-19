@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.5.1";
+def VERSION = "3.6.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2355,6 +2355,32 @@ fn do_shifu(o: *opts) void = {
 					case void => void;
 					};
 				};
+				// Først: forsøg at vise dagens program via Python helper
+				const helper_paths = [
+					"/usr/local/share/hpo/shifu-events.py",
+					"./helpers/shifu-events.py",
+				]: []str;
+				let helper_found: str = "";
+				for (let hi = 0z; hi < len(helper_paths); hi += 1) {
+					if (os::exists(helper_paths[hi])) {
+						helper_found = helper_paths[hi];
+						break;
+					};
+				};
+				let py_success = false;
+				if (len(helper_found) > 0) {
+					cprint(C_GREEN, "SHIFU", "Fetching today's program...", false);
+					fmt::println("")!;
+					let py_args: []str = alloc([], 3)!;
+					defer free(py_args);
+					append(py_args, "python3")!;
+					append(py_args, helper_found)!;
+					append(py_args, o.shifu_city)!;
+					py_success = run_cmd(py_args, false);
+					fmt::println("")!;
+				};
+				if (py_success) return; // Skip browser hvis events vist
+
 				if (len(target_url) > 0 && target_url != "Unknown") {
 					cprint(C_GREEN, "SHIFU", "Opening cinema website in browser...", false);
 					fmt::printfln("        \x1b[33m{}\x1b[0m", target_url)!;
