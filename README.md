@@ -1,64 +1,77 @@
-# hpo 🐯🐉
+# hpo 🐯
 
-**The Hare Download & Game Manager** — built with [Hare](https://harelang.org)
-> *"There are no accidents."* — Master Oogway
-
-A self-contained CLI tool that downloads files, launches Epic and Steam games via a custom self-built engine, and even guides you through a 10-minute meditation with Master Oogway and a real Tibetan bell.
-
+**The Hare Download & Game Manager** — a Kung Fu Panda + The Wild Robot themed CLI multitool written in [Hare](https://harelang.org/).
 ---
 
-## ✨ Features
-
-### 🎮 Game Launchers
-- **Epic Games** via [legendary](https://github.com/derrod/legendary) + Zhen engine
-- **Steam** via URI handler with auto Zhen-Proton symlinking
-- **Zhen engine** — self-contained gaming runtime (umu-launcher + GE-Proton)
-- No dependency on Heroic, Lutris, or other launchers
-- Short alias syntax: `hpo --steam kao` launches Kao the Kangaroo
+## Features
 
 ### 📥 Downloads
-- **HTTP/HTTPS/FTP** with dragon progress bar
-- **Google Drive** via gdown
+- **HTTP/HTTPS/FTP** via curl with dragon-themed progress bar
 - **Magnet links** via aria2c
-- **Rooster links** — AES-256-CBC encrypted URLs
-- **Suno music** with HTML entity decoder + auto MP3 conversion
-- **Bearer token** and **cookie** auth support
-- Resume, rate limiting, custom User-Agent
+- **Google Drive** via gdown
+- **Rooster links** with AES-256-CBC encryption
+- **Suno music** with auto MP3 conversion
+- Rate limiting, resume, custom User-Agent, cookies, tokens
 
-### 🐢 Inner Peace
-- `hpo oogway` — 10-minute guided meditation
-- 14 timed coaching messages from Master Oogway
-- Visual breathing guide (4s in, 4s hold, 4s out)
-- Real meditation bell from Big Sur, CA (CC0)
+### 🎮 Game Launchers
+- **Epic Games** via legendary + Zhen engine
+- **Steam** via URI handler + Zhen GE-Proton
+- **WSL bridge** — Both Steam & Epic URIs forwarded to Windows host via `cmd.exe /c start`
+- Per-game aliases in `~/.config/hpo/{steam,epic}_aliases.txt`
 
+### 🐉 Zhen Engine
+- Self-contained gaming runtime built on **umu-launcher + GE-Proton10-34**
+- Replaces Heroic/Lutris with a clean Hare-based wrapper
+- Auto-symlinks GE-Proton into Steam's `compatibilitytools.d`
+- Install: `hpo --zhen-setup --proton`
+
+### 🐢 Oogway Meditation
+- 10-min guided meditation with **Master Oogway** quotes
+- Custom durations: `hpo oogway 60` (1 min), `hpo oogway 300` (5 min)
+- Real monastery bell sound via mpv
+- Visual breathing bar
+- Bell file: `~/.local/share/hpo/bell.mp3`
+
+### 🤖 Roz Weather Robot
+- Auto-locates you via `ip-api.com` (no API key needed)
+- Pulls weather from **Open-Meteo API**
+- City override: `hpo roz vejr københavn`, `hpo roz vejr sydney`
+- Poetic Brightbill-themed weather descriptions
+- Works globally with Unicode support (ø, æ, å)
+
+### 🥋 Master Shifu Cinema Oracle
+- **Live schedules** for 90+ Danish cinemas via `bio.ebillet.dk`
+- Day filter: `idag`, `imorgen`, weekday names (`torsdag`), `weekend`, `uge`
+- Custom ASCII portrait via `~/.config/hpo/art/shifu.txt`
+- Cinema lookup via `~/.config/hpo/cinemas.json`
+- Examples:
 ---
 
-## 📦 Installation
+## Installation
 
-### Dependencies
-```bash
-# Debian/Ubuntu/FluxLinux
-sudo apt install curl aria2 openssl ffmpeg python3-pip mpv
-pipx install gdown legendary-gl
+### Requirements
+- [Hare](https://harelang.org/) compiler (`harec`, `qbe`)
+- `curl`, `aria2c`, `openssl`, `xdg-open` for download backends
+- `mpv` for Oogway bell audio
+- `python3` for Shifu cinema helper
+- `legendary` (`pipx install legendary-gl`) for Epic Games
+- Optional: `flatpak` Steam or native `steam`
 
-# Void Linux
-sudo xbps-install -S curl aria2 openssl ffmpeg legendary mpv
-```
-
-### Build hpo
+### Build
 ```bash
 git clone https://github.com/sunnyscoop300-a11y/hpo.git
 cd hpo
 hare build -o hpo src/main.ha
 sudo install -m755 hpo /usr/local/bin/hpo
+sudo install -m755 helpers/shifu-events.py /usr/local/share/hpo/
 ```
 
-### Install Zhen engine (for game launching)
+### Zhen Engine (for Epic/Steam gaming)
 ```bash
-hpo --zhen-setup --proton   # ~700 MB download
+hpo --zhen-setup --proton
 ```
 
-### Install meditation bell (optional, for hpo oogway)
+### Bell sound for Oogway
 ```bash
 mkdir -p ~/.local/share/hpo
 curl -L -o ~/.local/share/hpo/bell.mp3 \
@@ -67,92 +80,52 @@ curl -L -o ~/.local/share/hpo/bell.mp3 \
 
 ---
 
-## 🚀 Usage
+## Platforms
 
-### Downloads
-```bash
-hpo https://example.com/file.zip
-hpo https://example.com/big.iso -R 2m -r
-hpo "magnet:?xt=urn:btih:abc123..."
-hpo --lock https://secret.com/file.zip --code mykey
-hpo "rooster:?xt=AES256:..." --code mykey
-```
+| Platform | Steam Backend | Epic Backend |
+|----------|---------------|--------------|
+| 🦊 FluxLinux | Flatpak + Zhen GE-Proton | legendary + Zhen |
+| 🐯 Native Linux | Native Steam + Zhen | legendary + Zhen |
+| 🪟 WSL Ubuntu | cmd.exe → Windows Steam | cmd.exe → Windows Epic |
 
-### Epic Games
-```bash
-hpo --epic list
-hpo --epic install Salt
-hpo --epic launch celeste
-```
-
-### Steam
-```bash
-hpo --steam list
-hpo --steam install 1370140
-hpo --steam launch kao
-hpo --steam kao
-```
-
-Steam aliases live in `~/.config/hpo/steam_aliases.txt`:
-### Meditation
-```bash
-hpo oogway
-```
+Same `hpo` binary, same commands — adapts to environment automatically.
 
 ---
 
-## 🐉 The Zhen Engine
+## Caching
 
-Zhen is hpo's self-contained gaming runtime, named after the fox who becomes the next Dragon Warrior in Kung Fu Panda 4. It bundles:
+For speed and to be a good API neighbor, hpo caches:
 
-- **umu-launcher** 1.4.0 (Wine/Proton wrapper)
-- **GE-Proton10-34** (Glorious Eggroll's Proton fork)
+| File | TTL | Purpose |
+|------|-----|---------|
+| `~/.cache/hpo/location.json` | 7 days | IP geolocation |
+| `~/.cache/hpo/cinemas_*.json` | 7 days | Overpass cinema list per location |
+| `~/.cache/hpo/events.json` | 6 hours | All Danish cinema showings |
 
-Installed to `~/.local/share/hpo/zhen/`. No system Wine needed. Steam games auto-symlink GE-Proton to Steam's `compatibilitytools.d`.
-
----
-
-## 🎮 Confirmed Working Games
-
-**FluxLinux (GTX 1070):**
-- ABZU, GRIME (Epic)
-- DreamWorks All-Star Kart Racing 🐼 (Steam)
-- Kao the Kangaroo 🦘 (Steam)
-
-**Void Linux (Intel iGPU, gen 8 i5):**
-- Celeste 🏔️ (Epic, via XNA/FNA)
+This makes `hpo shifu` go from ~1.7s to ~4ms on second call (**~400x faster**).
 
 ---
 
-## 🛠️ Architecture
+## Theming
 
-Written in [Hare](https://harelang.org) — a small systems programming language with manual memory management and no garbage collection. The entire launcher, download manager, and meditation session is one statically-linked binary.
+hpo is themed around **Kung Fu Panda** and **The Wild Robot**:
 
-**Backends invoked via `os::exec`:**
-- HTTP/HTTPS/FTP → `curl`
-- Google Drive → `gdown`
-- Magnet → `aria2c`
-- Rooster → `openssl`
-- Suno → `curl` + `ffmpeg`
-- Epic → `legendary` + Zhen umu-run
-- Steam → URI handler (`xdg-open steam://...`)
-- Meditation bell → `mpv`
+- 🐯 **Po** — main character; default Steam alias  
+- 🦊 **Zhen** — the engine (from KFP4)
+- 🐢 **Oogway** — meditation feature
+- 🥋 **Shifu** — cinema mentor
+- 🤖 **Roz** — Rozzum Unit 7134, weather robot from The Wild Robot
+- 🐦 **Brightbill** — referenced in weather poetry
 
 ---
 
-## 🐢 Philosophy
+## Personal Project
 
-> *"Yesterday is history. Tomorrow is a mystery. But today is a gift. That is why it is called the present."*
-> — Master Oogway
+hpo is a hobby project by Bossun, built across:
+- 🦊 FluxLinux 1.4 (i7-6800K + GTX 1070)
+- 🐯 Void Linux laptop (i5 gen 8 + Intel iGPU)
+- 🪟 WSL Ubuntu on Windows 11 (i7-13700K + RTX 4070)
 
-hpo is a hobby project. It is not perfect. But it is mine, and it is what I wanted to build. Skadoosh!
+Written in **Hare** because it's fun. Themed around **Kung Fu Panda** because Po is the Dragon Warrior. 🍍
 
----
-
-## 📄 License
-
-MIT
-
----
-
-*Built with Hare, GE-Proton, Big Sur bells, and Kung Fu Panda energy.* 🥋🍍
+**Skadoosh!**
