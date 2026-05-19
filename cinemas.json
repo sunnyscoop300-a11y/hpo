@@ -1,0 +1,32 @@
+{
+  "cinemas": [
+    {
+      "name": "Kinorama Aabenraa",
+      "aliases": ["kinorama", "aabenraa"],
+      "url": "https://www.kinorama.dk/",
+      "today_url": "https://www.kinorama.dk/program/dagens-program/"
+    },
+    {
+      "name": "Kosmorama Haderslev",
+      "aliases": ["kosmorama", "haderslev"],
+      "url": "https://www.kosmorama6100.dk/",
+      "today_url": "https://www.kosmorama6100.dk/program/dagens-program/"
+    },
+    {
+      "name": "Kinorama Sønderborg",
+      "aliases": ["sønderborg", "soenderborg"],
+      "url": "https://www.kinorama.dk/",
+      "today_url": "https://www.kinorama.dk/program/dagens-program/"
+    },
+    {
+      "name": "Toftlund Biograf",
+      "aliases": ["toftlund"],
+      "url": "https://www.toftlundbio.dk/"
+    },
+    {
+      "name": "Den Gamle Biograf Løgumkloster",
+      "aliases": ["løgumkloster", "loegumkloster", "gamle"],
+      "url": ""
+    }
+  ]
+}

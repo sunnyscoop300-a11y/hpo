@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.4.1";
+def VERSION = "3.5.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -41,6 +41,8 @@ type opts = struct {
 	oogway_sec: uint,
 	roz: bool,
 	roz_city: str,
+	shifu: bool,
+	shifu_city: str,
 	url:     str,
 	output:  str,
 	resume:  bool,
@@ -2176,6 +2178,272 @@ fn do_roz(o: *opts) void = {
 	cprint(C_GREEN, "ROZ", "Analysis complete. Observation logged.", false);
 	fmt::println("")!;
 };
+type cinema = struct {
+	name: str,
+	lat: f64,
+	lon: f64,
+	dist: f64,
+};
+
+// Babyloniansk sqrt - kun til distance beregning
+fn babylon_sqrt(x: f64) f64 = {
+	if (x <= 0.0) return 0.0;
+	let g = x / 2.0;
+	for (let i = 0; i < 20; i += 1) {
+		g = (g + x / g) / 2.0;
+	};
+	return g;
+};
+
+// Distance i km (approksimation for ~55° N)
+fn dist_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) f64 = {
+	const dlat = (lat2 - lat1) * 111.0;
+	const dlon = (lon2 - lon1) * 65.0;
+	return babylon_sqrt(dlat*dlat + dlon*dlon);
+};
+
+fn do_shifu(o: *opts) void = {
+	fmt::println("")!;
+	fmt::println("                  \x1b[33m🐭  [MASTER SHIFU]  🐭\x1b[0m")!;
+	fmt::println("                     \x1b[36mCinema Guidance Mode\x1b[0m")!;
+	fmt::println("")!;
+	fmt::println("                       \x1b[35m    .--.\x1b[0m")!;
+	fmt::println("                       \x1b[35m   ( oo )\x1b[0m")!;
+	fmt::println("                       \x1b[35m    \\__/\x1b[0m")!;
+	fmt::println("                       \x1b[35m    /  \\\x1b[0m")!;
+	fmt::println("                       \x1b[35m   <    >\x1b[0m")!;
+	fmt::println("                       \x1b[35m    \\__/\x1b[0m")!;
+	fmt::println("")!;
+
+	// Step 1: lat/lon - by-override eller IP
+	let user_lat: f64 = 0.0;
+	let user_lon: f64 = 0.0;
+	let user_city: str = "";
+
+	let loc_args: []str = alloc([], 5)!;
+	defer free(loc_args);
+	append(loc_args, "curl")!;
+	append(loc_args, "-s")!;
+	append(loc_args, "--max-time")!;
+	append(loc_args, "10")!;
+	if (len(o.shifu_city) > 0) {
+		const encoded = url_encode(o.shifu_city);
+		defer free(encoded);
+		static let geo_url_buf: [512]u8 = [0...];
+		const geo_url = fmt::bsprintf(geo_url_buf, "https://geocoding-api.open-meteo.com/v1/search?name={}&count=1", encoded)!;
+		append(loc_args, geo_url)!;
+	} else {
+		append(loc_args, "http://ip-api.com/json/")!;
+	};
+
+	const loc_cmd = match (exec::cmd("curl", loc_args[1..]...)) {
+	case let c: exec::command => yield c;
+	case =>
+		cprint(C_RED, "SHIFU", "Cannot locate sensor position.", false);
+		return;
+	};
+	const loc_pipe = exec::pipe();
+	exec::addfile(&loc_cmd, os::stdout_file, loc_pipe.1)!;
+	const loc_proc = match (exec::start(&loc_cmd)) {
+	case let p: exec::process => yield p;
+	case => return;
+	};
+	io::close(loc_pipe.1)!;
+	static let loc_buf: [4096]u8 = [0...];
+	const loc_n = match (io::read(loc_pipe.0, loc_buf)) {
+	case let nn: size => yield nn;
+	case => yield 0z;
+	};
+	io::close(loc_pipe.0)!;
+	exec::wait(&loc_proc)!;
+	const loc_json = strings::fromutf8(loc_buf[..loc_n])!;
+
+	if (len(o.shifu_city) > 0) {
+		const sliced = match (strings::index(loc_json, "\"results\":[{")) {
+		case let idx: size => yield strings::sub(loc_json, idx, strings::end);
+		case void => yield loc_json;
+		};
+		user_lat = parse_json_num(sliced, "latitude");
+		user_lon = parse_json_num(sliced, "longitude");
+		user_city = parse_json_str(sliced, "name");
+	} else {
+		user_lat = parse_json_num(loc_json, "lat");
+		user_lon = parse_json_num(loc_json, "lon");
+		user_city = parse_json_str(loc_json, "city");
+	};
+
+	// Tjek om shifu_city matcher en biograf i ~/.config/hpo/cinemas.json
+	if (len(o.shifu_city) > 0) {
+		const home_c = match (os::getenv("HOME")) {
+		case let s: str => yield s;
+		case void => yield "/tmp";
+		};
+		static let cpath_buf: [512]u8 = [0...];
+		const cpath = fmt::bsprintf(cpath_buf, "{}/.config/hpo/cinemas.json", home_c)!;
+		match (os::open(cpath)) {
+		case let cf: io::file =>
+			static let cjbuf: [16384]u8 = [0...];
+			const cjn = match (io::read(cf, cjbuf)) {
+			case let nn: size => yield nn;
+			case => yield 0z;
+			};
+			io::close(cf)!;
+			const cjson = strings::fromutf8(cjbuf[..cjn])!;
+			// Match: find om shifu_city findes i JSON (case-sensitive)
+			match (strings::index(cjson, o.shifu_city)) {
+			case let qidx: size =>
+				// Fundet match - find nærmeste "today_url" eller "url" efter dette punkt
+				const after = strings::sub(cjson, qidx, strings::end);
+				let target_url: str = "";
+				match (strings::index(after, "\"today_url\":")) {
+				case let tidx: size =>
+					target_url = parse_json_str(strings::sub(after, tidx, strings::end), "today_url");
+				case void => void;
+				};
+				if (target_url == "" || target_url == "Unknown") {
+					match (strings::index(after, "\"url\":")) {
+					case let uidx: size =>
+						target_url = parse_json_str(strings::sub(after, uidx, strings::end), "url");
+					case void => void;
+					};
+				};
+				if (len(target_url) > 0 && target_url != "Unknown") {
+					cprint(C_GREEN, "SHIFU", "Opening cinema website in browser...", false);
+					fmt::printfln("        \x1b[33m{}\x1b[0m", target_url)!;
+					fmt::println("")!;
+					let xdg_args: []str = alloc([], 2)!;
+					defer free(xdg_args);
+					append(xdg_args, "xdg-open")!;
+					append(xdg_args, target_url)!;
+					let _ = run_cmd(xdg_args, false);
+					return;
+				};
+			case void => void;
+			};
+		case => void;
+		};
+	};
+
+	fmt::printfln("\x1b[36m[SHIFU]\x1b[0m Searching cinemas near \x1b[33m{}\x1b[0m...", user_city)!;
+	fmt::println("")!;
+
+	// Step 2: Overpass query
+	static let q_buf: [512]u8 = [0...];
+	const q = fmt::bsprintf(q_buf, "[out:json];nwr[amenity=cinema](around:50000,{},{});out center;", user_lat, user_lon)!;
+	const q_enc = url_encode(q);
+	defer free(q_enc);
+	static let url_buf: [1024]u8 = [0...];
+	const url = fmt::bsprintf(url_buf, "https://overpass-api.de/api/interpreter?data={}", q_enc)!;
+
+	let args: []str = alloc([], 8)!;
+	defer free(args);
+	append(args, "curl")!;
+	append(args, "-s")!;
+	append(args, "--max-time")!;
+	append(args, "20")!;
+	append(args, "-H")!;
+	append(args, "User-Agent: hpo-shifu/1.0")!;
+	append(args, "-H")!;
+	append(args, "Accept: application/json")!;
+	append(args, url)!;
+
+	const cmd = match (exec::cmd("curl", args[1..]...)) {
+	case let c: exec::command => yield c;
+	case => return;
+	};
+	const pipe = exec::pipe();
+	exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case => return;
+	};
+	io::close(pipe.1)!;
+	static let resp_buf: [65536]u8 = [0...];
+	let total: size = 0;
+	for (true) {
+		const n = match (io::read(pipe.0, resp_buf[total..])) {
+		case let nn: size => yield nn;
+		case io::EOF => break;
+		case => break;
+		};
+		if (n == 0) break;
+		total += n;
+		if (total >= len(resp_buf)) break;
+	};
+	io::close(pipe.0)!;
+	exec::wait(&proc)!;
+
+	const resp = strings::fromutf8(resp_buf[..total])!;
+
+	// Parse cinemas: find alle "name":"..." blokke og deres lat/lon
+	let cinemas: []cinema = alloc([], 30)!;
+	defer free(cinemas);
+
+	// Split på "tags":{ for at finde hver cinema's tag-blok
+	let pos = 0z;
+	for (true) {
+		const rest = strings::sub(resp, pos, strings::end);
+		// Find næste cinema: kig efter "amenity":"cinema"
+		const tag_idx = match (strings::index(rest, "\"amenity\":")) {
+		case let n: size => yield n;
+		case void => break;
+		};
+		// Søg tilbage til seneste {"type" - for at få lat/lon før tags
+		const before = strings::sub(rest, 0, tag_idx);
+		const type_idx = match (strings::rindex(before, "\"type\":")) {
+		case let n: size => yield n;
+		case void => yield 0z;
+		};
+		const elem = strings::sub(rest, type_idx, strings::end);
+
+		// Find slutningen af denne element (næste "type": eller end)
+		const rest_after = strings::sub(elem, 50, strings::end);
+		const next_type = match (strings::index(rest_after, "\"type\":")) {
+		case let n: size => yield n + 50;
+		case void => yield len(elem);
+		};
+		const block = strings::sub(elem, 0, next_type);
+
+		const name = parse_json_str(block, "name");
+		const c_lat = parse_json_num(block, "lat");
+		const c_lon = parse_json_num(block, "lon");
+
+		if (name != "Unknown" && c_lat > 1.0 && c_lon > 1.0) {
+			const d = dist_km(user_lat, user_lon, c_lat, c_lon);
+			append(cinemas, cinema {
+				name = name,
+				lat = c_lat,
+				lon = c_lon,
+				dist = d,
+			})!;
+		};
+		pos = pos + tag_idx + 30;
+	};
+
+	// Sort by distance (simpel bubble sort)
+	for (let i = 0z; i < len(cinemas); i += 1) {
+		for (let j = 0z; j < len(cinemas) - 1; j += 1) {
+			if (cinemas[j].dist > cinemas[j+1].dist) {
+				const tmp = cinemas[j];
+				cinemas[j] = cinemas[j+1];
+				cinemas[j+1] = tmp;
+			};
+		};
+	};
+
+	cprint(C_GREEN, "SHIFU", "These cinemas are within walking or driving distance:", false);
+	fmt::println("")!;
+
+	const max_show = if (len(cinemas) > 8z) 8z else len(cinemas);
+	for (let i = 0z; i < max_show; i += 1) {
+		fmt::printfln("  🎬 \x1b[33m{}\x1b[0m", cinemas[i].name)!;
+		fmt::printfln("     \x1b[36m~{} km away\x1b[0m", cinemas[i].dist: int)!;
+	};
+
+	fmt::println("")!;
+	cprint(C_YELLOW, "SHIFU", "Choose wisely. Time is precious.", false);
+	fmt::println("")!;
+};
 export fn main() void = {
 	const args = os::args;
 	if (len(args) < 2) {
@@ -2203,6 +2471,8 @@ export fn main() void = {
 		oogway_sec = 600u,
 		roz = false,
 		roz_city = "",
+		shifu = false,
+		shifu_city = "",
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -2265,6 +2535,12 @@ export fn main() void = {
                         o.zhen_setup = true;
                 } else if (a == "--proton") {
                         o.zhen_proton = true;
+                } else if (a == "shifu") {
+                        o.shifu = true;
+                        if (i + 1 < len(args)) {
+                                o.shifu_city = args[i + 1];
+                                i += 1;
+                        };
                 } else if (a == "roz") {
                         o.roz = true;
                         // Tjek næste arg for "vejr"/"weather"
@@ -2352,6 +2628,10 @@ export fn main() void = {
 	};
 	if (o.roz) {
 		do_roz(&o);
+		return;
+	};
+	if (o.shifu) {
+		do_shifu(&o);
 		return;
 	};
 	if (o.zhen_setup) {
