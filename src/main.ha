@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.6.2";
+def VERSION = "3.7.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -41,6 +41,7 @@ type opts = struct {
 	oogway_sec: uint,
 	roz: bool,
 	roz_city: str,
+	roz_day: str,
 	shifu: bool,
 	shifu_city: str,
 	url:     str,
@@ -1999,6 +2000,34 @@ fn weather_emoji(code: int) (str, str) = {
 	};
 };
 
+fn extract_array_value(json: str, key: str, idx: size) f64 = {
+	// Find "key":[v1,v2,v3,...] og returner element ved idx
+	static let pat_buf: [128]u8 = [0...];
+	const pat = fmt::bsprintf(pat_buf, "\"{}\":[", key)!;
+	const start_idx = match (strings::index(json, pat)) {
+	case let n: size => yield n + len(pat);
+	case void => return 0.0;
+	};
+	const array_str = strings::sub(json, start_idx, strings::end);
+	const end_idx = match (strings::index(array_str, "]")) {
+	case let n: size => yield n;
+	case void => return 0.0;
+	};
+	const array_only = strings::sub(array_str, 0, end_idx);
+	const parts = match (strings::split(array_only, ",")) {
+	case let s: []str => yield s;
+	case => return 0.0;
+	};
+	defer free(parts);
+	if (idx >= len(parts)) return 0.0;
+	const trimmed = strings::trim(parts[idx]);
+	return match (strconv::stof64(trimmed)) {
+	case let f: f64 => yield f;
+	case => yield 0.0;
+	};
+};
+
+
 fn parse_json_num(json: str, key: str) f64 = {
 	// Simpel JSON-parser: find "key":<number>
 	static let pat_buf: [128]u8 = [0...];
@@ -2152,9 +2181,24 @@ fn do_roz(o: *opts) void = {
 	cprint(C_CYAN, "ROZ", "Scanning sky conditions...", false);
 	fmt::println("")!;
 
-	// Step 2: Hent vejret for den lokation
+	let day_offset: int = 0;
+	let use_forecast = false;
+	if (o.roz_day == "imorgen" || o.roz_day == "tomorrow") { day_offset = 1; use_forecast = true; };
+	if (o.roz_day == "mandag" || o.roz_day == "monday") { day_offset = -1; use_forecast = true; };
+	if (o.roz_day == "tirsdag" || o.roz_day == "tuesday") { day_offset = -2; use_forecast = true; };
+	if (o.roz_day == "onsdag" || o.roz_day == "wednesday") { day_offset = -3; use_forecast = true; };
+	if (o.roz_day == "torsdag" || o.roz_day == "thursday") { day_offset = -4; use_forecast = true; };
+	if (o.roz_day == "fredag" || o.roz_day == "friday") { day_offset = -5; use_forecast = true; };
+	if (o.roz_day == "lørdag" || o.roz_day == "loerdag" || o.roz_day == "saturday") { day_offset = -6; use_forecast = true; };
+	if (o.roz_day == "søndag" || o.roz_day == "soendag" || o.roz_day == "sunday") { day_offset = -7; use_forecast = true; };
+
 	static let url_buf: [512]u8 = [0...];
-	const url = fmt::bsprintf(url_buf, "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&current=temperature_2m,precipitation,weather_code&timezone=auto", lat, lon)!;
+	let url: str = "";
+	if (use_forecast) {
+		url = fmt::bsprintf(url_buf, "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&timezone=auto&forecast_days=7", lat, lon)!;
+	} else {
+		url = fmt::bsprintf(url_buf, "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&current=temperature_2m,precipitation,weather_code&timezone=auto", lat, lon)!;
+	};
 	let args: []str = alloc([], 4)!;
 	defer free(args);
 	append(args, "curl")!;
@@ -2185,30 +2229,53 @@ fn do_roz(o: *opts) void = {
 	};
 	io::close(pipe.0)!;
 	exec::wait(&proc)!;
-
 	const full_json = strings::fromutf8(json_buf[..n])!;
-	// Hop forbi "current_units" til "current":{ for at få de rigtige numeriske værdier
-	const json = match (strings::index(full_json, "\"current\":{")) {
-	case let idx: size => yield strings::sub(full_json, idx, strings::end);
-	case void => yield full_json;
+
+	if (use_forecast) {
+		const daily = match (strings::index(full_json, "\"daily\":{")) {
+		case let idx: size => yield strings::sub(full_json, idx, strings::end);
+		case void => yield full_json;
+		};
+		let target_idx = 1z;
+		if (day_offset == 1) {
+			target_idx = 1z;
+		} else if (day_offset < 0) {
+			const want_wd = (-day_offset - 1): int;
+			const now = time::now(time::clock::REALTIME);
+			const today_wd = ((now.sec / 86400 + 4) % 7): int;
+			let days_ahead = want_wd - today_wd;
+			if (days_ahead < 0) days_ahead += 7;
+			target_idx = days_ahead: size;
+		};
+		const tmax = extract_array_value(daily, "temperature_2m_max", target_idx);
+		const tmin = extract_array_value(daily, "temperature_2m_min", target_idx);
+		const prob = extract_array_value(daily, "precipitation_probability_max", target_idx);
+		const code_d = extract_array_value(daily, "weather_code", target_idx): int;
+		const we = weather_emoji(code_d);
+		fmt::println("")!;
+		fmt::printfln("  📍 \x1b[33mLocation:\x1b[0m      {}, {}", city, country)!;
+		fmt::printfln("  📅 \x1b[33mForecast:\x1b[0m      {} day(s) ahead", target_idx)!;
+		fmt::printfln("  🌡️  \x1b[33mHigh / Low:\x1b[0m    {}°C / {}°C", tmax, tmin)!;
+		fmt::printfln("  {}  \x1b[33mConditions:\x1b[0m    {}", we.0, we.1)!;
+		fmt::printfln("  ☔ \x1b[33mRain chance:\x1b[0m   {}%", prob)!;
+		fmt::println("")!;
+	} else {
+		const json = match (strings::index(full_json, "\"current\":{")) {
+		case let idx: size => yield strings::sub(full_json, idx, strings::end);
+		case void => yield full_json;
+		};
+		const temp = parse_json_num(json, "temperature_2m");
+		const precip = parse_json_num(json, "precipitation");
+		const code_f = parse_json_num(json, "weather_code");
+		const code = code_f: int;
+		const we = weather_emoji(code);
+		fmt::println("")!;
+		fmt::printfln("  📍 \x1b[33mLocation:\x1b[0m      {}, {}", city, country)!;
+		fmt::printfln("  🌡️  \x1b[33mTemperature:\x1b[0m   {}°C", temp)!;
+		fmt::printfln("  {}  \x1b[33mConditions:\x1b[0m    {}", we.0, we.1)!;
+		fmt::printfln("  💧 \x1b[33mPrecipitation:\x1b[0m {} mm", precip)!;
+		fmt::println("")!;
 	};
-
-	const temp = parse_json_num(json, "temperature_2m");
-	const precip = parse_json_num(json, "precipitation");
-	const code_f = parse_json_num(json, "weather_code");
-	const code = code_f: int;
-
-	const we = weather_emoji(code);
-
-	fmt::println("")!;
-	fmt::printfln("  📍 \x1b[33mLocation:\x1b[0m      {}, {}", city, country)!;
-	fmt::printfln("  🌡️  \x1b[33mTemperature:\x1b[0m   {}°C", temp)!;
-	fmt::printfln("  {}  \x1b[33mConditions:\x1b[0m    {}", we.0, we.1)!;
-	fmt::printfln("  💧 \x1b[33mPrecipitation:\x1b[0m {} mm", precip)!;
-	fmt::println("")!;
-
-	cprint(C_GREEN, "ROZ", "Analysis complete. Observation logged.", false);
-	fmt::println("")!;
 };
 type cinema = struct {
 	name: str,
@@ -2685,6 +2752,7 @@ export fn main() void = {
 		oogway_sec = 600u,
 		roz = false,
 		roz_city = "",
+		roz_day = "",
 		shifu = false,
 		shifu_city = "",
                 suno    = false,
@@ -2774,11 +2842,55 @@ export fn main() void = {
                                         i += 1;
                                 };
                         };
-                        // Tjek om der er en by-arg efter "vejr"
-                        if (i + 1 < len(args)) {
-                                o.roz_city = args[i + 1];
-                                i += 1;
+                        // Slurp remaining args. Sidste arg kan være dag-keyword.
+                        let collected: []str = alloc([], 5)!;
+                        defer free(collected);
+                        for (let k = i + 1; k < len(args); k += 1) {
+                                append(collected, args[k])!;
                         };
+                        if (len(collected) > 0) {
+                                const last = collected[len(collected) - 1];
+                                if (last == "idag" || last == "today" || last == "nu" ||
+                                    last == "imorgen" || last == "tomorrow" ||
+                                    last == "mandag" || last == "monday" ||
+                                    last == "tirsdag" || last == "tuesday" ||
+                                    last == "onsdag" || last == "wednesday" ||
+                                    last == "torsdag" || last == "thursday" ||
+                                    last == "fredag" || last == "friday" ||
+                                    last == "lørdag" || last == "loerdag" || last == "saturday" ||
+                                    last == "søndag" || last == "soendag" || last == "sunday" ||
+                                    last == "weekend" || last == "uge" || last == "week") {
+                                        o.roz_day = last;
+                                        // Resterende er city
+                                        let city = strings::dup("")!;
+                                        for (let k = 0z; k < len(collected) - 1; k += 1) {
+                                                if (len(city) > 0) {
+                                                        const old_c = city;
+                                                        city = strings::concat(old_c, " ")!;
+                                                        free(old_c);
+                                                };
+                                                const old_c2 = city;
+                                                city = strings::concat(old_c2, collected[k])!;
+                                                free(old_c2);
+                                        };
+                                        o.roz_city = city;
+                                } else {
+                                        // Ingen dag, alt er city
+                                        let city = strings::dup("")!;
+                                        for (let k = 0z; k < len(collected); k += 1) {
+                                                if (len(city) > 0) {
+                                                        const old_c = city;
+                                                        city = strings::concat(old_c, " ")!;
+                                                        free(old_c);
+                                                };
+                                                const old_c2 = city;
+                                                city = strings::concat(old_c2, collected[k])!;
+                                                free(old_c2);
+                                        };
+                                        o.roz_city = city;
+                                };
+                        };
+                        i = len(args);
                 } else if (a == "oogway") {
                         o.oogway = true;
                         // Check om næste arg er et tal (custom varighed i sek)
