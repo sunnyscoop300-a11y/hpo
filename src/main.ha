@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.7.1";
+def VERSION = "3.7.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1872,6 +1872,7 @@ fn do_oogway(o: *opts) void = {
 	let msg_idx = 0z;
 
 	fmt::print("\x1b[2J\x1b[H")!;
+	fmt::print("\x1b[2J\x1b[H")!;  // Clear screen + cursor home
 	fmt::println("")!;
 	fmt::println("                    \x1b[33m🐢  HPO OOGWAY  🐢\x1b[0m")!;
 	fmt::println("")!;
@@ -1879,22 +1880,34 @@ fn do_oogway(o: *opts) void = {
 	fmt::println("                  \x1b[36m┃  Inner Peace Session  ┃\x1b[0m")!;
 	fmt::println("                  \x1b[36m┗━━━━━━━━━━━━━━━━━━━━━━┛\x1b[0m")!;
 	fmt::println("")!;
-	fmt::println("                         \x1b[32m___\x1b[0m")!;
-	fmt::println("                     \x1b[32m,uadOOOOOOOba.,\x1b[0m")!;
-	fmt::println("                  \x1b[32m,uOOOOOOOOOOOOOOOb,\x1b[0m")!;
-	fmt::println("                \x1b[32m,OOOOOOOOOOOOOOOOOOOOb,\x1b[0m")!;
-	fmt::println("               \x1b[32mdOOOOOOOOO\x1b[33m_,_\x1b[32mOOOOOOOOOb\x1b[0m")!;
-	fmt::println("              \x1b[32mdOOOOOOOO\x1b[33m( o o )\x1b[32mOOOOOOOOb\x1b[0m")!;
-	fmt::println("              \x1b[32mOOOOOOOO\x1b[33m  \\_/  \x1b[32mOOOOOOOOO\x1b[0m")!;
-	fmt::println("              \x1b[32m`OOOOOOOOOOOOOOOOOOOOOO\x1b[0m'")!;
-	fmt::println("                \x1b[32m`OOOOOOOOOOOOOOOOOO'\x1b[0m")!;
-	fmt::println("")!;
 
 	// Start-bell: lille ding
 	play_bell();
 	time::sleep(500 * time::MILLISECOND);
 
 	fmt::println("")!;
+	// Custom Oogway portrait fra ~/.config/hpo/art/oogway.txt
+	const home_o = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let oog_path_buf: [512]u8 = [0...];
+	const oog_path = fmt::bsprintf(oog_path_buf, "{}/.config/hpo/art/oogway.txt", home_o)!;
+	match (os::open(oog_path)) {
+	case let of: io::file =>
+		static let oog_buf: [16384]u8 = [0...];
+		const on = match (io::read(of, oog_buf)) {
+		case let nn: size => yield nn;
+		case => yield 0z;
+		};
+		io::close(of)!;
+		if (on > 0) {
+			const oog_text = strings::fromutf8(oog_buf[..on])!;
+			fmt::print(oog_text)!;
+			fmt::println("")!;
+		};
+	case => void;
+	};
 	fmt::println("        \x1b[36mPress Ctrl+C to end early\x1b[0m")!;
 	fmt::println("")!;
 
