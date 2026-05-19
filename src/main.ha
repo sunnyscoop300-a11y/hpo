@@ -4,10 +4,11 @@ use os;
 use os::exec;
 use strings;
 use bufio;
+use strconv;
 use time;
 use fs;
 
-def VERSION = "3.3.4";
+def VERSION = "3.4.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -38,6 +39,7 @@ fn tiger_quote() str = {
 type opts = struct {
 	oogway: bool,
 	oogway_sec: uint,
+	roz: bool,
 	url:     str,
 	output:  str,
 	resume:  bool,
@@ -1924,6 +1926,206 @@ fn do_oogway(o: *opts) void = {
 	fmt::println("                              \x1b[33m— Master Oogway\x1b[0m")!;
 	fmt::println("")!;
 };
+fn weather_emoji(code: int) (str, str) = {
+	// WMO Weather codes → emoji + besked
+	switch (code) {
+	case 0 =>
+		return ("☀️", "Clear sky. Brightbill would fly today.");
+	case 1 =>
+		return ("🌤️", "Mainly clear. Soft winds across the island.");
+	case 2 =>
+		return ("⛅", "Partly cloudy. The trees whisper.");
+	case 3 =>
+		return ("☁️", "Overcast. The forest grows quiet.");
+	case 45, 48 =>
+		return ("🌫️", "Fog. Step carefully on the ground.");
+	case 51, 53, 55 =>
+		return ("🌦️", "Drizzle. A light coat would suffice.");
+	case 56, 57 =>
+		return ("🌨️", "Freezing drizzle. The bark turns crystal.");
+	case 61, 63, 65 =>
+		return ("🌧️", "Rain. Bring your rain jacket. Brightbill would not fly.");
+	case 66, 67 =>
+		return ("🌧️", "Freezing rain. Stay warm, my friend.");
+	case 71, 73, 75 =>
+		return ("🌨️", "Snow falls. The island grows white.");
+	case 77 =>
+		return ("🌨️", "Snow grains. Tiny ice from above.");
+	case 80, 81, 82 =>
+		return ("🌧️", "Rain showers. The clouds gather and release.");
+	case 85, 86 =>
+		return ("🌨️", "Snow showers. Drifts may form.");
+	case 95 =>
+		return ("⛈️", "Thunderstorm. Seek shelter beneath strong branches.");
+	case 96, 99 =>
+		return ("⛈️", "Severe thunderstorm with hail. Do not venture out.");
+	case =>
+		return ("🌍", "Conditions unknown. Trust your senses.");
+	};
+};
+
+fn parse_json_num(json: str, key: str) f64 = {
+	// Simpel JSON-parser: find "key":<number>
+	static let pat_buf: [128]u8 = [0...];
+	const pat = fmt::bsprintf(pat_buf, "\"{}\":", key)!;
+	const idx = match (strings::index(json, pat)) {
+	case let n: size => yield n;
+	case void => return 0.0;
+	};
+	const after = strings::sub(json, idx + len(pat), strings::end);
+	const trimmed = strings::ltrim(after);
+	// Læs tal indtil komma eller }
+	const bytes = strings::toutf8(trimmed);
+	let end = 0z;
+	for (end < len(bytes); end += 1) {
+		const c = bytes[end];
+		if (c == ',': u8 || c == '}': u8 || c == ' ': u8) break;
+	};
+	const num_str = strings::sub(trimmed, 0, end);
+	return match (strconv::stof64(num_str)) {
+	case let f: f64 => yield f;
+	case => yield 0.0;
+	};
+};
+
+fn parse_json_str(json: str, key: str) str = {
+	static let pat_buf: [128]u8 = [0...];
+	const pat = fmt::bsprintf(pat_buf, "\"{}\":", key)!;
+	const idx = match (strings::index(json, pat)) {
+	case let n: size => yield n;
+	case void => return "Unknown";
+	};
+	const after = strings::sub(json, idx + len(pat), strings::end);
+	const trimmed = strings::ltrim(after);
+	if (!strings::hasprefix(trimmed, "\"")) return "Unknown";
+	const no_quote = strings::sub(trimmed, 1, strings::end);
+	const end = match (strings::index(no_quote, "\"")) {
+	case let n: size => yield n;
+	case void => return "Unknown";
+	};
+	return strings::dup(strings::sub(no_quote, 0, end))!;
+};
+
+fn do_roz(o: *opts) void = {
+	let _ = o;
+
+	fmt::println("")!;
+	fmt::println("              \x1b[36m🤖 [ROZZUM UNIT 7134] 🤖\x1b[0m")!;
+	fmt::println("                 \x1b[33mWeather Analysis Mode\x1b[0m")!;
+	fmt::println("")!;
+	fmt::println("                    \x1b[37m┌──────────┐\x1b[0m")!;
+	fmt::println("                    \x1b[37m│ \x1b[36m◉      ◉\x1b[37m │\x1b[0m")!;
+	fmt::println("                    \x1b[37m│ ──────── │\x1b[0m")!;
+	fmt::println("                    \x1b[37m│  \x1b[35m▮▮▮▮▮▮\x1b[37m  │\x1b[0m")!;
+	fmt::println("                    \x1b[37m└────┬─────┘\x1b[0m")!;
+	fmt::println("                         \x1b[37m│\x1b[0m")!;
+	fmt::println("                    \x1b[37m┌────┴─────┐\x1b[0m")!;
+	fmt::println("                    \x1b[37m│ ▮▮▮▮▮▮▮▮ │\x1b[0m")!;
+	fmt::println("                    \x1b[37m└──┬────┬──┘\x1b[0m")!;
+	fmt::println("                       \x1b[37m│    │\x1b[0m")!;
+	fmt::println("")!;
+
+	cprint(C_CYAN, "ROZ", "Locating sensor position...", false);
+
+	// Step 1: Få lat/lon/city fra ipapi.co
+	let loc_args: []str = alloc([], 4)!;
+	defer free(loc_args);
+	append(loc_args, "curl")!;
+	append(loc_args, "-s")!;
+	append(loc_args, "--max-time")!;
+	append(loc_args, "10")!;
+	append(loc_args, "https://ipapi.co/json/")!;
+
+	const loc_cmd = match (exec::cmd("curl", loc_args[1..]...)) {
+	case let c: exec::command => yield c;
+	case =>
+		cprint(C_RED, "ROZ", "Sensor offline. Cannot determine location.", false);
+		return;
+	};
+	const loc_pipe = exec::pipe();
+	exec::addfile(&loc_cmd, os::stdout_file, loc_pipe.1)!;
+	const loc_proc = match (exec::start(&loc_cmd)) {
+	case let p: exec::process => yield p;
+	case =>
+		cprint(C_RED, "ROZ", "Sensor initialization failed.", false);
+		return;
+	};
+	io::close(loc_pipe.1)!;
+	static let loc_buf: [4096]u8 = [0...];
+	const loc_n = match (io::read(loc_pipe.0, loc_buf)) {
+	case let nn: size => yield nn;
+	case => yield 0z;
+	};
+	io::close(loc_pipe.0)!;
+	exec::wait(&loc_proc)!;
+	const loc_json = strings::fromutf8(loc_buf[..loc_n])!;
+
+	const lat = parse_json_num(loc_json, "latitude");
+	const lon = parse_json_num(loc_json, "longitude");
+	const city = parse_json_str(loc_json, "city");
+	const country = parse_json_str(loc_json, "country_name");
+
+	cprint(C_CYAN, "ROZ", "Scanning sky conditions...", false);
+	fmt::println("")!;
+
+	// Step 2: Hent vejret for den lokation
+	static let url_buf: [512]u8 = [0...];
+	const url = fmt::bsprintf(url_buf, "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&current=temperature_2m,precipitation,weather_code&timezone=auto", lat, lon)!;
+	let args: []str = alloc([], 4)!;
+	defer free(args);
+	append(args, "curl")!;
+	append(args, "-s")!;
+	append(args, "--max-time")!;
+	append(args, "10")!;
+	append(args, url)!;
+
+	const cmd = match (exec::cmd("curl", args[1..]...)) {
+	case let c: exec::command => yield c;
+	case =>
+		cprint(C_RED, "ROZ", "Weather sensor unreachable.", false);
+		return;
+	};
+	const pipe = exec::pipe();
+	exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case =>
+		cprint(C_RED, "ROZ", "Weather sensor failed.", false);
+		return;
+	};
+	io::close(pipe.1)!;
+	static let json_buf: [4096]u8 = [0...];
+	const n = match (io::read(pipe.0, json_buf)) {
+	case let nn: size => yield nn;
+	case => yield 0z;
+	};
+	io::close(pipe.0)!;
+	exec::wait(&proc)!;
+
+	const full_json = strings::fromutf8(json_buf[..n])!;
+	// Hop forbi "current_units" til "current":{ for at få de rigtige numeriske værdier
+	const json = match (strings::index(full_json, "\"current\":{")) {
+	case let idx: size => yield strings::sub(full_json, idx, strings::end);
+	case void => yield full_json;
+	};
+
+	const temp = parse_json_num(json, "temperature_2m");
+	const precip = parse_json_num(json, "precipitation");
+	const code_f = parse_json_num(json, "weather_code");
+	const code = code_f: int;
+
+	const we = weather_emoji(code);
+
+	fmt::println("")!;
+	fmt::printfln("  📍 \x1b[33mLocation:\x1b[0m      {}, {}", city, country)!;
+	fmt::printfln("  🌡️  \x1b[33mTemperature:\x1b[0m   {}°C", temp)!;
+	fmt::printfln("  {}  \x1b[33mConditions:\x1b[0m    {}", we.0, we.1)!;
+	fmt::printfln("  💧 \x1b[33mPrecipitation:\x1b[0m {} mm", precip)!;
+	fmt::println("")!;
+
+	cprint(C_GREEN, "ROZ", "Analysis complete. Observation logged.", false);
+	fmt::println("")!;
+};
 export fn main() void = {
 	const args = os::args;
 	if (len(args) < 2) {
@@ -1949,6 +2151,7 @@ export fn main() void = {
 		zhen_proton = false,
 		oogway = false,
 		oogway_sec = 600u,
+		roz = false,
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -2011,6 +2214,15 @@ export fn main() void = {
                         o.zhen_setup = true;
                 } else if (a == "--proton") {
                         o.zhen_proton = true;
+                } else if (a == "roz") {
+                        o.roz = true;
+                        // Tjek næste arg for "vejr"/"weather"
+                        if (i + 1 < len(args)) {
+                                const next = args[i + 1];
+                                if (next == "vejr" || next == "weather" || next == "-w") {
+                                        i += 1;
+                                };
+                        };
                 } else if (a == "oogway") {
                         o.oogway = true;
                         // Check om næste arg er et tal (custom varighed i sek)
@@ -2080,6 +2292,10 @@ export fn main() void = {
 	};
 	if (o.oogway) {
 		do_oogway(&o);
+		return;
+	};
+	if (o.roz) {
+		do_roz(&o);
 		return;
 	};
 	if (o.zhen_setup) {
