@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.6.1";
+def VERSION = "3.6.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2350,6 +2350,43 @@ fn do_shifu(o: *opts) void = {
 		user_city = parse_json_str(loc_json, "city");
 	};
 
+	// Først: forsøg Python helper for live cinema data
+	if (len(o.shifu_city) > 0) {
+		const helper_paths_early = [
+			"/usr/local/share/hpo/shifu-events.py",
+			"./helpers/shifu-events.py",
+		]: []str;
+		let helper_found_early: str = "";
+		for (let hi = 0z; hi < len(helper_paths_early); hi += 1) {
+			if (os::exists(helper_paths_early[hi])) {
+				helper_found_early = helper_paths_early[hi];
+				break;
+			};
+		};
+		if (len(helper_found_early) > 0) {
+			cprint(C_GREEN, "SHIFU", "Fetching program from ebillet.dk...", false);
+			fmt::println("")!;
+			// Split shifu_city på space og send som separate args
+			const parts = match (strings::split(o.shifu_city, " ")) {
+			case let p: []str => yield p;
+			case => yield []: []str;
+			};
+			defer free(parts);
+			let py_args: []str = alloc([], 10)!;
+			defer free(py_args);
+			append(py_args, "python3")!;
+			append(py_args, helper_found_early)!;
+			for (let pi = 0z; pi < len(parts); pi += 1) {
+				if (len(parts[pi]) > 0) {
+					append(py_args, parts[pi])!;
+				};
+			};
+			const py_ok = run_cmd(py_args, false);
+			fmt::println("")!;
+			if (py_ok) return; // Skip resten hvis Python viste events
+		};
+	};
+
 	// Tjek om shifu_city matcher en biograf i ~/.config/hpo/cinemas.json
 	if (len(o.shifu_city) > 0) {
 		const home_c = match (os::getenv("HOME")) {
@@ -2682,10 +2719,20 @@ export fn main() void = {
                         o.zhen_proton = true;
                 } else if (a == "shifu") {
                         o.shifu = true;
-                        if (i + 1 < len(args)) {
-                                o.shifu_city = args[i + 1];
-                                i += 1;
+                        // Slurp alle remaining args som "city + day" combined
+                        let combined = strings::dup("")!;
+                        for (let k = i + 1; k < len(args); k += 1) {
+                                if (len(combined) > 0) {
+                                        const old_c = combined;
+                                        combined = strings::concat(old_c, " ")!;
+                                        free(old_c);
+                                };
+                                const old_c2 = combined;
+                                combined = strings::concat(old_c2, args[k])!;
+                                free(old_c2);
                         };
+                        o.shifu_city = combined;
+                        i = len(args); // skip resten af args
                 } else if (a == "roz") {
                         o.roz = true;
                         // Tjek næste arg for "vejr"/"weather"
