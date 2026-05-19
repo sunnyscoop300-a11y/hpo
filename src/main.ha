@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.7.0";
+def VERSION = "3.7.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2101,16 +2101,45 @@ fn do_roz(o: *opts) void = {
 	fmt::println("              \x1b[36m🤖 [ROZZUM UNIT 7134] 🤖\x1b[0m")!;
 	fmt::println("                 \x1b[33mWeather Analysis Mode\x1b[0m")!;
 	fmt::println("")!;
-	fmt::println("                    \x1b[37m┌──────────┐\x1b[0m")!;
-	fmt::println("                    \x1b[37m│ \x1b[36m◉      ◉\x1b[37m │\x1b[0m")!;
-	fmt::println("                    \x1b[37m│ ──────── │\x1b[0m")!;
-	fmt::println("                    \x1b[37m│  \x1b[35m▮▮▮▮▮▮\x1b[37m  │\x1b[0m")!;
-	fmt::println("                    \x1b[37m└────┬─────┘\x1b[0m")!;
-	fmt::println("                         \x1b[37m│\x1b[0m")!;
-	fmt::println("                    \x1b[37m┌────┴─────┐\x1b[0m")!;
-	fmt::println("                    \x1b[37m│ ▮▮▮▮▮▮▮▮ │\x1b[0m")!;
-	fmt::println("                    \x1b[37m└──┬────┬──┘\x1b[0m")!;
-	fmt::println("                       \x1b[37m│    │\x1b[0m")!;
+
+	// Custom Roz portrait fra ~/.config/hpo/art/roz.txt
+	const home_r = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let roz_path_buf: [512]u8 = [0...];
+	const roz_path = fmt::bsprintf(roz_path_buf, "{}/.config/hpo/art/roz.txt", home_r)!;
+	let drew_roz = false;
+	match (os::open(roz_path)) {
+	case let rf: io::file =>
+		static let roz_buf: [16384]u8 = [0...];
+		const rn = match (io::read(rf, roz_buf)) {
+		case let nn: size => yield nn;
+		case => yield 0z;
+		};
+		io::close(rf)!;
+		if (rn > 0) {
+			const roz_text = strings::fromutf8(roz_buf[..rn])!;
+			if (!o.nocolor) fmt::print("\x1b[36m")!;
+			fmt::print(roz_text)!;
+			if (!o.nocolor) fmt::print("\x1b[0m")!;
+			drew_roz = true;
+		};
+	case => void;
+	};
+
+	if (!drew_roz) {
+		fmt::println("                    \x1b[37m┌──────────┐\x1b[0m")!;
+		fmt::println("                    \x1b[37m│ \x1b[36m◉      ◉\x1b[37m │\x1b[0m")!;
+		fmt::println("                    \x1b[37m│ ──────── │\x1b[0m")!;
+		fmt::println("                    \x1b[37m│  \x1b[35m▮▮▮▮▮▮\x1b[37m  │\x1b[0m")!;
+		fmt::println("                    \x1b[37m└────┬─────┘\x1b[0m")!;
+		fmt::println("                         \x1b[37m│\x1b[0m")!;
+		fmt::println("                    \x1b[37m┌────┴─────┐\x1b[0m")!;
+		fmt::println("                    \x1b[37m│ ▮▮▮▮▮▮▮▮ │\x1b[0m")!;
+		fmt::println("                    \x1b[37m└──┬────┬──┘\x1b[0m")!;
+		fmt::println("                       \x1b[37m│    │\x1b[0m")!;
+	};
 	fmt::println("")!;
 
 	cprint(C_CYAN, "ROZ", "Locating sensor position...", false);
