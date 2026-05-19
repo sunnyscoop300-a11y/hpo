@@ -1755,6 +1755,33 @@ fn play_bell() void = {
 	case let p: exec::process => yield p;
 	case => return;
 	};
+	exec::wait(&proc)!;
+};
+
+fn play_bell_async() void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "";
+	};
+	static let path_buf2: [512]u8 = [0...];
+	const bell_path = fmt::bsprintf(path_buf2, "{}/.local/share/hpo/bell.mp3", home)!;
+	if (!os::exists(bell_path)) {
+		fmt::print("\a")!;
+		bufio::flush(os::stdout)!;
+		return;
+	};
+	const cmd = match (exec::cmd("mpv", "--no-video", "--really-quiet", bell_path)) {
+	case let c: exec::command => yield c;
+	case => return;
+	};
+	const null_file = match (os::open("/dev/null", fs::flag::WRONLY)) {
+	case let f: io::file => yield f;
+	case => return;
+	};
+	defer io::close(null_file)!;
+	exec::addfile(&cmd, os::stdout_file, null_file)!;
+	exec::addfile(&cmd, os::stderr_file, null_file)!;
+	exec::start(&cmd)!;
 };
 
 fn print_help() void = {
