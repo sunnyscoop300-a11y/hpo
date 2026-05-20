@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.8.0";
+def VERSION = "3.8.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1300,7 +1300,7 @@ fn do_steam(o: *opts, target: str) void = {
 	};
 
 	static let uri_buf: [512]u8 = [0...];
-	const action = if (o.steam_cmd == "install") "install" else "rungameid";
+	const action = if (o.steam_cmd == "install") "install" else if (o.steam_cmd == "wishlist") "addtowishlist" else "rungameid";
 	const uri = fmt::bsprintf(uri_buf, "steam://{}/{}", action, appid)!;
 
 	// WSL detection: hvis vi er på WSL, bridge til Windows Steam i stedet
@@ -1940,6 +1940,7 @@ fn print_help() void = {
 	fmt::println("  hpo --steam list                      List installed games")!;
 	fmt::println("  hpo --steam install <appid|alias>     Install a game")!;
 	fmt::println("  hpo --steam launch <appid|alias>      Launch a game")!;
+	fmt::println("  hpo --steam wishlist <appid>          Add game to wishlist")!;
 	fmt::println("  hpo --steam <alias>                   Short syntax (auto-launch)")!;
 	fmt::println("  Aliases: ~/.config/hpo/steam_aliases.txt")!;
 	fmt::println("")!;
