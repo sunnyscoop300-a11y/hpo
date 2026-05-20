@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.7.3";
+def VERSION = "3.8.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -59,6 +59,7 @@ type opts = struct {
 	steam:    bool,
 	steam_cmd: str,
 	zhen_setup: bool,
+	zhen_update: bool,
 	zhen_proton: bool,
         suno:    bool,
 	verbose: bool,
@@ -955,6 +956,116 @@ fn do_mega(o: *opts) void = {
 	};
 };
 
+fn do_zhen_update(o: *opts) void = {
+	cprint(C_BLUE, "ZHEN", "Checking for new Proton-GE release...", o.nocolor);
+	fmt::println("")!;
+
+	// Hent latest release JSON fra GitHub API
+	let curl_args: []str = alloc([], 8)!;
+	defer free(curl_args);
+	append(curl_args, "curl")!;
+	append(curl_args, "-s")!;
+	append(curl_args, "-L")!;
+	append(curl_args, "-A")!;
+	append(curl_args, "hpo-zhen/1.0")!;
+	append(curl_args, "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest")!;
+
+	const cmd = match (exec::cmd(curl_args[0], curl_args[1..]...)) {
+	case let c: exec::command => yield c;
+	case => {
+		cprint(C_RED, "ZHEN", "Failed to start curl", o.nocolor);
+		return;
+	};
+	};
+	const pipe = exec::pipe();
+	exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case => return;
+	};
+	io::close(pipe.1)!;
+	static let json_buf: [16384]u8 = [0...];
+	const n = match (io::read(pipe.0, json_buf)) {
+	case let nn: size => yield nn;
+	case => yield 0z;
+	};
+	io::close(pipe.0)!;
+	exec::wait(&proc)!;
+	const json = strings::fromutf8(json_buf[..n])!;
+
+	// Find "tag_name":"GE-ProtonX-Y"
+	const tag_start = match (strings::index(json, "\"tag_name\":\"")) {
+	case let i: size => yield i + 12;
+	case void => {
+		cprint(C_RED, "ZHEN", "Could not parse latest release", o.nocolor);
+		return;
+	};
+	};
+	const tag_rest = strings::sub(json, tag_start, strings::end);
+	const tag_end = match (strings::index(tag_rest, "\"")) {
+	case let i: size => yield i;
+	case void => return;
+	};
+	const latest_tag = strings::sub(tag_rest, 0, tag_end);
+
+	cprint(C_YELLOW, "ZHEN", fmt::asprintf("Latest GE-Proton: {}", latest_tag)!, o.nocolor);
+
+	// Tjek om vi allerede har den
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let zhen_dir_buf: [512]u8 = [0...];
+	const latest_path = fmt::bsprintf(zhen_dir_buf, "{}/.local/share/hpo/zhen/proton/{}", home, latest_tag)!;
+	if (os::exists(latest_path)) {
+		cprint(C_GREEN, "ZHEN", "Already up to date!", o.nocolor);
+		return;
+	};
+
+	// Download tarball
+	cprint(C_BLUE, "ZHEN", "Downloading new Proton-GE...", o.nocolor);
+	static let url_buf: [512]u8 = [0...];
+	const url = fmt::bsprintf(url_buf, "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/{}/{}.tar.gz", latest_tag, latest_tag)!;
+	static let tar_buf: [512]u8 = [0...];
+	const tar_path = fmt::bsprintf(tar_buf, "/tmp/{}.tar.gz", latest_tag)!;
+	let dl_args: []str = alloc([], 6)!;
+	defer free(dl_args);
+	append(dl_args, "curl")!;
+	append(dl_args, "-L")!;
+	append(dl_args, "-#")!;
+	append(dl_args, "-o")!;
+	append(dl_args, tar_path)!;
+	append(dl_args, url)!;
+	if (!run_cmd(dl_args, o.nocolor)) {
+		cprint(C_RED, "ZHEN", "Download failed", o.nocolor);
+		return;
+	};
+
+	// Pak ud til ~/.local/share/hpo/zhen/proton/
+	cprint(C_BLUE, "ZHEN", "Extracting...", o.nocolor);
+	static let dest_buf: [512]u8 = [0...];
+	const dest = fmt::bsprintf(dest_buf, "{}/.local/share/hpo/zhen/proton", home)!;
+	os::mkdirs(dest, 0o755)!;
+	let tar_args: []str = alloc([], 6)!;
+	defer free(tar_args);
+	append(tar_args, "tar")!;
+	append(tar_args, "-xzf")!;
+	append(tar_args, tar_path)!;
+	append(tar_args, "-C")!;
+	append(tar_args, dest)!;
+	if (!run_cmd(tar_args, o.nocolor)) {
+		cprint(C_RED, "ZHEN", "Extraction failed", o.nocolor);
+		return;
+	};
+
+	// Cleanup
+	os::remove(tar_path): void;
+	cprint(C_GREEN, "ZHEN", fmt::asprintf("{} installed! Restart Steam to use it.", latest_tag)!, o.nocolor);
+	fmt::println("")!;
+	fmt::println("  NB: Edit STEAM_COMPAT_TOOL_OVERRIDE i src/main.ha if you want")!;
+	fmt::println("      hpo to force this new version automatically.")!;
+};
+
 fn do_zhen_setup(o: *opts) void = {
 	if (!check_tool("curl")) {
 		cprint(C_RED, "ERR", "curl not found! Install: sudo apt install curl", o.nocolor);
@@ -1835,6 +1946,7 @@ fn print_help() void = {
 	fmt::println("ZHEN ENGINE (self-contained gaming runtime):")!;
 	fmt::println("  hpo --zhen-setup                      Install umu-launcher")!;
 	fmt::println("  hpo --zhen-setup --proton             Also install GE-Proton10-34")!;
+	fmt::println("  hpo --zhen-update                     Check & install latest GE-Proton")!;
 	fmt::println("  On WSL: bridges Steam/Epic to Windows via cmd.exe URI handlers")!;
 	fmt::println("")!;
 	fmt::println("OOGWAY MEDITATION (with monastery bell):")!;
@@ -2811,6 +2923,7 @@ export fn main() void = {
 		steam   = false,
 		steam_cmd = "",
 		zhen_setup = false,
+		zhen_update = false,
 		zhen_proton = false,
 		oogway = false,
 		oogway_sec = 600u,
@@ -2877,6 +2990,8 @@ export fn main() void = {
                         };
                         o.steam = true;
                         o.steam_cmd = args[i];
+                } else if (a == "--zhen-update") {
+                        o.zhen_update = true;
                 } else if (a == "--zhen-setup") {
                         o.zhen_setup = true;
                 } else if (a == "--proton") {
@@ -3032,6 +3147,10 @@ export fn main() void = {
 	};
 	if (o.shifu) {
 		do_shifu(&o);
+		return;
+	};
+	if (o.zhen_update) {
+		do_zhen_update(&o);
 		return;
 	};
 	if (o.zhen_setup) {
