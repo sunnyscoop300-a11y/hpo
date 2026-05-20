@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.8.3";
+def VERSION = "3.9.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1333,7 +1333,7 @@ fn do_steam(o: *opts, target: str) void = {
 	};
 
 	if (!o.quiet) {
-		cprint(C_BLUE, "HPO", "Steam game detected!", o.nocolor);
+		cprint(C_BLUE, "FOXFIRE", "Steam game detected!", o.nocolor);
 		if (!o.nocolor) fmt::print(C_YELLOW)!;
 		fmt::printfln("  Action: {}", o.steam_cmd)!;
 		fmt::printfln("  AppID:  {}", appid)!;
@@ -1943,7 +1943,7 @@ fn print_help() void = {
 	fmt::println("  hpo --epic launch <app|alias>         Launch a game")!;
 	fmt::println("  Aliases: ~/.config/hpo/epic_aliases.txt")!;
 	fmt::println("")!;
-	fmt::println("STEAM (URI handler + Zhen on Linux, cmd.exe bridge on WSL):")!;
+	fmt::println("STEAM / FOXFIRE (URI handler + Zhen on Linux, cmd.exe bridge on WSL):")!;
 	fmt::println("  hpo --steam list                      List installed games")!;
 	fmt::println("  hpo --steam install <appid|alias>     Install a game")!;
 	fmt::println("  hpo --steam launch <appid|alias>      Launch a game")!;
@@ -1951,6 +1951,7 @@ fn print_help() void = {
 	fmt::println("  hpo --steam page <appid>              Open Steam store page")!;
 	fmt::println("  hpo --steam validate <appid|alias>    Verify game files")!;
 	fmt::println("  hpo --steam <alias>                   Short syntax (auto-launch)")!;
+	fmt::println("  hpo --steamfoxfire <args>             Same as --steam (Foxfire alias)")!;
 	fmt::println("  Aliases: ~/.config/hpo/steam_aliases.txt")!;
 	fmt::println("")!;
 	fmt::println("ZHEN ENGINE (self-contained gaming runtime):")!;
@@ -2992,7 +2993,7 @@ export fn main() void = {
                         };
                         o.epic = true;
                         o.epic_cmd = args[i];
-                } else if (a == "--steam") {
+                } else if (a == "--steam" || a == "--steamfoxfire") {
                         i += 1;
                         if (i >= len(args)) {
                                 fmt::errorfln("Error: --steam requires launch|list|install")!;
