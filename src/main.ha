@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.8.2";
+def VERSION = "3.8.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1254,7 +1254,7 @@ fn do_steam(o: *opts, target: str) void = {
 
 	// Smart kort syntax: hvis steam_cmd ikke er list/install, så er det selve target'et!
 	// Eksempel: "hpo --steam po" => steam_cmd="po", target="" => vi flytter po til target
-	if (o.steam_cmd != "list" && o.steam_cmd != "install" && o.steam_cmd != "launch" && len(target) == 0) {
+	if (o.steam_cmd != "list" && o.steam_cmd != "install" && o.steam_cmd != "launch" && o.steam_cmd != "wishlist" && o.steam_cmd != "validate" && o.steam_cmd != "verify" && o.steam_cmd != "page" && o.steam_cmd != "store" && len(target) == 0) {
 		target = o.steam_cmd;
 		o.steam_cmd = "launch";
 	};
@@ -1300,7 +1300,14 @@ fn do_steam(o: *opts, target: str) void = {
 	};
 
 	static let uri_buf: [512]u8 = [0...];
-	const action = if (o.steam_cmd == "install") "install" else if (o.steam_cmd == "wishlist") "addtowishlist" else "rungameid";
+	const action =
+		if (o.steam_cmd == "install") "install"
+		else if (o.steam_cmd == "wishlist") "store"
+		else if (o.steam_cmd == "page") "store"
+		else if (o.steam_cmd == "store") "store"
+		else if (o.steam_cmd == "validate") "validate"
+		else if (o.steam_cmd == "verify") "validate"
+		else "rungameid";
 	const uri = fmt::bsprintf(uri_buf, "steam://{}/{}", action, appid)!;
 
 	// WSL detection: hvis vi er på WSL, bridge til Windows Steam i stedet
@@ -1940,7 +1947,9 @@ fn print_help() void = {
 	fmt::println("  hpo --steam list                      List installed games")!;
 	fmt::println("  hpo --steam install <appid|alias>     Install a game")!;
 	fmt::println("  hpo --steam launch <appid|alias>      Launch a game")!;
-	fmt::println("  hpo --steam wishlist <appid>          Add game to wishlist")!;
+	fmt::println("  hpo --steam wishlist <appid>          Open store (click to wishlist)")!;
+	fmt::println("  hpo --steam page <appid>              Open Steam store page")!;
+	fmt::println("  hpo --steam validate <appid|alias>    Verify game files")!;
 	fmt::println("  hpo --steam <alias>                   Short syntax (auto-launch)")!;
 	fmt::println("  Aliases: ~/.config/hpo/steam_aliases.txt")!;
 	fmt::println("")!;
