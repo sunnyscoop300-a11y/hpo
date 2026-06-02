@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.7";
+def VERSION = "3.9.8";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1227,7 +1227,7 @@ fn is_wsl() bool = {
 
 fn steam_game_name(appid: str) str = {
 	if (!is_wsl()) return "";
-	const ps_tmpl = `$lf=Get-Content 'C:\\Program Files (x86)\\Steam\\steamapps\\libraryfolders.vdf' -Raw; $paths=[regex]::Matches($lf,'"path"\s+"([^"]+)"') | ForEach-Object { $_.Groups[1].Value -replace '\\\\','\' }; foreach($p in $paths){ $f=Join-Path $p 'steamapps\\appmanifest___APPID__.acf'; if(Test-Path $f){ $t=Get-Content $f -Raw; [regex]::Match($t,'"name"\s+"([^"]+)"').Groups[1].Value } }`;
+	const ps_tmpl = `[Console]::OutputEncoding=[Text.Encoding]::UTF8; $lf=Get-Content 'C:\\Program Files (x86)\\Steam\\steamapps\\libraryfolders.vdf' -Raw -Encoding UTF8; $paths=[regex]::Matches($lf,'"path"\s+"([^"]+)"') | ForEach-Object { $_.Groups[1].Value -replace '\\\\','\' }; foreach($p in $paths){ $f=Join-Path $p 'steamapps\\appmanifest___APPID__.acf'; if(Test-Path $f){ $t=Get-Content $f -Raw -Encoding UTF8; [regex]::Match($t,'"name"\s+"([^"]+)"').Groups[1].Value } }`;
 	const ps = strings::replace(ps_tmpl, "__APPID__", appid)!;
 	defer free(ps);
 	const cmd = match (exec::cmd("powershell.exe", "-NoProfile", "-Command", ps)) {
@@ -1253,7 +1253,16 @@ fn steam_game_name(appid: str) str = {
 	io::close(pipe.0)!;
 	exec::wait(&proc)!;
 	if (n == 0) return "";
-	return strings::dup(strings::trim(strings::fromutf8(nbuf[..n])!))!;
+	const s = match (strings::fromutf8(nbuf[..n])) {
+	case let s: str => yield s;
+	case => return "";
+	};
+	const t = strings::trim(s);
+	if (len(t) == 0) return "";
+	return match (strings::dup(t)) {
+	case let d: str => yield d;
+	case => yield "";
+	};
 };
 fn do_steam(o: *opts, target: str) void = {
 	const home = match (os::getenv("HOME")) {
@@ -1959,7 +1968,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.7")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.8")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
