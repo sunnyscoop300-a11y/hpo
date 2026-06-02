@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.5";
+def VERSION = "3.9.6";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -44,6 +44,9 @@ type opts = struct {
 	roz_day: str,
 	shifu: bool,
 	shifu_city: str,
+	chameleon: bool,
+	chameleon_action: str,
+	chameleon_target: str,
 	url:     str,
 	output:  str,
 	resume:  bool,
@@ -1956,7 +1959,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.5")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.6")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2988,6 +2991,9 @@ export fn main() void = {
 		roz_day = "",
 		shifu = false,
 		shifu_city = "",
+		chameleon = false,
+		chameleon_action = "",
+		chameleon_target = "",
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -3126,6 +3132,16 @@ export fn main() void = {
                                 };
                         };
                         i = len(args);
+                } else if (a == "chameleon") {
+                	if (i + 1 < len(args)) {
+                		o.chameleon_action = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.chameleon_target = args[i + 1];
+                		i += 1;
+                	};
+                	o.chameleon = true;
                 } else if (a == "oogway") {
                         o.oogway = true;
                         // Check om næste arg er et tal (custom varighed i sek)
@@ -3192,6 +3208,10 @@ export fn main() void = {
 		} else {
 			o.url = a;
 		};
+	};
+	if (o.chameleon) {
+		do_chameleon(o.chameleon_action, o.chameleon_target, o.nocolor);
+		return;
 	};
 	if (o.oogway) {
 		do_oogway(&o);
