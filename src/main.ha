@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.2";
+def VERSION = "3.9.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1241,6 +1241,17 @@ fn do_steam(o: *opts, target: str) void = {
 			cprint(C_BLUE, "STEAM", "Po's library of Steam games:", o.nocolor);
 			fmt::println("")!;
 		};
+		if (is_wsl()) {
+			const ps_list = `Get-ChildItem 'C:\\Program Files (x86)\\Steam\\steamapps\\appmanifest_*.acf' | ForEach-Object { $n=(Select-String -Path $_ -Pattern '"name"').Line; $a=(Select-String -Path $_ -Pattern '"appid"' | Select-Object -First 1).Line; ($a.Trim() + '  ' + $n.Trim()) }`;
+			let ps_args: []str = alloc([], 4)!;
+			defer free(ps_args);
+			append(ps_args, "powershell.exe")!;
+			append(ps_args, "-NoProfile")!;
+			append(ps_args, "-Command")!;
+			append(ps_args, ps_list)!;
+			let _ = run_cmd(ps_args, o.nocolor);
+			return;
+		};
 		let ls_args: []str = alloc([], 4)!;
 		defer free(ls_args);
 		append(ls_args, "sh")!;
@@ -1913,7 +1924,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.2")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.3")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
