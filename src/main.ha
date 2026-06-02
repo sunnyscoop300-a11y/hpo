@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.0";
+def VERSION = "3.9.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1444,11 +1444,12 @@ fn do_epic(o: *opts, gamename_in: str) void = {
 		const epic_uri = fmt::bsprintf(epic_uri_buf, "com.epicgames.launcher://apps/{}?action={}&locale=en-US", gamename, o.epic_cmd)!;
 		let epic_args: []str = alloc([], 5)!;
 		defer free(epic_args);
-		append(epic_args, "cmd.exe")!;
-		append(epic_args, "/c")!;
-		append(epic_args, "start")!;
-		append(epic_args, "")!;
-		append(epic_args, epic_uri)!;
+		static let epic_ps_buf: [640]u8 = [0...];
+		const epic_ps = fmt::bsprintf(epic_ps_buf, "Start-Process '{}'", epic_uri)!;
+		append(epic_args, "powershell.exe")!;
+		append(epic_args, "-NoProfile")!;
+		append(epic_args, "-Command")!;
+		append(epic_args, epic_ps)!;
 		if (run_cmd(epic_args, o.nocolor)) {
 			if (!o.quiet) cprint(C_GREEN, "OK", "Epic action complete! The Dragon Warrior delivers!", o.nocolor);
 		} else {
@@ -1911,7 +1912,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.1")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
