@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.1";
+def VERSION = "3.9.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1357,11 +1357,12 @@ fn do_steam(o: *opts, target: str) void = {
 	let steam_args: []str = alloc([], 6)!;
 	defer free(steam_args);
 	if (on_wsl) {
-		append(steam_args, "cmd.exe")!;
-		append(steam_args, "/c")!;
-		append(steam_args, "start")!;
-		append(steam_args, "")!;
-		append(steam_args, uri)!;
+		static let steam_ps_buf: [640]u8 = [0...];
+		const steam_ps = fmt::bsprintf(steam_ps_buf, "Start-Process '{}'", uri)!;
+		append(steam_args, "powershell.exe")!;
+		append(steam_args, "-NoProfile")!;
+		append(steam_args, "-Command")!;
+		append(steam_args, steam_ps)!;
 	} else if (check_tool("steam")) {
 		append(steam_args, "steam")!;
 		append(steam_args, uri)!;
@@ -1912,7 +1913,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.2")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
