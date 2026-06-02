@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.3";
+def VERSION = "3.9.4";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1242,7 +1242,7 @@ fn do_steam(o: *opts, target: str) void = {
 			fmt::println("")!;
 		};
 		if (is_wsl()) {
-			const ps_list = `Get-ChildItem 'C:\\Program Files (x86)\\Steam\\steamapps\\appmanifest_*.acf' | ForEach-Object { $n=(Select-String -Path $_ -Pattern '"name"').Line; $a=(Select-String -Path $_ -Pattern '"appid"' | Select-Object -First 1).Line; ($a.Trim() + '  ' + $n.Trim()) }`;
+			const ps_list = `Get-ChildItem 'C:\\Program Files (x86)\\Steam\\steamapps\\appmanifest_*.acf' | ForEach-Object { $t=Get-Content $_ -Raw; $a=[regex]::Match($t,'"appid"\s+"(\d+)"').Groups[1].Value; $n=[regex]::Match($t,'"name"\s+"([^"]+)"').Groups[1].Value; '  ' + $n + '  [' + $a + ']' }`;
 			let ps_args: []str = alloc([], 4)!;
 			defer free(ps_args);
 			append(ps_args, "powershell.exe")!;
@@ -1924,7 +1924,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.3")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.4")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
