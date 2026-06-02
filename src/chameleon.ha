@@ -62,14 +62,29 @@ fn chameleon_find_user(appid: str) str = {
 };
 
 fn chameleon_timestamp() str = {
-	const now = time::now(time::clock::REALTIME);
-	const days = now.sec / 86400;
-	const secs_today = now.sec % 86400;
-	const hh = secs_today / 3600;
-	const mm = (secs_today % 3600) / 60;
-	const ss = secs_today % 60;
+	const cmd = match (exec::cmd("date", "+%Y-%m-%d_%H-%M-%S")) {
+	case let c: exec::command => yield c;
+	case => return "unknown";
+	};
+	const pipe = exec::pipe();
+	exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case =>
+		io::close(pipe.0)!;
+		io::close(pipe.1)!;
+		return "unknown";
+	};
+	io::close(pipe.1)!;
 	static let tbuf: [64]u8 = [0...];
-	return fmt::bsprintf(tbuf, "{}_{}-{}-{}", days, hh, mm, ss)!;
+	const n = match (io::read(pipe.0, tbuf)) {
+	case let n: size => yield n;
+	case => yield 0z;
+	};
+	io::close(pipe.0)!;
+	exec::wait(&proc)!;
+	if (n == 0) return "unknown";
+	return strings::dup(strings::trim(strings::fromutf8(tbuf[..n])!))!;
 };
 
 fn do_chameleon(action: str, target: str, nocolor: bool) void = {
@@ -102,7 +117,19 @@ fn do_chameleon(action: str, target: str, nocolor: bool) void = {
 		defer fs::dirents_free(ents);
 		let count = 0;
 		for (let i = 0z; i < len(ents); i += 1) {
-			fmt::printfln("  save: {}", ents[i].name)!;
+			const nm = ents[i].name;
+			const us = match (strings::index(nm, '_')) {
+			case let x: size => yield x;
+			case void => yield len(nm);
+			};
+			const aid = strings::sub(nm, 0, us);
+			const dt = if (us < len(nm)) strings::sub(nm, us + 1, strings::end) else "";
+			const gname = steam_game_name(aid);
+			if (len(gname) > 0) {
+				fmt::printfln("  {}  ({})", gname, dt)!;
+			} else {
+				fmt::printfln("  [{}]  ({})", aid, dt)!;
+			};
 			count += 1;
 		};
 		if (count == 0) cprint("\x1b[33m", "CHAMELEON", "No backups yet.", nocolor);
