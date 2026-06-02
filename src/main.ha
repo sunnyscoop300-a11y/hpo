@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.4";
+def VERSION = "3.9.5";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1222,6 +1222,36 @@ fn is_wsl() bool = {
 	return strings::contains(s, "Microsoft") || strings::contains(s, "microsoft") || strings::contains(s, "WSL");
 };
 
+fn steam_game_name(appid: str) str = {
+	if (!is_wsl()) return "";
+	const ps_tmpl = `$lf=Get-Content 'C:\\Program Files (x86)\\Steam\\steamapps\\libraryfolders.vdf' -Raw; $paths=[regex]::Matches($lf,'"path"\s+"([^"]+)"') | ForEach-Object { $_.Groups[1].Value -replace '\\\\','\' }; foreach($p in $paths){ $f=Join-Path $p 'steamapps\\appmanifest___APPID__.acf'; if(Test-Path $f){ $t=Get-Content $f -Raw; [regex]::Match($t,'"name"\s+"([^"]+)"').Groups[1].Value } }`;
+	const ps = strings::replace(ps_tmpl, "__APPID__", appid)!;
+	defer free(ps);
+	const cmd = match (exec::cmd("powershell.exe", "-NoProfile", "-Command", ps)) {
+	case let c: exec::command => yield c;
+	case => return "";
+	};
+	const pipe = exec::pipe();
+	exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+	exec::addfile(&cmd, os::stderr_file, exec::nullfd)!;
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case =>
+		io::close(pipe.0)!;
+		io::close(pipe.1)!;
+		return "";
+	};
+	io::close(pipe.1)!;
+	static let nbuf: [256]u8 = [0...];
+	const n = match (io::read(pipe.0, nbuf)) {
+	case let n: size => yield n;
+	case => yield 0z;
+	};
+	io::close(pipe.0)!;
+	exec::wait(&proc)!;
+	if (n == 0) return "";
+	return strings::dup(strings::trim(strings::fromutf8(nbuf[..n])!))!;
+};
 fn do_steam(o: *opts, target: str) void = {
 	const home = match (os::getenv("HOME")) {
 	case let s: str => yield s;
@@ -1346,6 +1376,8 @@ fn do_steam(o: *opts, target: str) void = {
 	if (!o.quiet) {
 		cprint(C_BLUE, "FOXFIRE", "Steam game detected!", o.nocolor);
 		if (!o.nocolor) fmt::print(C_YELLOW)!;
+		const gname = steam_game_name(appid);
+		if (len(gname) > 0) fmt::printfln("  Game:   {}", gname)!;
 		fmt::printfln("  Action: {}", o.steam_cmd)!;
 		fmt::printfln("  AppID:  {}", appid)!;
 		if (!o.nocolor) fmt::print(C_RESET)!;
@@ -1924,7 +1956,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.4")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.5")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
