@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.8";
+def VERSION = "3.9.9";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1968,7 +1968,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.8")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.9")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -1978,6 +1978,7 @@ fn print_help() void = {
 	fmt::println("  hpo oogway [seconds]                  Master Oogway meditation")!;
 	fmt::println("  hpo roz vejr [city]                   Roz weather robot")!;
 	fmt::println("  hpo shifu [city] [day]                Master Shifu cinema guide")!;
+	fmt::println("  hpo chameleon <action> [game]         The Chameleon save manager")!;
 	fmt::println("")!;
 	fmt::println("DOWNLOAD OPTIONS:")!;
 	fmt::println("  -o <path>       Output file or directory (default: ~/Downloads/)")!;
@@ -2040,10 +2041,17 @@ fn print_help() void = {
 	fmt::println("  Custom portrait: ~/.config/hpo/art/shifu.txt")!;
 	fmt::println("  Data: bio.ebillet.dk (90+ Danish cinemas)")!;
 	fmt::println("")!;
+	fmt::println("CHAMELEON SAVE MANAGER (Kung Fu Panda 4 themed, WSL Steam saves):")!;
+	fmt::println("  hpo chameleon backup <alias>          Steal (backup) a game's save")!;
+	fmt::println("  hpo chameleon list                    Show all stolen saves")!;
+	fmt::println("  hpo chameleon restore <alias>         Restore latest backup")!;
+	fmt::println("  Saves stored in: ~/hpo-saves/")!;
+	fmt::println("")!;
 	fmt::println("EXAMPLES:")!;
 	fmt::println("  hpo https://example.com/file.zip      Download a file")!;
 	fmt::println("  hpo --epic launch celeste             Launch Celeste")!;
 	fmt::println("  hpo --steam kao                       Launch Kao the Kangaroo")!;
+	fmt::println("  hpo chameleon backup reanimal         Backup your REANIMAL save")!;
 	fmt::println("  hpo oogway 300                        5 minutes of inner peace")!;
 	fmt::println("  hpo roz vejr                          Should I bring a raincoat?")!;
 	fmt::println("  hpo shifu haderslev weekend           What's playing this weekend?")!;
