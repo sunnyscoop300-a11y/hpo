@@ -6,6 +6,7 @@ import os
 import urllib.request
 import time
 from datetime import datetime, date, timedelta
+import difflib
 
 CACHE_DIR = os.path.expanduser("~/.cache/hpo")
 EVENTS_CACHE = os.path.join(CACHE_DIR, "events.json")
@@ -123,6 +124,20 @@ def main():
     matches = find_org(data, query)
     if not matches:
         print(f"[SHIFU] No cinema found matching '{query}'", file=sys.stderr)
+        # Fuzzy: foresl\u00e5 n\u00e6rmeste biograf/by-navne
+        names = []
+        for org in data["organizers"]:
+            nm = org.get("name", "")
+            ct = org.get("city", "")
+            if nm:
+                names.append(nm)
+            if ct:
+                names.append(ct)
+        close = difflib.get_close_matches(query, names, n=3, cutoff=0.5)
+        if close:
+            print("[SHIFU] Did you mean:", file=sys.stderr)
+            for c in close:
+                print(f"  - {c}", file=sys.stderr)
         sys.exit(2)
     if len(matches) > 1:
         for org in matches:
