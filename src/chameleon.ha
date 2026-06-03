@@ -175,6 +175,10 @@ fn do_chameleon(action: str, target: str, nocolor: bool) void = {
 		append(args, dst)!;
 		if (run_cmd(args, nocolor)) {
 			cprint("\x1b[32m", "OK", "Save power absorbed! The Chameleon grows stronger.", nocolor);
+			static let pfx_buf: [128]u8 = [0...];
+			const pfx = fmt::bsprintf(pfx_buf, "{}_", appid)!;
+			const keepname = fmt::bsprintf(dst_buf, "{}_{}", appid, ts)!;
+			chameleon_prune(saves_dir, pfx, keepname, nocolor);
 		} else {
 			cprint("\x1b[31m", "FAIL", "Backup failed!", nocolor);
 			os::exit(1);
@@ -326,6 +330,10 @@ fn do_chameleon_epic(action: str, target: str, nocolor: bool) void = {
 		append(args, dst)!;
 		if (run_cmd(args, nocolor)) {
 			cprint("\x1b[32m", "OK", "Epic save power absorbed!", nocolor);
+			static let epfx_buf: [256]u8 = [0...];
+			const epfx = fmt::bsprintf(epfx_buf, "epic_{}_", appname)!;
+			const ekeep = fmt::bsprintf(dst_buf, "epic_{}_{}", appname, ts)!;
+			chameleon_prune(saves_dir, epfx, ekeep, nocolor);
 		} else {
 			cprint("\x1b[31m", "FAIL", "Backup failed!", nocolor);
 			os::exit(1);
@@ -417,4 +425,27 @@ fn chameleon_epic_alias_for(appname: str) str = {
 	case => void;
 	};
 	return appname;
+};
+
+// Slet alle backups med samme prefix undtagen 'keep'
+fn chameleon_prune(saves_dir: str, prefix: str, keep: str, nocolor: bool) void = {
+	const ents = match (os::readdir(saves_dir)) {
+	case let e: []fs::dirent => yield e;
+	case => return;
+	};
+	defer fs::dirents_free(ents);
+	for (let i = 0z; i < len(ents); i += 1) {
+		const nm = ents[i].name;
+		if (!strings::hasprefix(nm, prefix)) continue;
+		if (nm == keep) continue;
+		static let old_buf: [512]u8 = [0...];
+		const oldpath = fmt::bsprintf(old_buf, "{}/{}", saves_dir, nm)!;
+		let args: []str = alloc([], 3)!;
+		defer free(args);
+		append(args, "rm")!;
+		append(args, "-rf")!;
+		append(args, oldpath)!;
+		let _ = run_cmd(args, nocolor);
+		if (!nocolor) fmt::printfln("  \x1b[2m(pruned old backup: {})\x1b[0m", nm)!;
+	};
 };

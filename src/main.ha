@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.11";
+def VERSION = "3.9.12";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1969,7 +1969,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.11")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.12")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
