@@ -449,3 +449,40 @@ fn chameleon_prune(saves_dir: str, prefix: str, keep: str, nocolor: bool) void =
 		if (!nocolor) fmt::printfln("  \x1b[2m(pruned old backup: {})\x1b[0m", nm)!;
 	};
 };
+
+fn do_tigress(nocolor: bool) void = {
+	const quotes: [_]str = [
+		"Finally! A warrior worthy of my time.",
+		"There are no accidents. - Oogway",
+		"The mark of a true warrior is discipline.",
+		"You must believe in yourself before others will.",
+		"Strength comes from the inside.",
+		"Train hard today, conquer tomorrow.",
+		"A focused mind cuts through any obstacle.",
+		"Fall seven times, stand up eight.",
+		"Master your fear, and you master yourself.",
+		"Every day is a chance to grow stronger.",
+		"Patience is also a form of action.",
+		"The hardest battles are won in silence.",
+		"Inner peace is earned, not given.",
+		"Push past the limit you set yesterday.",
+	];
+	const now = time::now(time::clock::REALTIME);
+	const day = (now.sec / 86400): size;
+	const idx = day % len(quotes);
+
+	if (!nocolor) fmt::print("\x1b[33m")!;
+	fmt::println("
+      /\\_/\\
+     ( o.o )   Master Tigress
+      > ^ <    Quote of the Day
+")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	if (!nocolor) fmt::print("\x1b[1m\x1b[36m")!;
+	fmt::printfln("  \"{}\"", quotes[idx])!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	if (!nocolor) fmt::print("\x1b[2m")!;
+	fmt::println("                          - Master Tigress")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::println("")!;
+};

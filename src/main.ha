@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.12";
+def VERSION = "3.9.13";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -48,6 +48,7 @@ type opts = struct {
 	chameleon_action: str,
 	chameleon_target: str,
 	chameleon_epic: bool,
+	tigress: bool,
 	url:     str,
 	output:  str,
 	resume:  bool,
@@ -1969,7 +1970,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.12")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.13")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3013,6 +3014,7 @@ export fn main() void = {
 		chameleon_action = "",
 		chameleon_target = "",
 		chameleon_epic = false,
+		tigress = false,
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -3151,6 +3153,8 @@ export fn main() void = {
                                 };
                         };
                         i = len(args);
+                } else if (a == "tigress") {
+                	o.tigress = true;
                 } else if (a == "chameleon") {
 			for (i + 1 < len(args)) {
 				const nxt = args[i + 1];
@@ -3234,6 +3238,10 @@ export fn main() void = {
 		} else {
 			o.url = a;
 		};
+	};
+	if (o.tigress) {
+		do_tigress(o.nocolor);
+		return;
 	};
 	if (o.chameleon) {
 		if (o.chameleon_epic) {
