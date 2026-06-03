@@ -118,17 +118,24 @@ fn do_chameleon(action: str, target: str, nocolor: bool) void = {
 		let count = 0;
 		for (let i = 0z; i < len(ents); i += 1) {
 			const nm = ents[i].name;
-			const us = match (strings::index(nm, '_')) {
-			case let x: size => yield x;
-			case void => yield len(nm);
+			// Timestamp is always 19 chars (YYYY-MM-DD_HH-MM-SS) preceded by '_'
+			let namepart = nm;
+			let dt = "";
+			if (len(nm) > 20) {
+				namepart = strings::sub(nm, 0, len(nm) - 20);
+				dt = strings::sub(nm, len(nm) - 19, strings::end);
 			};
-			const aid = strings::sub(nm, 0, us);
-			const dt = if (us < len(nm)) strings::sub(nm, us + 1, strings::end) else "";
-			const gname = steam_game_name(aid);
-			if (len(gname) > 0) {
-				fmt::printfln("  {}  ({})", gname, dt)!;
+			if (strings::hasprefix(namepart, "epic_")) {
+				const appname = strings::sub(namepart, 5, strings::end);
+				const alias = chameleon_epic_alias_for(appname);
+				fmt::printfln("  {}  (Epic)  ({})", alias, dt)!;
 			} else {
-				fmt::printfln("  [{}]  ({})", aid, dt)!;
+				const gname = steam_game_name(namepart);
+				if (len(gname) > 0) {
+					fmt::printfln("  {}  ({})", gname, dt)!;
+				} else {
+					fmt::printfln("  [{}]  ({})", namepart, dt)!;
+				};
 			};
 			count += 1;
 		};
@@ -221,4 +228,193 @@ fn do_chameleon(action: str, target: str, nocolor: bool) void = {
 
 	cprint("\x1b[31m", "ERR", "Unknown chameleon action (use backup/list/restore)", nocolor);
 	os::exit(1);
+};
+
+fn chameleon_epic_appname(target: str) str = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let abuf: [512]u8 = [0...];
+	const apath = fmt::bsprintf(abuf, "{}/.config/hpo/epic_aliases.txt", home)!;
+	match (os::open(apath)) {
+	case let f: io::file =>
+		static let rbuf: [4096]u8 = [0...];
+		const n = match (io::read(f, rbuf)) {
+		case let n: size => yield n;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		const contents = strings::fromutf8(rbuf[..n])!;
+		const lines = match (strings::split(contents, "\n")) {
+		case let s: []str => yield s;
+		case => yield []: []str;
+		};
+		defer free(lines);
+		for (let i = 0z; i < len(lines); i += 1) {
+			const line = strings::trim(lines[i]);
+			if (len(line) == 0) continue;
+			const parts = match (strings::split(line, "=")) {
+			case let s: []str => yield s;
+			case => yield []: []str;
+			};
+			defer free(parts);
+			if (len(parts) >= 2 && strings::trim(parts[0]) == target) {
+				return strings::dup(strings::trim(parts[1]))!;
+			};
+		};
+	case => void;
+	};
+	return target;
+};
+
+fn chameleon_epic_userhash() str = {
+	const base = "/mnt/c/Users/ssj3g/AppData/Local/EpicGamesLauncher/Saved/Saves";
+	const ents = match (os::readdir(base)) {
+	case let e: []fs::dirent => yield e;
+	case => return "";
+	};
+	defer fs::dirents_free(ents);
+	for (let i = 0z; i < len(ents); i += 1) {
+		return strings::dup(ents[i].name)!;
+	};
+	return "";
+};
+
+fn do_chameleon_epic(action: str, target: str, nocolor: bool) void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let sdir_buf: [512]u8 = [0...];
+	const saves_dir = fmt::bsprintf(sdir_buf, "{}/hpo-saves", home)!;
+	os::mkdirs(saves_dir, 0o755)!;
+
+	if (len(target) == 0) {
+		cprint("\x1b[31m", "ERR", "chameleon --epic requires a game alias", nocolor);
+		os::exit(1);
+	};
+
+	const appname = chameleon_epic_appname(target);
+	const hash = chameleon_epic_userhash();
+	if (len(hash) == 0) {
+		cprint("\x1b[31m", "ERR", "No Epic save folder found (is Epic installed?)", nocolor);
+		os::exit(1);
+	};
+
+	static let src_buf: [512]u8 = [0...];
+	const src = fmt::bsprintf(src_buf, "/mnt/c/Users/ssj3g/AppData/Local/EpicGamesLauncher/Saved/Saves/{}/{}", hash, appname)!;
+	if (!os::exists(src)) {
+		cprint("\x1b[31m", "ERR", "No Epic cloud-save found for this game", nocolor);
+		fmt::printfln("  AppName: {}", appname)!;
+		os::exit(1);
+	};
+
+	if (action == "backup") {
+		const ts = chameleon_timestamp();
+		static let dst_buf: [512]u8 = [0...];
+		const dst = fmt::bsprintf(dst_buf, "{}/epic_{}_{}", saves_dir, appname, ts)!;
+		cprint("\x1b[33m", "CHAMELEON", "Absorbing Epic save power...", nocolor);
+		fmt::printfln("  From: {}", src)!;
+		fmt::printfln("  To:   {}", dst)!;
+		fmt::println("")!;
+		let args: []str = alloc([], 5)!;
+		defer free(args);
+		append(args, "cp")!;
+		append(args, "-r")!;
+		append(args, src)!;
+		append(args, dst)!;
+		if (run_cmd(args, nocolor)) {
+			cprint("\x1b[32m", "OK", "Epic save power absorbed!", nocolor);
+		} else {
+			cprint("\x1b[31m", "FAIL", "Backup failed!", nocolor);
+			os::exit(1);
+		};
+		return;
+	};
+
+	if (action == "restore") {
+		const ents = match (os::readdir(saves_dir)) {
+		case let e: []fs::dirent => yield e;
+		case =>
+			cprint("\x1b[31m", "ERR", "No backups found", nocolor);
+			os::exit(1);
+		};
+		defer fs::dirents_free(ents);
+		static let prefix_buf: [256]u8 = [0...];
+		const prefix = fmt::bsprintf(prefix_buf, "epic_{}_", appname)!;
+		let latest = "";
+		static let latest_buf: [256]u8 = [0...];
+		for (let i = 0z; i < len(ents); i += 1) {
+			if (strings::hasprefix(ents[i].name, prefix)) {
+				if (strings::compare(ents[i].name, latest) > 0) {
+					latest = fmt::bsprintf(latest_buf, "{}", ents[i].name)!;
+				};
+			};
+		};
+		if (len(latest) == 0) {
+			cprint("\x1b[31m", "ERR", "No backup found for this Epic game", nocolor);
+			os::exit(1);
+		};
+		static let bsrc_buf: [512]u8 = [0...];
+		const bsrc = fmt::bsprintf(bsrc_buf, "{}/{}/.", saves_dir, latest)!;
+		cprint("\x1b[33m", "CHAMELEON", "Restoring Epic save power...", nocolor);
+		fmt::printfln("  From: {}", latest)!;
+		fmt::printfln("  To:   {}", src)!;
+		fmt::println("")!;
+		let args: []str = alloc([], 5)!;
+		defer free(args);
+		append(args, "cp")!;
+		append(args, "-r")!;
+		append(args, bsrc)!;
+		append(args, src)!;
+		if (run_cmd(args, nocolor)) {
+			cprint("\x1b[32m", "OK", "Epic save restored!", nocolor);
+		} else {
+			cprint("\x1b[31m", "FAIL", "Restore failed!", nocolor);
+			os::exit(1);
+		};
+		return;
+	};
+
+	cprint("\x1b[31m", "ERR", "Unknown chameleon action (use backup/restore)", nocolor);
+	os::exit(1);
+};
+
+fn chameleon_epic_alias_for(appname: str) str = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let abuf: [512]u8 = [0...];
+	const apath = fmt::bsprintf(abuf, "{}/.config/hpo/epic_aliases.txt", home)!;
+	match (os::open(apath)) {
+	case let f: io::file =>
+		static let rbuf: [4096]u8 = [0...];
+		const n = match (io::read(f, rbuf)) {
+		case let n: size => yield n;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		const contents = strings::fromutf8(rbuf[..n])!;
+		const lines = match (strings::split(contents, "\n")) {
+		case let s: []str => yield s;
+		case => yield []: []str;
+		};
+		defer free(lines);
+		for (let i = 0z; i < len(lines); i += 1) {
+			const line = strings::trim(lines[i]);
+			if (len(line) == 0) continue;
+			const parts = match (strings::split(line, "=")) {
+			case let s: []str => yield s;
+			case => yield []: []str;
+			};
+			defer free(parts);
+			if (len(parts) >= 2 && strings::trim(parts[1]) == appname) {
+				return strings::dup(strings::trim(parts[0]))!;
+			};
+		};
+	case => void;
+	};
+	return appname;
 };

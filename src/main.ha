@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "3.9.10";
+def VERSION = "3.9.11";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -47,6 +47,7 @@ type opts = struct {
 	chameleon: bool,
 	chameleon_action: str,
 	chameleon_target: str,
+	chameleon_epic: bool,
 	url:     str,
 	output:  str,
 	resume:  bool,
@@ -1968,7 +1969,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v3.9.10")!;
+	fmt::println("hpo - The Hare Download & Game Manager v3.9.11")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3011,6 +3012,7 @@ export fn main() void = {
 		chameleon = false,
 		chameleon_action = "",
 		chameleon_target = "",
+		chameleon_epic = false,
                 suno    = false,
 		verbose = false,
 		quiet   = false,
@@ -3150,16 +3152,23 @@ export fn main() void = {
                         };
                         i = len(args);
                 } else if (a == "chameleon") {
-                	if (i + 1 < len(args)) {
-                		o.chameleon_action = args[i + 1];
-                		i += 1;
-                	};
-                	if (i + 1 < len(args)) {
-                		o.chameleon_target = args[i + 1];
-                		i += 1;
-                	};
-                	o.chameleon = true;
-                } else if (a == "oogway") {
+			for (i + 1 < len(args)) {
+				const nxt = args[i + 1];
+				if (nxt == "--epic") {
+					o.chameleon_epic = true;
+					i += 1;
+				} else if (len(o.chameleon_action) == 0) {
+					o.chameleon_action = nxt;
+					i += 1;
+				} else if (len(o.chameleon_target) == 0) {
+					o.chameleon_target = nxt;
+					i += 1;
+				} else {
+					break;
+				};
+			};
+			o.chameleon = true;
+		} else if (a == "oogway") {
                         o.oogway = true;
                         // Check om næste arg er et tal (custom varighed i sek)
                         if (i + 1 < len(args)) {
@@ -3227,7 +3236,11 @@ export fn main() void = {
 		};
 	};
 	if (o.chameleon) {
-		do_chameleon(o.chameleon_action, o.chameleon_target, o.nocolor);
+		if (o.chameleon_epic) {
+			do_chameleon_epic(o.chameleon_action, o.chameleon_target, o.nocolor);
+		} else {
+			do_chameleon(o.chameleon_action, o.chameleon_target, o.nocolor);
+		};
 		return;
 	};
 	if (o.oogway) {
