@@ -486,3 +486,104 @@ fn do_tigress(nocolor: bool) void = {
 	if (!nocolor) fmt::print("\x1b[0m")!;
 	fmt::println("")!;
 };
+
+fn do_tailung(urls: []str, nocolor: bool) void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let ddir_buf: [512]u8 = [0...];
+	const dl_dir = fmt::bsprintf(ddir_buf, "{}/Downloads", home)!;
+	os::mkdirs(dl_dir, 0o755)!;
+
+	if (!nocolor) fmt::print("\x1b[36m")!;
+	fmt::println("
+     /\\___/\\
+    (  o o  )   TAI LUNG
+    (  =^=  )   Unleashed - all at once!
+     (______)
+")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+
+	const count = len(urls);
+	if (count == 0) {
+		cprint("\x1b[31m", "ERR", "Tai Lung needs at least one URL", nocolor);
+		os::exit(1);
+	};
+
+	cprint("\x1b[33m", "TAILUNG", "Breaking out! Launching all downloads at once...", nocolor);
+	fmt::printfln("  Targets: {}", count)!;
+	fmt::println("")!;
+
+	// Start alle downloads samtidigt
+	let procs: []exec::process = alloc([], count)!;
+	defer free(procs);
+	let names: []str = alloc([], count)!;
+	defer free(names);
+
+	for (let i = 0z; i < count; i += 1) {
+		const url = urls[i];
+		// Udled filnavn
+		const slash = match (strings::rindex(url, '/')) {
+		case let x: size => yield x + 1;
+		case void => yield 0z;
+		};
+		let fname = strings::sub(url, slash, strings::end);
+		const q = match (strings::index(fname, '?')) {
+		case let x: size => yield x;
+		case void => yield len(fname);
+		};
+		fname = strings::sub(fname, 0, q);
+		if (len(fname) == 0) fname = "download";
+		const outpath = fmt::asprintf("{}/{}", dl_dir, fname)!;
+		append(names, outpath)!;
+
+		const cmd = match (exec::cmd("curl", "-g", "-sL", "-o", outpath, url)) {
+		case let c: exec::command => yield c;
+		case =>
+			cprint("\x1b[31m", "ERR", "failed to build curl command", nocolor);
+			continue;
+		};
+		const proc = match (exec::start(&cmd)) {
+		case let p: exec::process => yield p;
+		case =>
+			cprint("\x1b[31m", "ERR", "failed to start download", nocolor);
+			continue;
+		};
+		append(procs, proc)!;
+		fmt::printfln("  \x1b[2m-> started: {}\x1b[0m", fname)!;
+	};
+
+	fmt::println("")!;
+	cprint("\x1b[36m", "TAILUNG", "All strikes launched! Waiting for completion...", nocolor);
+	fmt::println("")!;
+
+	// Vent på dem alle
+	let ok = 0;
+	let fail = 0;
+	for (let i = 0z; i < len(procs); i += 1) {
+		const st = match (exec::wait(&procs[i])) {
+		case let s: exec::status => yield s;
+		case =>
+			fail += 1;
+			continue;
+		};
+		match (exec::exit(&st)) {
+		case let e: exec::exited =>
+			if (e == 0) {
+				ok += 1;
+				fmt::printfln("  \x1b[32m[done]\x1b[0m {}", names[i])!;
+			} else {
+				fail += 1;
+				fmt::printfln("  \x1b[31m[fail]\x1b[0m {}", names[i])!;
+			};
+		case =>
+			fail += 1;
+		};
+	};
+
+	fmt::println("")!;
+	static let sum_buf: [128]u8 = [0...];
+	const summary = fmt::bsprintf(sum_buf, "Tai Lung strikes complete! {} done, {} failed.", ok, fail)!;
+	cprint("\x1b[32m", "OK", summary, nocolor);
+};
