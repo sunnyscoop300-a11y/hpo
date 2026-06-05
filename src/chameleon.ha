@@ -587,3 +587,85 @@ fn do_tailung(urls: []str, nocolor: bool) void = {
 	const summary = fmt::bsprintf(sum_buf, "Tai Lung strikes complete! {} done, {} failed.", ok, fail)!;
 	cprint("\x1b[32m", "OK", summary, nocolor);
 };
+
+fn piyoko_path() str = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let pbuf: [512]u8 = [0...];
+	return fmt::bsprintf(pbuf, "{}/.config/hpo/piyokocoin", home)!;
+};
+
+fn piyoko_balance() u64 = {
+	const path = piyoko_path();
+	match (os::open(path)) {
+	case let f: io::file =>
+		static let rbuf: [64]u8 = [0...];
+		const n = match (io::read(f, rbuf)) {
+		case let n: size => yield n;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		if (n == 0) return 0;
+		const s = strings::trim(strings::fromutf8(rbuf[..n])!);
+		let val: u64 = 0;
+		const bytes = strings::toutf8(s);
+		for (let i = 0z; i < len(bytes); i += 1) {
+			if (bytes[i] >= '0' && bytes[i] <= '9') {
+				val = val * 10 + (bytes[i] - '0'): u64;
+			};
+		};
+		return val;
+	case => return 0;
+	};
+};
+
+fn piyoko_save(bal: u64) void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let cfgbuf: [512]u8 = [0...];
+	const cfgdir = fmt::bsprintf(cfgbuf, "{}/.config/hpo", home)!;
+	os::mkdirs(cfgdir, 0o755)!;
+	const path = piyoko_path();
+	match (os::create(path, 0o644)) {
+	case let f: io::file =>
+		const s = fmt::asprintf("{}", bal)!;
+		defer free(s);
+		io::writeall(f, strings::toutf8(s))!;
+		io::close(f)!;
+	case => void;
+	};
+};
+
+// Tjen coins (kaldes efter download/launch). Stille - ingen output.
+fn piyoko_earn(amount: u64) void = {
+	const bal = piyoko_balance();
+	piyoko_save(bal + amount);
+};
+
+fn do_piyoko(nocolor: bool) void = {
+	const bal = piyoko_balance();
+	if (!nocolor) fmt::print("\x1b[93m")!;
+	fmt::println("
+        \x1b[33m\u2584\u2584\u2584\u2584\u2584\x1b[0m
+      \x1b[93m\u2588\u2588\x1b[33m\u2588\u2588\u2588\x1b[93m\u2588\u2588\x1b[0m
+    \x1b[93m\u2588\u2588\x1b[33m\u2588\x1b[93m\u2588\u2588\u2588\x1b[33m\u2588\x1b[93m\u2588\u2588\x1b[0m
+    \x1b[93m\u2588\u2588\x1b[33m\u2588\x1b[30m\u25cf\x1b[33m\u2588\x1b[30m\u25cf\x1b[33m\u2588\x1b[93m\u2588\u2588\x1b[0m
+    \x1b[93m\u2588\u2588\x1b[33m\u2588\x1b[38;5;208m\u25c6\x1b[33m\u2588\u2588\x1b[93m\u2588\u2588\x1b[0m
+    \x1b[93m\u2588\u2588\x1b[33m\u2588\u2588\u2588\u2588\u2588\x1b[93m\u2588\u2588\x1b[0m
+      \x1b[93m\u2588\u2588\x1b[33m\u2588\u2588\u2588\x1b[93m\u2588\u2588\x1b[0m
+        \x1b[33m\u2580\u2580\u2580\u2580\u2580\x1b[0m
+              \x1b[1m\x1b[93mPIYOKOCOIN\x1b[0m
+")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	if (!nocolor) fmt::print("\x1b[1m\x1b[33m")!;
+	fmt::printfln("  Balance: {} Piyokocoin", bal)!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	if (!nocolor) fmt::print("\x1b[2m")!;
+	fmt::println("  (earn more by using hpo!)")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::println("")!;
+};

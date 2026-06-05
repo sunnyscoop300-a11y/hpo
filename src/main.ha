@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.0.0";
+def VERSION = "4.0.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -49,6 +49,7 @@ type opts = struct {
 	chameleon_target: str,
 	chameleon_epic: bool,
 	tigress: bool,
+	piyoko: bool,
 	tailung: bool,
 	tailung_urls: []str,
 	url:     str,
@@ -789,6 +790,7 @@ fn do_http_custom(o: *opts) void = {
 	if (!o.quiet) {
 		fmt::println("")!;
 		cprint(C_GREEN, "OK", "Download complete! The Dragon Warrior delivers!", o.nocolor);
+		piyoko_earn(1);
 		fmt::printfln("  Saved to: {}", o.output)!;
 		fmt::printfln("  Size:     {}", format_size(get_file_size(o.output)))!;
 	};
@@ -865,6 +867,7 @@ fn do_magnet(o: *opts) void = {
 			const msg = fmt::bsprintf(qbuf, "Torrent complete! \"{}\" - Tigress", quote)!;
 			cprint(C_GREEN, "OK", msg, o.nocolor);
 			fmt::printfln("  Saved to: {}", o.output)!;
+			piyoko_earn(1);
 		};
 	} else {
 		os::exit(1);
@@ -923,6 +926,7 @@ fn do_gdrive(o: *opts) void = {
 	if (run_cmd(args, o.nocolor)) {
 		if (!o.quiet) {
 			cprint(C_GREEN, "OK", "Download complete! The Dragon Warrior delivers!", o.nocolor);
+		piyoko_earn(1);
 			fmt::printfln("  Saved to: {}", o.output)!;
 		};
 	} else {
@@ -953,6 +957,7 @@ fn do_mega(o: *opts) void = {
 	if (run_cmd(args, o.nocolor)) {
 		if (!o.quiet) {
 			cprint(C_GREEN, "OK", "Download complete! The Dragon Warrior delivers!", o.nocolor);
+		piyoko_earn(1);
 			fmt::printfln("  Saved to: {}", o.output)!;
 		};
 	} else {
@@ -1972,7 +1977,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.0.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.0.1")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3017,6 +3022,7 @@ export fn main() void = {
 		chameleon_target = "",
 		chameleon_epic = false,
 		tigress = false,
+		piyoko = false,
 		tailung = false,
 		tailung_urls = [],
                 suno    = false,
@@ -3163,6 +3169,8 @@ export fn main() void = {
                 		append(o.tailung_urls, args[i + 1])!;
                 		i += 1;
                 	};
+                } else if (a == "piyoko") {
+                	o.piyoko = true;
                 } else if (a == "tigress") {
                 	o.tigress = true;
                 } else if (a == "chameleon") {
@@ -3251,6 +3259,10 @@ export fn main() void = {
 	};
 	if (o.tailung) {
 		do_tailung(o.tailung_urls, o.nocolor);
+		return;
+	};
+	if (o.piyoko) {
+		do_piyoko(o.nocolor);
 		return;
 	};
 	if (o.tigress) {
