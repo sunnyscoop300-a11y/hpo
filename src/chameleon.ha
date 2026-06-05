@@ -738,3 +738,244 @@ fn do_piyoko_spin(nocolor: bool) void = {
 	if (!nocolor) fmt::print("\x1b[0m")!;
 	fmt::println("")!;
 };
+
+// Recipe gacha pool - Rooster Fighter themed foods
+fn piyoko_recipe_count() size = 8;
+
+fn piyoko_recipe_name(idx: size) str = {
+	switch (idx) {
+	case 0 => return "Sea Urchin Delight";
+	case 1 => return "Crispy Stink Bug Tempura";
+	case 2 => return "Brazilian Grasshopper Skewers";
+	case 3 => return "Golden Egg Omelette";
+	case 4 => return "Worm & Seed Trail Mix";
+	case 5 => return "Demon-Slayer Spicy Ramen";
+	case 6 => return "Righteous Rice Balls";
+	case 7 => return "Duty Dumplings";
+	case => return "Unknown Dish";
+	};
+};
+
+fn piyoko_recipe_desc(idx: size) str = {
+	switch (idx) {
+	case 0 => return "Keiji's favorite! Fresh uni on warm rice. Pure ocean umami.";
+	case 1 => return "Crunchy, protein-packed. Don't knock it till you try it.";
+	case 2 => return "Grilled with a squeeze of lime. A wandering warrior's snack.";
+	case 3 => return "From the Righteous Egg itself. Fluffy, golden, glorious.";
+	case 4 => return "Simple farm fuel. What every chick grows strong on.";
+	case 5 => return "So hot it could monsterize a demon. Slurp with honor.";
+	case 6 => return "Onigiri shaped like a rooster's crest. Travel food of champions.";
+	case 7 => return "Piyoko's signature. Each fold made with DUTY.";
+	case => return "A mysterious dish.";
+	};
+};
+
+fn piyoko_recipes_path() str = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let pbuf: [512]u8 = [0...];
+	return fmt::bsprintf(pbuf, "{}/.config/hpo/recipes", home)!;
+};
+
+// Tjek om recipe idx er låst op (filen indeholder linjen "idx")
+fn piyoko_has_recipe(idx: size) bool = {
+	const path = piyoko_recipes_path();
+	match (os::open(path)) {
+	case let f: io::file =>
+		static let rbuf: [1024]u8 = [0...];
+		const n = match (io::read(f, rbuf)) {
+		case let z: size => yield z;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		const contents = strings::fromutf8(rbuf[..n])!;
+		const lines = match (strings::split(contents, "\n")) {
+		case let s: []str => yield s;
+		case => yield []: []str;
+		};
+		defer free(lines);
+		const want = fmt::asprintf("{}", idx)!;
+		defer free(want);
+		for (let i = 0z; i < len(lines); i += 1) {
+			if (strings::trim(lines[i]) == want) return true;
+		};
+		return false;
+	case => return false;
+	};
+};
+
+fn piyoko_unlock_recipe(idx: size) void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let cfgbuf: [512]u8 = [0...];
+	const cfgdir = fmt::bsprintf(cfgbuf, "{}/.config/hpo", home)!;
+	os::mkdirs(cfgdir, 0o755)!;
+	const path = piyoko_recipes_path();
+	// Read existing content (if any)
+	let existing = "";
+	static let exbuf: [1024]u8 = [0...];
+	match (os::open(path)) {
+	case let f: io::file =>
+		const n = match (io::read(f, exbuf)) {
+		case let z: size => yield z;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		existing = strings::fromutf8(exbuf[..n])!;
+	case => void;
+	};
+	// Write existing + new line
+	match (os::create(path, 0o644)) {
+	case let f: io::file =>
+		const out = fmt::asprintf("{}{}\n", existing, idx)!;
+		defer free(out);
+		match (io::writeall(f, strings::toutf8(out))) {
+		case => void;
+		};
+		io::close(f)!;
+	case => void;
+	};
+};
+
+fn do_piyoko_cook(nocolor: bool) void = {
+	let bal = piyoko_balance();
+	const cost: u64 = 5;
+	if (bal < cost) {
+		if (!nocolor) fmt::print("\x1b[31m")!;
+		fmt::printfln("
+    (\\(\\
+    ( ;.;)   Piyoko needs {} PYO to cook!
+    o_(\")(\")  (you have {})
+", cost, bal)!;
+		if (!nocolor) fmt::print("\x1b[0m")!;
+		return;
+	};
+
+	bal -= cost;
+
+	// Tilfældigt valg
+	const now = time::now(time::clock::REALTIME);
+	let seed = (now.nsec: u64) ^ (now.sec: u64 * 2654435761);
+	seed = (seed * 6364136223846793005 + 1442695040888963407);
+	const count = piyoko_recipe_count();
+	const idx = ((seed >> 33): size) % count;
+
+	if (!nocolor) fmt::print("\x1b[1m\x1b[33m")!;
+	fmt::println("
+    === PIYOKO'S KITCHEN ===")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::println("    Duty! Keiji discovers a new dish...")!;
+	fmt::println("")!;
+
+	const already = piyoko_has_recipe(idx);
+	if (already) {
+		// Dublet - refunder lidt
+		bal += 2;
+		if (!nocolor) fmt::print("\x1b[33m")!;
+		fmt::printfln("    🍜 {} (already known!)", piyoko_recipe_name(idx))!;
+		fmt::println("    Duplicate - 2 PYO refunded.")!;
+		if (!nocolor) fmt::print("\x1b[0m")!;
+	} else {
+		piyoko_unlock_recipe(idx);
+		if (!nocolor) fmt::print("\x1b[1m\x1b[32m")!;
+		fmt::printfln("    🎉 NEW RECIPE: {}", piyoko_recipe_name(idx))!;
+		if (!nocolor) fmt::print("\x1b[0m")!;
+		if (!nocolor) fmt::print("\x1b[2m")!;
+		fmt::printfln("    {}", piyoko_recipe_desc(idx))!;
+		if (!nocolor) fmt::print("\x1b[0m")!;
+	};
+
+	piyoko_save(bal);
+	fmt::println("")!;
+	if (!nocolor) fmt::print("\x1b[1m\x1b[33m")!;
+	fmt::printfln("    Balance: {} PYO", bal)!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::println("")!;
+};
+
+fn do_piyoko_cookbook(nocolor: bool) void = {
+	if (!nocolor) fmt::print("\x1b[1m\x1b[33m")!;
+	fmt::println("
+    === PIYOKO'S COOKBOOK ===")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::println("")!;
+
+	const count = piyoko_recipe_count();
+	let unlocked = 0;
+	for (let i = 0z; i < count; i += 1) {
+		if (piyoko_has_recipe(i)) {
+			unlocked += 1;
+			if (!nocolor) fmt::print("\x1b[32m")!;
+			fmt::printfln("    🍜 {}", piyoko_recipe_name(i))!;
+			if (!nocolor) fmt::print("\x1b[0m")!;
+			if (!nocolor) fmt::print("\x1b[2m")!;
+			fmt::printfln("       {}", piyoko_recipe_desc(i))!;
+			if (!nocolor) fmt::print("\x1b[0m")!;
+		} else {
+			if (!nocolor) fmt::print("\x1b[2m")!;
+			fmt::println("    🔒 ??? (locked)")!;
+			if (!nocolor) fmt::print("\x1b[0m")!;
+		};
+	};
+
+	fmt::println("")!;
+	if (!nocolor) fmt::print("\x1b[1m\x1b[33m")!;
+	fmt::printfln("    Collected: {}/{} recipes", unlocked, count)!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::println("")!;
+};
+
+fn do_piyoko_recipe(arg: str, nocolor: bool) void = {
+	// Parse index fra arg
+	let idx: size = 99;
+	const bytes = strings::toutf8(arg);
+	if (len(bytes) > 0 && bytes[0] >= '0' && bytes[0] <= '9') {
+		idx = (bytes[0] - '0'): size;
+	};
+	const count = piyoko_recipe_count();
+	if (idx >= count) {
+		cprint("\x1b[31m", "PIYOKO", "Usage: hpo piyoko recipe <number>", nocolor);
+		fmt::println("  (see numbers with: hpo piyoko cookbook)")!;
+		return;
+	};
+	if (!piyoko_has_recipe(idx)) {
+		cprint("\x1b[31m", "PIYOKO", "You haven't unlocked that recipe yet!", nocolor);
+		fmt::println("  Unlock it with: hpo piyoko cook")!;
+		return;
+	};
+
+	if (!nocolor) fmt::print("\x1b[1m\x1b[33m")!;
+	fmt::printfln("
+    === {} ===", piyoko_recipe_name(idx))!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	if (!nocolor) fmt::print("\x1b[2m")!;
+	fmt::printfln("    {}", piyoko_recipe_desc(idx))!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::println("")!;
+
+	// Kald python helper for den rigtige opskrift
+	const idxstr = fmt::asprintf("{}", idx)!;
+	defer free(idxstr);
+	let args: []str = alloc([], 3)!;
+	defer free(args);
+	// Find helper-stien
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let h1: [512]u8 = [0...];
+	const local_helper = fmt::bsprintf(h1, "{}/hpo/helpers/piyoko-recipe.py", home)!;
+	let helper = "/usr/local/share/hpo/piyoko-recipe.py";
+	if (os::exists(local_helper)) helper = local_helper;
+	if (os::exists("./helpers/piyoko-recipe.py")) helper = "./helpers/piyoko-recipe.py";
+
+	append(args, "python3")!;
+	append(args, helper)!;
+	append(args, idxstr)!;
+	let _ = run_cmd(args, nocolor);
+	fmt::println("")!;
+};

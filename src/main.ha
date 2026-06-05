@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.0.3";
+def VERSION = "4.0.4";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -51,6 +51,7 @@ type opts = struct {
 	tigress: bool,
 	piyoko: bool,
 	piyoko_action: str,
+	piyoko_target: str,
 	tailung: bool,
 	tailung_urls: []str,
 	url:     str,
@@ -1978,7 +1979,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.0.3")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.0.4")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2065,6 +2066,9 @@ fn print_help() void = {
 	fmt::println("  hpo tigress                           Daily motivational quote")!;
 	fmt::println("  hpo piyoko                            Show Piyokocoin balance")!;
 	fmt::println("  hpo piyoko spin                       Gamble 1 PYO (just for fun!)")!;
+	fmt::println("  hpo piyoko cook                       Unlock a random recipe (5 PYO)")!;
+	fmt::println("  hpo piyoko cookbook                   Show unlocked recipes")!;
+	fmt::println("  hpo piyoko recipe <n>                 Fetch the real recipe online")!;
 	fmt::println("  (earn 1 Piyokocoin per completed download!)")!;
 	fmt::println("")!;
 	fmt::println("EXAMPLES:")!;
@@ -3035,6 +3039,7 @@ export fn main() void = {
 		tigress = false,
 		piyoko = false,
 		piyoko_action = "",
+		piyoko_target = "",
 		tailung = false,
 		tailung_urls = [],
                 suno    = false,
@@ -3187,6 +3192,10 @@ export fn main() void = {
                 		o.piyoko_action = args[i + 1];
                 		i += 1;
                 	};
+                	if (i + 1 < len(args)) {
+                		o.piyoko_target = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "tigress") {
                 	o.tigress = true;
                 } else if (a == "chameleon") {
@@ -3280,6 +3289,12 @@ export fn main() void = {
 	if (o.piyoko) {
 		if (o.piyoko_action == "spin") {
 			do_piyoko_spin(o.nocolor);
+		} else if (o.piyoko_action == "cook") {
+			do_piyoko_cook(o.nocolor);
+		} else if (o.piyoko_action == "cookbook") {
+			do_piyoko_cookbook(o.nocolor);
+		} else if (o.piyoko_action == "recipe") {
+			do_piyoko_recipe(o.piyoko_target, o.nocolor);
 		} else {
 			do_piyoko(o.nocolor);
 		};
