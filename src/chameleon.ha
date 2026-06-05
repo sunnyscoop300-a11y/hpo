@@ -669,3 +669,72 @@ fn do_piyoko(nocolor: bool) void = {
 	if (!nocolor) fmt::print("\x1b[0m")!;
 	fmt::println("")!;
 };
+
+fn do_piyoko_spin(nocolor: bool) void = {
+	let bal = piyoko_balance();
+	if (bal < 1) {
+		if (!nocolor) fmt::print("\x1b[31m")!;
+		fmt::println("
+    (\\(\\
+    ( ;.;)   Piyoko
+    o_(\")(\")  No coins to spin!
+")!;
+		if (!nocolor) fmt::print("\x1b[0m")!;
+		cprint("\x1b[33m", "PIYOKO", "Earn coins by downloading first!", nocolor);
+		return;
+	};
+
+	// Indsats: 1 PYO
+	bal -= 1;
+
+	// Tilfældighed: seed fra nanosekunder
+	const now = time::now(time::clock::REALTIME);
+	let seed = (now.nsec: u64) ^ (now.sec: u64 * 2654435761);
+
+	const symbols: [_]str = ["🐤", "🪙", "🥚", "⭐"];
+	let reels: [3]size = [0, 0, 0];
+	for (let i = 0z; i < 3; i += 1) {
+		// Simpel LCG-step
+		seed = (seed * 6364136223846793005 + 1442695040888963407);
+		reels[i] = ((seed >> 33): size) % len(symbols);
+	};
+
+	if (!nocolor) fmt::print("\x1b[1m\x1b[33m")!;
+	fmt::println("
+    === PIYOKOCOIN SPIN ===")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::println("    Duty! The chicken spins...")!;
+	fmt::println("")!;
+	fmt::printfln("      [ {} | {} | {} ]", symbols[reels[0]], symbols[reels[1]], symbols[reels[2]])!;
+	fmt::println("")!;
+
+	// Beregn gevinst
+	let payout: u64 = 0;
+	if (reels[0] == reels[1] && reels[1] == reels[2]) {
+		payout = 10;
+		if (!nocolor) fmt::print("\x1b[1m\x1b[32m")!;
+		fmt::println("    🎉 JACKPOT! Three of a kind! +10 PYO 🎉")!;
+		if (!nocolor) fmt::print("\x1b[0m")!;
+	} else if (reels[0] == reels[1] || reels[1] == reels[2] || reels[0] == reels[2]) {
+		payout = 3;
+		if (!nocolor) fmt::print("\x1b[32m")!;
+		fmt::println("    Nice! A pair! +3 PYO")!;
+		if (!nocolor) fmt::print("\x1b[0m")!;
+	} else {
+		if (!nocolor) fmt::print("\x1b[31m")!;
+		fmt::println("    No match. Better luck next time!")!;
+		if (!nocolor) fmt::print("\x1b[0m")!;
+	};
+
+	bal += payout;
+	piyoko_save(bal);
+
+	fmt::println("")!;
+	if (!nocolor) fmt::print("\x1b[1m\x1b[33m")!;
+	fmt::printfln("    Balance: {} PYO", bal)!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	if (!nocolor) fmt::print("\x1b[2m")!;
+	fmt::println("    🐤 \"Duty!\" — Every coin earned with honor.")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::println("")!;
+};

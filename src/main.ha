@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.0.2";
+def VERSION = "4.0.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -50,6 +50,7 @@ type opts = struct {
 	chameleon_epic: bool,
 	tigress: bool,
 	piyoko: bool,
+	piyoko_action: str,
 	tailung: bool,
 	tailung_urls: []str,
 	url:     str,
@@ -1977,7 +1978,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.0.2")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.0.3")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2063,6 +2064,7 @@ fn print_help() void = {
 	fmt::println("  hpo tailung <urls...>                 Download many files at once")!;
 	fmt::println("  hpo tigress                           Daily motivational quote")!;
 	fmt::println("  hpo piyoko                            Show Piyokocoin balance")!;
+	fmt::println("  hpo piyoko spin                       Gamble 1 PYO (just for fun!)")!;
 	fmt::println("  (earn 1 Piyokocoin per completed download!)")!;
 	fmt::println("")!;
 	fmt::println("EXAMPLES:")!;
@@ -3032,6 +3034,7 @@ export fn main() void = {
 		chameleon_epic = false,
 		tigress = false,
 		piyoko = false,
+		piyoko_action = "",
 		tailung = false,
 		tailung_urls = [],
                 suno    = false,
@@ -3180,6 +3183,10 @@ export fn main() void = {
                 	};
                 } else if (a == "piyoko") {
                 	o.piyoko = true;
+                	if (i + 1 < len(args)) {
+                		o.piyoko_action = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "tigress") {
                 	o.tigress = true;
                 } else if (a == "chameleon") {
@@ -3271,7 +3278,11 @@ export fn main() void = {
 		return;
 	};
 	if (o.piyoko) {
-		do_piyoko(o.nocolor);
+		if (o.piyoko_action == "spin") {
+			do_piyoko_spin(o.nocolor);
+		} else {
+			do_piyoko(o.nocolor);
+		};
 		return;
 	};
 	if (o.tigress) {
