@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.0.1";
+def VERSION = "4.0.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1977,7 +1977,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.0.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.0.2")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -1988,6 +1988,9 @@ fn print_help() void = {
 	fmt::println("  hpo roz vejr [city]                   Roz weather robot")!;
 	fmt::println("  hpo shifu [city] [day]                Master Shifu cinema guide")!;
 	fmt::println("  hpo chameleon <action> [game]         The Chameleon save manager")!;
+	fmt::println("  hpo tailung <url1> <url2> ...         Tai Lung parallel download")!;
+	fmt::println("  hpo tigress                           Tigress quote of the day")!;
+	fmt::println("  hpo piyoko                            Piyoko wallet (Piyokocoin)")!;
 	fmt::println("")!;
 	fmt::println("DOWNLOAD OPTIONS:")!;
 	fmt::println("  -o <path>       Output file or directory (default: ~/Downloads/)")!;
@@ -2055,6 +2058,12 @@ fn print_help() void = {
 	fmt::println("  hpo chameleon list                    Show all stolen saves")!;
 	fmt::println("  hpo chameleon restore <alias>         Restore latest backup")!;
 	fmt::println("  Saves stored in: ~/hpo-saves/")!;
+	fmt::println("")!;
+	fmt::println("EXTRAS (Rooster Fighter & Kung Fu Panda themed):")!;
+	fmt::println("  hpo tailung <urls...>                 Download many files at once")!;
+	fmt::println("  hpo tigress                           Daily motivational quote")!;
+	fmt::println("  hpo piyoko                            Show Piyokocoin balance")!;
+	fmt::println("  (earn 1 Piyokocoin per completed download!)")!;
 	fmt::println("")!;
 	fmt::println("EXAMPLES:")!;
 	fmt::println("  hpo https://example.com/file.zip      Download a file")!;
