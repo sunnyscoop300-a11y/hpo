@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.3.0";
+def VERSION = "4.4.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -69,6 +69,7 @@ type opts = struct {
 	steam:    bool,
 	steam_cmd: str,
 	zhen_setup: bool,
+	do_full_setup: bool,
 	zhen_install: bool,
 	zhen_install_target: str,
 	zhen_update: bool,
@@ -1108,6 +1109,74 @@ fn do_zhen_update(o: *opts) void = {
 	fmt::println("      hpo to force this new version automatically.")!;
 };
 
+fn do_setup(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_BLUE)!;
+	fmt::println("
+   ===========================================
+    HPO FULL SETUP - Installing all the things
+   ===========================================
+")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+
+	// 1) System packages via apt (kræver sudo)
+	cprint(C_YELLOW, "SETUP", "Installing system packages (needs sudo)...", o.nocolor);
+	let apt: []str = alloc([], 12)!;
+	defer free(apt);
+	append(apt, "sudo")!;
+	append(apt, "apt")!;
+	append(apt, "install")!;
+	append(apt, "-y")!;
+	append(apt, "curl")!;
+	append(apt, "aria2")!;
+	append(apt, "megatools")!;
+	append(apt, "lgogdownloader")!;
+	append(apt, "python3-pip")!;
+	append(apt, "pipx")!;
+	let _ = run_cmd(apt, o.nocolor);
+
+	// 2) pip/pipx tools
+	cprint(C_YELLOW, "SETUP", "Installing gdown (pip)...", o.nocolor);
+	let pg: []str = alloc([], 5)!;
+	defer free(pg);
+	append(pg, "pip")!;
+	append(pg, "install")!;
+	append(pg, "--user")!;
+	append(pg, "--break-system-packages")!;
+	append(pg, "gdown")!;
+	let _ = run_cmd(pg, o.nocolor);
+
+	cprint(C_YELLOW, "SETUP", "Installing legendary (pipx)...", o.nocolor);
+	let pl: []str = alloc([], 3)!;
+	defer free(pl);
+	append(pl, "pipx")!;
+	append(pl, "install")!;
+	append(pl, "legendary-gl")!;
+	let _ = run_cmd(pl, o.nocolor);
+
+	// 3) Zhen engine: umu + GE-Proton + SteamCMD
+	cprint(C_YELLOW, "SETUP", "Setting up Zhen engine (umu + GE-Proton + SteamCMD)...", o.nocolor);
+	o.zhen_proton = true;
+	do_zhen_setup(o);
+
+	// 4) Summary
+	fmt::println("")!;
+	if (!o.nocolor) fmt::print(C_GREEN)!;
+	fmt::println("   ===========================================")!;
+	fmt::println("    HPO SETUP COMPLETE - Skadoosh!")!;
+	fmt::println("   ===========================================")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	fmt::println("")!;
+	fmt::println("  Installed checks:")!;
+	fmt::printfln("   curl ........ {}", if (check_tool("curl")) "OK" else "MISSING")!;
+	fmt::printfln("   aria2c ...... {}", if (check_tool("aria2c")) "OK" else "MISSING")!;
+	fmt::printfln("   megadl ...... {}", if (check_tool("megadl")) "OK" else "MISSING")!;
+	fmt::printfln("   gdown ....... {}", if (check_tool("gdown")) "OK" else "MISSING")!;
+	fmt::printfln("   legendary ... {}", if (check_tool("legendary")) "OK" else "MISSING")!;
+	fmt::println("")!;
+	fmt::println("  Set your Steam account for 'zhen install':")!;
+	fmt::println("   echo 'youruser' > ~/.config/hpo/steam_account.txt")!;
+};
+
 fn do_zhen_setup(o: *opts) void = {
 	if (!check_tool("curl")) {
 		cprint(C_RED, "ERR", "curl not found! Install: sudo apt install curl", o.nocolor);
@@ -1246,6 +1315,60 @@ fn do_zhen_setup(o: *opts) void = {
 				os::exit(1);
 			};
 		};
+	};
+
+	// Install SteamCMD til zhen install
+	install_steamcmd(o);
+};
+
+fn install_steamcmd(o: *opts) void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let dir_buf: [512]u8 = [0...];
+	const scmd_dir = fmt::bsprintf(dir_buf, "{}/.local/share/hpo/steamcmd", home)!;
+	static let sh_buf: [512]u8 = [0...];
+	const scmd_sh = fmt::bsprintf(sh_buf, "{}/steamcmd.sh", scmd_dir)!;
+	if (os::exists(scmd_sh)) {
+		if (!o.quiet) cprint(C_YELLOW, "ZHEN", "SteamCMD already installed, skipping.", o.nocolor);
+		return;
+	};
+	if (!o.quiet) {
+		fmt::println("")!;
+		cprint(C_BLUE, "ZHEN", "Installing SteamCMD...", o.nocolor);
+	};
+	os::mkdirs(scmd_dir, 0o755)!;
+	static let tar_buf: [512]u8 = [0...];
+	const tar_path = fmt::bsprintf(tar_buf, "{}/steamcmd.tar.gz", scmd_dir)!;
+	const url = "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz";
+	let dl: []str = alloc([], 5)!;
+	defer free(dl);
+	append(dl, "curl")!;
+	append(dl, "-L")!;
+	append(dl, "-o")!;
+	append(dl, tar_path)!;
+	append(dl, url)!;
+	if (!run_cmd(dl, o.nocolor)) {
+		cprint(C_RED, "FAIL", "SteamCMD download failed!", o.nocolor);
+		return;
+	};
+	let ex: []str = alloc([], 5)!;
+	defer free(ex);
+	append(ex, "tar")!;
+	append(ex, "-xzf")!;
+	append(ex, tar_path)!;
+	append(ex, "-C")!;
+	append(ex, scmd_dir)!;
+	if (!run_cmd(ex, o.nocolor)) {
+		cprint(C_RED, "FAIL", "SteamCMD extract failed!", o.nocolor);
+		return;
+	};
+	os::remove(tar_path): void;
+	if (os::exists(scmd_sh)) {
+		if (!o.quiet) cprint(C_GREEN, "ZHEN", "SteamCMD installed!", o.nocolor);
+	} else {
+		cprint(C_RED, "FAIL", "steamcmd.sh not found after extract!", o.nocolor);
 	};
 };
 
@@ -2118,7 +2241,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.3.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.4.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2166,6 +2289,7 @@ fn print_help() void = {
 	fmt::println("  Aliases: ~/.config/hpo/steam_aliases.txt")!;
 	fmt::println("")!;
 	fmt::println("ZHEN ENGINE (self-contained gaming runtime):")!;
+	fmt::println("  hpo --setup                           Install EVERYTHING (apt+pip+zhen+steamcmd)")!;
 	fmt::println("  hpo --zhen-setup                      Install umu-launcher")!;
 	fmt::println("  hpo --zhen-setup --proton             Also install GE-Proton10-34")!;
 	fmt::println("  hpo --zhen-update                     Check & install latest GE-Proton")!;
@@ -3163,6 +3287,7 @@ export fn main() void = {
 		steam   = false,
 		steam_cmd = "",
 		zhen_setup = false,
+		do_full_setup = false,
 		zhen_install = false,
 		zhen_install_target = "",
 		zhen_update = false,
@@ -3244,6 +3369,8 @@ export fn main() void = {
                         o.steam_cmd = args[i];
                 } else if (a == "--zhen-update") {
                         o.zhen_update = true;
+                } else if (a == "--setup") {
+                        o.do_full_setup = true;
                 } else if (a == "--zhen-setup") {
                         o.zhen_setup = true;
                 } else if (a == "--proton") {
@@ -3477,6 +3604,10 @@ export fn main() void = {
 	};
 	if (o.zhen_update) {
 		do_zhen_update(&o);
+		return;
+	};
+	if (o.do_full_setup) {
+		do_setup(&o);
 		return;
 	};
 	if (o.zhen_setup) {
