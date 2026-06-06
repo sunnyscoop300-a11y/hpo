@@ -1074,7 +1074,15 @@ fn steam_installdir(appid: str) str = {
 
 // Find første .exe i en spilmappe via find-kommando
 fn find_game_exe(gamedir: str) str = {
-	const cmd = match (exec::cmd("find", gamedir, "-maxdepth", "2", "-iname", "*.exe")) {
+	const cmd = match (exec::cmd("find", gamedir, "-maxdepth", "4", "-iname", "*.exe",
+		"-not", "-ipath", "*_CommonRedist*",
+		"-not", "-ipath", "*/Redist/*",
+		"-not", "-iname", "*CrashReport*",
+		"-not", "-iname", "*PrereqSetup*",
+		"-not", "-iname", "*DXSETUP*",
+		"-not", "-iname", "*VC_redist*",
+		"-not", "-iname", "*UnityCrashHandler*",
+		"-not", "-iname", "*vcredist*")) {
 	case let c: exec::command => yield c;
 	case => return "";
 	};
