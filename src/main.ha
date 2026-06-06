@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.0.4";
+def VERSION = "4.1.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -69,6 +69,8 @@ type opts = struct {
 	steam:    bool,
 	steam_cmd: str,
 	zhen_setup: bool,
+	zhen_force: bool,
+	zhen_force_target: str,
 	zhen_update: bool,
 	zhen_proton: bool,
         suno:    bool,
@@ -1236,8 +1238,61 @@ fn is_wsl() bool = {
 	return strings::contains(s, "Microsoft") || strings::contains(s, "microsoft") || strings::contains(s, "WSL");
 };
 
+fn steam_game_name_linux(appid: str) str = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => return "";
+	};
+	// Mulige Steam steamapps-stier (Flatpak, native, .steam)
+	const bases: [_]str = [
+		"/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps",
+		"/.local/share/Steam/steamapps",
+		"/.steam/steam/steamapps",
+		"/.steam/debian-installation/steamapps",
+	];
+	for (let i = 0z; i < len(bases); i += 1) {
+		static let pbuf: [512]u8 = [0...];
+		const p = fmt::bsprintf(pbuf, "{}{}/appmanifest_{}.acf", home, bases[i], appid)!;
+		match (os::open(p)) {
+		case let f: io::file =>
+			static let rbuf: [8192]u8 = [0...];
+			const n = match (io::read(f, rbuf)) {
+			case let z: size => yield z;
+			case => yield 0z;
+			};
+			io::close(f)!;
+			if (n == 0) continue;
+			const content = match (strings::fromutf8(rbuf[..n])) {
+			case let s: str => yield s;
+			case => continue;
+			};
+			// Find "name" felt
+			const key = "\"name\"";
+			const ki = match (strings::index(content, key)) {
+			case let x: size => yield x;
+			case void => continue;
+			};
+			const rest = strings::sub(content, ki + len(key), strings::end);
+			// Find første " efter key, så næste "
+			const q1 = match (strings::index(rest, '"')) {
+			case let x: size => yield x;
+			case void => continue;
+			};
+			const after = strings::sub(rest, q1 + 1, strings::end);
+			const q2 = match (strings::index(after, '"')) {
+			case let x: size => yield x;
+			case void => continue;
+			};
+			const name = strings::sub(after, 0, q2);
+			return strings::dup(name)!;
+		case => continue;
+		};
+	};
+	return "";
+};
+
 fn steam_game_name(appid: str) str = {
-	if (!is_wsl()) return "";
+	if (!is_wsl()) return steam_game_name_linux(appid);
 	const ps_tmpl = `[Console]::OutputEncoding=[Text.Encoding]::UTF8; $lf=Get-Content 'C:\\Program Files (x86)\\Steam\\steamapps\\libraryfolders.vdf' -Raw -Encoding UTF8; $paths=[regex]::Matches($lf,'"path"\s+"([^"]+)"') | ForEach-Object { $_.Groups[1].Value -replace '\\\\','\' }; foreach($p in $paths){ $f=Join-Path $p 'steamapps\\appmanifest___APPID__.acf'; if(Test-Path $f){ $t=Get-Content $f -Raw -Encoding UTF8; [regex]::Match($t,'"name"\s+"([^"]+)"').Groups[1].Value } }`;
 	const ps = strings::replace(ps_tmpl, "__APPID__", appid)!;
 	defer free(ps);
@@ -1979,13 +2034,14 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.0.4")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.1.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
 	fmt::println("  hpo --epic <action> <game>            Epic Games launcher")!;
 	fmt::println("  hpo --steam <action|alias>            Steam launcher")!;
 	fmt::println("  hpo --zhen-setup [--proton]           Install Zhen engine")!;
+	fmt::println("  hpo zhen force <alias>                Force GE-Proton on a game")!;
 	fmt::println("  hpo oogway [seconds]                  Master Oogway meditation")!;
 	fmt::println("  hpo roz vejr [city]                   Roz weather robot")!;
 	fmt::println("  hpo shifu [city] [day]                Master Shifu cinema guide")!;
@@ -2030,6 +2086,7 @@ fn print_help() void = {
 	fmt::println("  hpo --zhen-setup                      Install umu-launcher")!;
 	fmt::println("  hpo --zhen-setup --proton             Also install GE-Proton10-34")!;
 	fmt::println("  hpo --zhen-update                     Check & install latest GE-Proton")!;
+	fmt::println("  hpo zhen force <alias>                Force a game to use GE-Proton")!;
 	fmt::println("  On WSL: bridges Steam/Epic to Windows via cmd.exe URI handlers")!;
 	fmt::println("")!;
 	fmt::println("OOGWAY MEDITATION (with monastery bell):")!;
@@ -3023,6 +3080,8 @@ export fn main() void = {
 		steam   = false,
 		steam_cmd = "",
 		zhen_setup = false,
+		zhen_force = false,
+		zhen_force_target = "",
 		zhen_update = false,
 		zhen_proton = false,
 		oogway = false,
@@ -3186,6 +3245,15 @@ export fn main() void = {
                 		append(o.tailung_urls, args[i + 1])!;
                 		i += 1;
                 	};
+                } else if (a == "zhen") {
+                	if (i + 1 < len(args) && args[i + 1] == "force") {
+                		o.zhen_force = true;
+                		i += 1;
+                		if (i + 1 < len(args)) {
+                			o.zhen_force_target = args[i + 1];
+                			i += 1;
+                		};
+                	};
                 } else if (a == "piyoko") {
                 	o.piyoko = true;
                 	if (i + 1 < len(args)) {
@@ -3284,6 +3352,10 @@ export fn main() void = {
 	};
 	if (o.tailung) {
 		do_tailung(o.tailung_urls, o.nocolor);
+		return;
+	};
+	if (o.zhen_force) {
+		do_zhen_force(o.zhen_force_target, o.nocolor);
 		return;
 	};
 	if (o.piyoko) {

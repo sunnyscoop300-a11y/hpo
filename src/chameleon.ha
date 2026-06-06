@@ -979,3 +979,38 @@ fn do_piyoko_recipe(arg: str, nocolor: bool) void = {
 	let _ = run_cmd(args, nocolor);
 	fmt::println("")!;
 };
+
+fn do_zhen_force(target: str, nocolor: bool) void = {
+	if (len(target) == 0) {
+		cprint("\x1b[31m", "ZHEN", "Usage: hpo zhen force <alias>", nocolor);
+		os::exit(1);
+	};
+	const appid = chameleon_resolve_appid(target);
+
+	if (!nocolor) fmt::print("\x1b[36m")!;
+	fmt::println("
+    [ZHEN] Forcing GE-Proton engine...")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+
+	// Find helper-stien
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let h1: [512]u8 = [0...];
+	const local_helper = fmt::bsprintf(h1, "{}/Documents/hpo/helpers/zhen-force.py", home)!;
+	let helper = "/usr/local/share/hpo/zhen-force.py";
+	if (os::exists(local_helper)) helper = local_helper;
+	if (os::exists("./helpers/zhen-force.py")) helper = "./helpers/zhen-force.py";
+
+	let args: []str = alloc([], 3)!;
+	defer free(args);
+	append(args, "python3")!;
+	append(args, helper)!;
+	append(args, appid)!;
+	if (run_cmd(args, nocolor)) {
+		cprint("\x1b[32m", "OK", "GE-Proton set! Launch with: hpo --steam <alias>", nocolor);
+	} else {
+		cprint("\x1b[33m", "ZHEN", "Could not set GE-Proton (is Steam closed?)", nocolor);
+	};
+};
