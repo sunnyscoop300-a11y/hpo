@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.1.1";
+def VERSION = "4.1.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1418,6 +1418,14 @@ fn do_steam(o: *opts, target: str) void = {
 	case => void;
 	};
 
+	// Hvis hverken AppID-tal eller kendt alias, foreslå nærmeste
+	if (!is_numeric(appid)) {
+		cprint(C_RED, "FOXFIRE", "Unknown game alias", o.nocolor);
+		fmt::printfln("  '{}' is not a known alias or AppID.", target)!;
+		suggest_alias(target, "steam");
+		return;
+	};
+
 	static let uri_buf: [512]u8 = [0...];
 	const action =
 		if (o.steam_cmd == "install") "install"
@@ -2034,7 +2042,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.1.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.1.2")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;

@@ -987,6 +987,14 @@ fn do_zhen_force(target: str, nocolor: bool) void = {
 	};
 	const appid = chameleon_resolve_appid(target);
 
+	// Hvis aliaset ikke blev fundet (ikke numerisk og ikke --all), foresl\u00e5 n\u00e6rmeste
+	if (target != "--all" && !is_numeric(appid)) {
+		cprint("\x1b[31m", "ZHEN", "Unknown alias", nocolor);
+		fmt::printfln("       '{}' is not a known alias.", target)!;
+		suggest_alias(target, "steam");
+		return;
+	};
+
 	if (!nocolor) fmt::print("\x1b[36m")!;
 	fmt::println("
     [ZHEN] Forcing GE-Proton engine...")!;
@@ -1013,4 +1021,36 @@ fn do_zhen_force(target: str, nocolor: bool) void = {
 	} else {
 		cprint("\x1b[33m", "ZHEN", "Could not set GE-Proton (is Steam closed?)", nocolor);
 	};
+};
+
+// Vis "did you mean" forslag når et alias ikke findes
+fn suggest_alias(query: str, kind: str) void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let h1: [512]u8 = [0...];
+	const local_helper = fmt::bsprintf(h1, "{}/Documents/hpo/helpers/alias-suggest.py", home)!;
+	let helper = "/usr/local/share/hpo/alias-suggest.py";
+	if (os::exists(local_helper)) helper = local_helper;
+	if (os::exists("./helpers/alias-suggest.py")) helper = "./helpers/alias-suggest.py";
+	if (!os::exists(helper)) return;
+
+	let args: []str = alloc([], 4)!;
+	defer free(args);
+	append(args, "python3")!;
+	append(args, helper)!;
+	append(args, query)!;
+	append(args, kind)!;
+	let _ = run_cmd(args, true);
+};
+
+// Tjek om en streng er et rent tal (AppID)
+fn is_numeric(s: str) bool = {
+	const bytes = strings::toutf8(s);
+	if (len(bytes) == 0) return false;
+	for (let i = 0z; i < len(bytes); i += 1) {
+		if (bytes[i] < '0' || bytes[i] > '9') return false;
+	};
+	return true;
 };
