@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.4.2";
+def VERSION = "4.4.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1672,7 +1672,19 @@ fn do_steam(o: *opts, target: str) void = {
 		const gamedir = steam_installdir(appid);
 		if (len(gamedir) > 0) {
 			const exe = find_game_exe(gamedir);
-			if (len(exe) > 0) {
+			// DRM-beskyttede spil kan ikke launches via umu - lad Steam h\u00e5ndtere dem
+			const is_drm = match (strings::index(exe, "DRM")) {
+			case size => yield true;
+			case void => yield false;
+			};
+			if (is_drm) {
+				if (!o.quiet) {
+					cprint(C_YELLOW, "ZHEN", "DRM-protected game detected.", o.nocolor);
+					cprint(C_YELLOW, "ZHEN", "Using Steam launch (DRM needs the Steam client).", o.nocolor);
+					fmt::println("")!;
+				};
+			};
+			if (len(exe) > 0 && !is_drm) {
 				static let umu_buf: [512]u8 = [0...];
 				const umu = fmt::bsprintf(umu_buf, "{}/.local/share/hpo/zhen/umu-run", home)!;
 				if (os::exists(umu)) {
@@ -2275,7 +2287,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.4.2")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.4.3")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
