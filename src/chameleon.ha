@@ -1114,6 +1114,72 @@ fn find_game_exe(gamedir: str) str = {
 	return strings::dup(strings::sub(out, 0, nl))!;
 };
 
+fn do_zhen_force(target: str, nocolor: bool) void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => return;
+	};
+
+	// Steam skal v\u00e6re lukket
+	cprint(C_YELLOW, "ZHEN", "Setting GE-Proton (close Steam first if open)...", nocolor);
+
+	// Resolv\u00e9r target: --all sendes direkte, ellers alias->appid
+	let arg = target;
+	if (target != "--all") {
+		const appid = chameleon_resolve_appid(target);
+		if (len(appid) == 0 || !is_numeric(appid)) {
+			cprint(C_RED, "FAIL", "Unknown game alias.", nocolor);
+			suggest_alias(target, "steam");
+			return;
+		};
+		arg = appid;
+	};
+
+	// Find zhen-force.py helper
+	static let h1: [512]u8 = [0...];
+	static let h2: [512]u8 = [0...];
+	const p1 = fmt::bsprintf(h1, "{}/Documents/hpo/helpers/zhen-force.py", home)!;
+	const p2 = "/usr/local/share/hpo/zhen-force.py";
+	let helper = "";
+	if (os::exists(p1)) {
+		helper = p1;
+	} else if (os::exists(p2)) {
+		helper = p2;
+	} else if (os::exists("./helpers/zhen-force.py")) {
+		helper = "./helpers/zhen-force.py";
+	} else {
+		cprint(C_RED, "FAIL", "zhen-force.py helper not found.", nocolor);
+		return;
+	};
+
+	let fargs: []str = alloc([], 3)!;
+	defer free(fargs);
+	append(fargs, "python3")!;
+	append(fargs, helper)!;
+	append(fargs, arg)!;
+
+	const cmd = match (exec::cmd(fargs[0], fargs[1], fargs[2])) {
+	case let c: exec::command => yield c;
+	case => {
+		cprint(C_RED, "FAIL", "Could not run helper.", nocolor);
+		return;
+	};
+	};
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case => {
+		cprint(C_RED, "FAIL", "Could not start helper.", nocolor);
+		return;
+	};
+	};
+	const st = exec::wait(&proc)!;
+	match (exec::check(&st)) {
+	case void =>
+		cprint(C_GREEN, "OK", "GE-Proton set! Launch with: hpo --steamfoxfire <alias>", nocolor);
+	case => void;
+	};
+};
+
 fn do_zhen_install(target: str, nocolor: bool) void = {
 	if (len(target) == 0) {
 		cprint("\x1b[31m", "ZHEN", "Usage: hpo zhen install <alias>", nocolor);

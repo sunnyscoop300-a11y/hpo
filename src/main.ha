@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.4.3";
+def VERSION = "4.5.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -71,6 +71,8 @@ type opts = struct {
 	zhen_setup: bool,
 	do_full_setup: bool,
 	zhen_install: bool,
+	zhen_force: bool,
+	zhen_force_target: str,
 	zhen_install_target: str,
 	zhen_update: bool,
 	zhen_proton: bool,
@@ -1635,8 +1637,8 @@ fn do_steam(o: *opts, target: str) void = {
 		os::mkdir(steam_compat_dir, 0o755): void;
 		let ln_args: []str = alloc([], 5)!;
 		defer free(ln_args);
-		append(ln_args, "ln")!;
-		append(ln_args, "-sf")!;
+		append(ln_args, "cp")!;
+		append(ln_args, "-r")!;
 		append(ln_args, zhen_proton_src)!;
 		append(ln_args, steam_target)!;
 		let _ = run_cmd(ln_args, o.nocolor);
@@ -2287,7 +2289,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.4.3")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.5.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2340,6 +2342,8 @@ fn print_help() void = {
 	fmt::println("  hpo --zhen-setup --proton             Also install GE-Proton10-34")!;
 	fmt::println("  hpo --zhen-update                     Check & install latest GE-Proton")!;
 	fmt::println("  hpo zhen install <alias>              Install a Steam game via SteamCMD")!;
+	fmt::println("  hpo zhen force <alias>                Set GE-Proton for a game (DRM-safe)")!;
+	fmt::println("  hpo zhen force --all                  Set GE-Proton for ALL your games")!;
 	fmt::println("  On WSL: bridges Steam/Epic to Windows via cmd.exe URI handlers")!;
 	fmt::println("")!;
 	fmt::println("OOGWAY MEDITATION (with monastery bell):")!;
@@ -3335,6 +3339,8 @@ export fn main() void = {
 		zhen_setup = false,
 		do_full_setup = false,
 		zhen_install = false,
+		zhen_force = false,
+		zhen_force_target = "",
 		zhen_install_target = "",
 		zhen_update = false,
 		zhen_proton = false,
@@ -3427,6 +3433,13 @@ export fn main() void = {
                                 i += 1;
                                 if (i + 1 < len(args)) {
                                         o.zhen_install_target = args[i + 1];
+                                        i += 1;
+                                };
+                        } else if (i + 1 < len(args) && args[i + 1] == "force") {
+                                o.zhen_force = true;
+                                i += 1;
+                                if (i + 1 < len(args)) {
+                                        o.zhen_force_target = args[i + 1];
                                         i += 1;
                                 };
                         };
@@ -3658,6 +3671,10 @@ export fn main() void = {
 	};
 	if (o.zhen_setup) {
 		do_zhen_setup(&o);
+		return;
+	};
+	if (o.zhen_force) {
+		do_zhen_force(o.zhen_force_target, o.nocolor);
 		return;
 	};
 	if (o.zhen_install) {
