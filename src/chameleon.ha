@@ -1099,3 +1099,98 @@ fn find_game_exe(gamedir: str) str = {
 	};
 	return strings::dup(strings::sub(out, 0, nl))!;
 };
+
+fn do_zhen_install(target: str, nocolor: bool) void = {
+	if (len(target) == 0) {
+		cprint("\x1b[31m", "ZHEN", "Usage: hpo zhen install <alias>", nocolor);
+		os::exit(1);
+	};
+	const appid = chameleon_resolve_appid(target);
+	if (!is_numeric(appid)) {
+		cprint("\x1b[31m", "ZHEN", "Unknown alias", nocolor);
+		fmt::printfln("       '{}' is not a known alias.", target)!;
+		suggest_alias(target, "steam");
+		return;
+	};
+
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+
+	// Læs Steam-kontonavn fra config
+	static let acc_buf: [256]u8 = [0...];
+	const acc_path = fmt::bsprintf(acc_buf, "{}/.config/hpo/steam_account.txt", home)!;
+	let account = "";
+	match (os::open(acc_path)) {
+	case let f: io::file =>
+		static let abuf: [128]u8 = [0...];
+		const n = match (io::read(f, abuf)) {
+		case let z: size => yield z;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		account = strings::dup(strings::trim(strings::fromutf8(abuf[..n])!))!;
+	case => void;
+	};
+	if (len(account) == 0) {
+		cprint("\x1b[31m", "ZHEN", "No Steam account set!", nocolor);
+		fmt::println("  Set it with: echo 'youruser' > ~/.config/hpo/steam_account.txt")!;
+		return;
+	};
+
+	// SteamCMD mappe + sti
+	static let scmddir_buf: [512]u8 = [0...];
+	const scmddir = fmt::bsprintf(scmddir_buf, "{}/.local/share/hpo/steamcmd", home)!;
+	static let scmd_buf: [512]u8 = [0...];
+	const scmd = fmt::bsprintf(scmd_buf, "{}/steamcmd.sh", scmddir)!;
+	if (!os::exists(scmd)) {
+		cprint("\x1b[31m", "ZHEN", "SteamCMD not found!", nocolor);
+		fmt::println("  Install it first (see docs).")!;
+		return;
+	};
+
+	// Install-mappe: brug spilnavn hvis kendt, ellers AppID
+	let dirname = steam_game_name(appid);
+	if (len(dirname) == 0) dirname = appid;
+	static let dir_buf: [768]u8 = [0...];
+	const installdir = fmt::bsprintf(dir_buf,
+		"{}/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common/{}",
+		home, dirname)!;
+
+	if (!nocolor) fmt::print("\x1b[36m")!;
+	fmt::println("
+    [ZHEN] Zhen engine installing via SteamCMD...")!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	fmt::printfln("  Game:    {}", dirname)!;
+	fmt::printfln("  AppID:   {}", appid)!;
+	fmt::printfln("  Account: {}", account)!;
+	fmt::println("  (you may need your password + Steam Guard code)")!;
+	fmt::println("")!;
+
+	// Byg SteamCMD kommando
+	static let appupdate_buf: [64]u8 = [0...];
+	let args: []str = alloc([], 12)!;
+	defer free(args);
+	// Skift til steamcmd-mappen + k\u00f8r via bash med fuld sti (s\u00e5 $0 er korrekt)
+	os::chdir(scmddir)!;
+	append(args, "bash")!;
+	append(args, scmd)!;
+	append(args, "+@sSteamCmdForcePlatformType")!;
+	append(args, "windows")!;
+	append(args, "+force_install_dir")!;
+	append(args, installdir)!;
+	append(args, "+login")!;
+	append(args, account)!;
+	append(args, "+app_update")!;
+	append(args, appid)!;
+	append(args, "validate")!;
+	append(args, "+quit")!;
+
+	if (run_cmd(args, nocolor)) {
+		cprint("\x1b[32m", "OK", "Install complete! Skadoosh!", nocolor);
+		fmt::printfln("  Launch with GE-Proton: hpo --steamfoxfire {}", target)!;
+	} else {
+		cprint("\x1b[33m", "ZHEN", "Install may have failed (check output above)", nocolor);
+	};
+};

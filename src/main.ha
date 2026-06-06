@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.2.0";
+def VERSION = "4.3.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -69,6 +69,8 @@ type opts = struct {
 	steam:    bool,
 	steam_cmd: str,
 	zhen_setup: bool,
+	zhen_install: bool,
+	zhen_install_target: str,
 	zhen_update: bool,
 	zhen_proton: bool,
         suno:    bool,
@@ -1576,6 +1578,12 @@ fn do_steam(o: *opts, target: str) void = {
 
 	if (run_cmd(steam_args, o.nocolor)) {
 		if (!o.quiet) cprint(C_GREEN, "OK", "Steam action complete! Vroom vroom!", o.nocolor);
+		if (!o.quiet && !on_wsl && action == "install") {
+			fmt::println("")!;
+			cprint(C_YELLOW, "ZHEN", "Steam is downloading the game.", o.nocolor);
+			cprint(C_YELLOW, "ZHEN", "When it's done, launch with GE-Proton:", o.nocolor);
+			fmt::printfln("  hpo --steamfoxfire {}", target)!;
+		};
 	} else {
 		if (!o.quiet) cprint(C_RED, "FAIL", "Steam action failed!", o.nocolor);
 		os::exit(1);
@@ -2110,7 +2118,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.2.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.3.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2161,6 +2169,7 @@ fn print_help() void = {
 	fmt::println("  hpo --zhen-setup                      Install umu-launcher")!;
 	fmt::println("  hpo --zhen-setup --proton             Also install GE-Proton10-34")!;
 	fmt::println("  hpo --zhen-update                     Check & install latest GE-Proton")!;
+	fmt::println("  hpo zhen install <alias>              Install a Steam game via SteamCMD")!;
 	fmt::println("  On WSL: bridges Steam/Epic to Windows via cmd.exe URI handlers")!;
 	fmt::println("")!;
 	fmt::println("OOGWAY MEDITATION (with monastery bell):")!;
@@ -3154,6 +3163,8 @@ export fn main() void = {
 		steam   = false,
 		steam_cmd = "",
 		zhen_setup = false,
+		zhen_install = false,
+		zhen_install_target = "",
 		zhen_update = false,
 		zhen_proton = false,
 		oogway = false,
@@ -3237,6 +3248,15 @@ export fn main() void = {
                         o.zhen_setup = true;
                 } else if (a == "--proton") {
                         o.zhen_proton = true;
+                } else if (a == "zhen") {
+                        if (i + 1 < len(args) && args[i + 1] == "install") {
+                                o.zhen_install = true;
+                                i += 1;
+                                if (i + 1 < len(args)) {
+                                        o.zhen_install_target = args[i + 1];
+                                        i += 1;
+                                };
+                        };
                 } else if (a == "shifu") {
                         o.shifu = true;
                         // Slurp alle remaining args som "city + day" combined
@@ -3461,6 +3481,10 @@ export fn main() void = {
 	};
 	if (o.zhen_setup) {
 		do_zhen_setup(&o);
+		return;
+	};
+	if (o.zhen_install) {
+		do_zhen_install(o.zhen_install_target, o.nocolor);
 		return;
 	};
 	if (o.steam) {
