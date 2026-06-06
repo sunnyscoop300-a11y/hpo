@@ -980,48 +980,6 @@ fn do_piyoko_recipe(arg: str, nocolor: bool) void = {
 	fmt::println("")!;
 };
 
-fn do_zhen_force(target: str, nocolor: bool) void = {
-	if (len(target) == 0) {
-		cprint("\x1b[31m", "ZHEN", "Usage: hpo zhen force <alias>", nocolor);
-		os::exit(1);
-	};
-	const appid = chameleon_resolve_appid(target);
-
-	// Hvis aliaset ikke blev fundet (ikke numerisk og ikke --all), foresl\u00e5 n\u00e6rmeste
-	if (target != "--all" && !is_numeric(appid)) {
-		cprint("\x1b[31m", "ZHEN", "Unknown alias", nocolor);
-		fmt::printfln("       '{}' is not a known alias.", target)!;
-		suggest_alias(target, "steam");
-		return;
-	};
-
-	if (!nocolor) fmt::print("\x1b[36m")!;
-	fmt::println("
-    [ZHEN] Forcing GE-Proton engine...")!;
-	if (!nocolor) fmt::print("\x1b[0m")!;
-
-	// Find helper-stien
-	const home = match (os::getenv("HOME")) {
-	case let s: str => yield s;
-	case void => yield "/tmp";
-	};
-	static let h1: [512]u8 = [0...];
-	const local_helper = fmt::bsprintf(h1, "{}/Documents/hpo/helpers/zhen-force.py", home)!;
-	let helper = "/usr/local/share/hpo/zhen-force.py";
-	if (os::exists(local_helper)) helper = local_helper;
-	if (os::exists("./helpers/zhen-force.py")) helper = "./helpers/zhen-force.py";
-
-	let args: []str = alloc([], 3)!;
-	defer free(args);
-	append(args, "python3")!;
-	append(args, helper)!;
-	append(args, appid)!;
-	if (run_cmd(args, nocolor)) {
-		cprint("\x1b[32m", "OK", "GE-Proton set! Launch with: hpo --steam <alias>", nocolor);
-	} else {
-		cprint("\x1b[33m", "ZHEN", "Could not set GE-Proton (is Steam closed?)", nocolor);
-	};
-};
 
 // Vis "did you mean" forslag når et alias ikke findes
 fn suggest_alias(query: str, kind: str) void = {
@@ -1053,4 +1011,91 @@ fn is_numeric(s: str) bool = {
 		if (bytes[i] < '0' || bytes[i] > '9') return false;
 	};
 	return true;
+};
+
+// Læs "installdir" fra et Steam .acf (Linux)
+fn steam_installdir(appid: str) str = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => return "";
+	};
+	const bases: [_]str = [
+		"/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps",
+		"/.local/share/Steam/steamapps",
+		"/.steam/steam/steamapps",
+		"/.steam/debian-installation/steamapps",
+	];
+	for (let i = 0z; i < len(bases); i += 1) {
+		static let pbuf: [512]u8 = [0...];
+		const p = fmt::bsprintf(pbuf, "{}{}/appmanifest_{}.acf", home, bases[i], appid)!;
+		match (os::open(p)) {
+		case let f: io::file =>
+			static let rbuf: [8192]u8 = [0...];
+			const n = match (io::read(f, rbuf)) {
+			case let z: size => yield z;
+			case => yield 0z;
+			};
+			io::close(f)!;
+			if (n == 0) continue;
+			const content = match (strings::fromutf8(rbuf[..n])) {
+			case let s: str => yield s;
+			case => continue;
+			};
+			const key = "\"installdir\"";
+			const ki = match (strings::index(content, key)) {
+			case let x: size => yield x;
+			case void => continue;
+			};
+			const rest = strings::sub(content, ki + len(key), strings::end);
+			const q1 = match (strings::index(rest, '"')) {
+			case let x: size => yield x;
+			case void => continue;
+			};
+			const after = strings::sub(rest, q1 + 1, strings::end);
+			const q2 = match (strings::index(after, '"')) {
+			case let x: size => yield x;
+			case void => continue;
+			};
+			// Returnér full path til common/<installdir>
+			const dir = strings::sub(after, 0, q2);
+			static let full_buf: [768]u8 = [0...];
+			return strings::dup(fmt::bsprintf(full_buf, "{}{}/common/{}", home, bases[i], dir)!)!;
+		case => continue;
+		};
+	};
+	return "";
+};
+
+// Find første .exe i en spilmappe via find-kommando
+fn find_game_exe(gamedir: str) str = {
+	const cmd = match (exec::cmd("find", gamedir, "-maxdepth", "2", "-iname", "*.exe")) {
+	case let c: exec::command => yield c;
+	case => return "";
+	};
+	const pipe = exec::pipe();
+	exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+	exec::addfile(&cmd, os::stderr_file, exec::nullfd)!;
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case =>
+		io::close(pipe.0)!;
+		io::close(pipe.1)!;
+		return "";
+	};
+	io::close(pipe.1)!;
+	static let nbuf: [4096]u8 = [0...];
+	const n = match (io::read(pipe.0, nbuf)) {
+	case let z: size => yield z;
+	case => yield 0z;
+	};
+	io::close(pipe.0)!;
+	exec::wait(&proc)!;
+	if (n == 0) return "";
+	const out = strings::fromutf8(nbuf[..n])!;
+	// Tag første linje
+	const nl = match (strings::index(out, '\n')) {
+	case let x: size => yield x;
+	case void => yield len(out);
+	};
+	return strings::dup(strings::sub(out, 0, nl))!;
 };

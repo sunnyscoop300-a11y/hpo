@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.1.2";
+def VERSION = "4.2.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -69,8 +69,6 @@ type opts = struct {
 	steam:    bool,
 	steam_cmd: str,
 	zhen_setup: bool,
-	zhen_force: bool,
-	zhen_force_target: str,
 	zhen_update: bool,
 	zhen_proton: bool,
         suno:    bool,
@@ -381,6 +379,32 @@ fn run_cmd(args: []str, nc: bool) bool = {
 	case =>
 		cprint(C_RED, "ERR", "process exited with error", nc);
 		return false;
+	};
+};
+
+// Som run_cmd, men dæmper barnets stdout/stderr (til /dev/null)
+fn run_cmd_quiet(args: []str, nc: bool) bool = {
+	const cmd = match (exec::cmd(args[0], args[1..]...)) {
+	case let c: exec::command => yield c;
+	case => return false;
+	};
+	const devnull = match (os::open("/dev/null", fs::flag::WRONLY)) {
+	case let f: io::file => yield f;
+	case => yield exec::nullfd;
+	};
+	exec::addfile(&cmd, os::stdout_file, devnull)!;
+	exec::addfile(&cmd, os::stderr_file, devnull)!;
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case => return false;
+	};
+	const st = match (exec::wait(&proc)) {
+	case let s: exec::status => yield s;
+	case => return false;
+	};
+	match (exec::exit(&st)) {
+	case let e: exec::exited => return e == 0;
+	case => return false;
 	};
 };
 
@@ -1483,6 +1507,50 @@ fn do_steam(o: *opts, target: str) void = {
 	if (!on_wsl && os::exists(steam_target)) {
 		os::setenv("STEAM_COMPAT_TOOL_OVERRIDE", "GE-Proton10-34")!;
 	};
+
+	// ZHEN umu-launch: ægte GE-Proton for Steam-spil på Linux (launch only)
+	if (!on_wsl && action == "rungameid" && os::exists(zhen_proton_src)) {
+		const gamedir = steam_installdir(appid);
+		if (len(gamedir) > 0) {
+			const exe = find_game_exe(gamedir);
+			if (len(exe) > 0) {
+				static let umu_buf: [512]u8 = [0...];
+				const umu = fmt::bsprintf(umu_buf, "{}/.local/share/hpo/zhen/umu-run", home)!;
+				if (os::exists(umu)) {
+					static let pfx_buf: [512]u8 = [0...];
+					const pfx = fmt::bsprintf(pfx_buf, "{}/.proton-prefix-steam/{}", home, appid)!;
+					os::mkdirs(pfx, 0o755)!;
+					os::setenv("WINEPREFIX", pfx)!;
+					os::setenv("STEAM_COMPAT_DATA_PATH", pfx)!;
+					static let sci_buf: [512]u8 = [0...];
+					const sci = fmt::bsprintf(sci_buf, "{}/.local/share/hpo/zhen", home)!;
+					os::setenv("STEAM_COMPAT_CLIENT_INSTALL_PATH", sci)!;
+					os::setenv("PROTONPATH", zhen_proton_src)!;
+					os::setenv("GAMEID", "umu-0")!;
+					os::setenv("STORE", "none")!;
+					os::setenv("DXVK_ASYNC", "1")!;
+					os::setenv("WINEESYNC", "1")!;
+					os::setenv("WINEFSYNC", "1")!;
+					if (!o.quiet) {
+						cprint(C_YELLOW, "ZHEN", "Zhen engine awakening with GE-Proton10-34...", o.nocolor);
+						fmt::printfln("  Exe: {}", exe)!;
+						fmt::println("")!;
+					};
+					let uargs: []str = alloc([], 2)!;
+					defer free(uargs);
+					append(uargs, umu)!;
+					append(uargs, exe)!;
+					if (run_cmd_quiet(uargs, o.nocolor)) {
+						if (!o.quiet) cprint(C_GREEN, "OK", "Game launched with GE-Proton! Skadoosh!", o.nocolor);
+					} else {
+						if (!o.quiet) cprint(C_RED, "FAIL", "umu launch failed!", o.nocolor);
+					};
+					return;
+				};
+			};
+		};
+	};
+
 	let steam_args: []str = alloc([], 6)!;
 	defer free(steam_args);
 	if (on_wsl) {
@@ -2042,14 +2110,13 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.1.2")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.2.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
 	fmt::println("  hpo --epic <action> <game>            Epic Games launcher")!;
 	fmt::println("  hpo --steam <action|alias>            Steam launcher")!;
 	fmt::println("  hpo --zhen-setup [--proton]           Install Zhen engine")!;
-	fmt::println("  hpo zhen force <alias>                Force GE-Proton on a game")!;
 	fmt::println("  hpo oogway [seconds]                  Master Oogway meditation")!;
 	fmt::println("  hpo roz vejr [city]                   Roz weather robot")!;
 	fmt::println("  hpo shifu [city] [day]                Master Shifu cinema guide")!;
@@ -2094,8 +2161,6 @@ fn print_help() void = {
 	fmt::println("  hpo --zhen-setup                      Install umu-launcher")!;
 	fmt::println("  hpo --zhen-setup --proton             Also install GE-Proton10-34")!;
 	fmt::println("  hpo --zhen-update                     Check & install latest GE-Proton")!;
-	fmt::println("  hpo zhen force <alias>                Force a game to use GE-Proton")!;
-	fmt::println("  hpo zhen force --all                  Force GE-Proton on ALL aliased games")!;
 	fmt::println("  On WSL: bridges Steam/Epic to Windows via cmd.exe URI handlers")!;
 	fmt::println("")!;
 	fmt::println("OOGWAY MEDITATION (with monastery bell):")!;
@@ -3089,8 +3154,6 @@ export fn main() void = {
 		steam   = false,
 		steam_cmd = "",
 		zhen_setup = false,
-		zhen_force = false,
-		zhen_force_target = "",
 		zhen_update = false,
 		zhen_proton = false,
 		oogway = false,
@@ -3254,15 +3317,6 @@ export fn main() void = {
                 		append(o.tailung_urls, args[i + 1])!;
                 		i += 1;
                 	};
-                } else if (a == "zhen") {
-                	if (i + 1 < len(args) && args[i + 1] == "force") {
-                		o.zhen_force = true;
-                		i += 1;
-                		if (i + 1 < len(args)) {
-                			o.zhen_force_target = args[i + 1];
-                			i += 1;
-                		};
-                	};
                 } else if (a == "piyoko") {
                 	o.piyoko = true;
                 	if (i + 1 < len(args)) {
@@ -3361,10 +3415,6 @@ export fn main() void = {
 	};
 	if (o.tailung) {
 		do_tailung(o.tailung_urls, o.nocolor);
-		return;
-	};
-	if (o.zhen_force) {
-		do_zhen_force(o.zhen_force_target, o.nocolor);
 		return;
 	};
 	if (o.piyoko) {
