@@ -1019,6 +1019,12 @@ fn steam_installdir(appid: str) str = {
 	case let s: str => yield s;
 	case void => return "";
 	};
+	// SteamCMD-install: spillet ligger i common/<appid>/
+	static let direct_buf: [768]u8 = [0...];
+	const direct = fmt::bsprintf(direct_buf,
+		"{}/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common/{}",
+		home, appid)!;
+	if (os::exists(direct)) return strings::dup(direct)!;
 	const bases: [_]str = [
 		"/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps",
 		"/.local/share/Steam/steamapps",
@@ -1151,12 +1157,13 @@ fn do_zhen_install(target: str, nocolor: bool) void = {
 	};
 
 	// Install-mappe: brug spilnavn hvis kendt, ellers AppID
+	// Brug AppID som mappenavn (konsekvent for install + launch)
 	let dirname = steam_game_name(appid);
 	if (len(dirname) == 0) dirname = appid;
 	static let dir_buf: [768]u8 = [0...];
 	const installdir = fmt::bsprintf(dir_buf,
 		"{}/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common/{}",
-		home, dirname)!;
+		home, appid)!;
 
 	if (!nocolor) fmt::print("\x1b[36m")!;
 	fmt::println("

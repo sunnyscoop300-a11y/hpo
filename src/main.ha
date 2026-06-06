@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.4.0";
+def VERSION = "4.4.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1392,6 +1392,40 @@ fn steam_game_name_linux(appid: str) str = {
 	case let s: str => yield s;
 	case void => return "";
 	};
+	// SteamCMD-install: .acf ligger indlejret i common/<appid>/steamapps/
+	static let nested_buf: [768]u8 = [0...];
+	const nested = fmt::bsprintf(nested_buf,
+		"{}/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common/{}/steamapps/appmanifest_{}.acf",
+		home, appid, appid)!;
+	match (os::open(nested)) {
+	case let f: io::file =>
+		static let nbuf: [8192]u8 = [0...];
+		const n = match (io::read(f, nbuf)) {
+		case let z: size => yield z;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		if (n > 0) {
+			const content = strings::fromutf8(nbuf[..n])!;
+			const key = "\"name\"";
+			match (strings::index(content, key)) {
+			case let ki: size =>
+				const rest = strings::sub(content, ki + len(key), strings::end);
+				match (strings::index(rest, '"')) {
+				case let q1: size =>
+					const after = strings::sub(rest, q1 + 1, strings::end);
+					match (strings::index(after, '"')) {
+					case let q2: size =>
+						return strings::dup(strings::sub(after, 0, q2))!;
+					case void => void;
+					};
+				case void => void;
+				};
+			case void => void;
+			};
+		};
+	case => void;
+	};
 	// Mulige Steam steamapps-stier (Flatpak, native, .steam)
 	const bases: [_]str = [
 		"/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps",
@@ -2241,7 +2275,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.4.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.4.1")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
