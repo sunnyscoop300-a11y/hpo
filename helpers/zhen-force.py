@@ -89,10 +89,18 @@ def main():
         print("[ZHEN] config.vdf not found", file=sys.stderr)
         sys.exit(2)
 
-    appids = read_aliases() if arg == "--all" else ([arg] if arg.isdigit() else [])
-    if not appids:
-        print(f"[ZHEN] Invalid target: {arg}", file=sys.stderr)
-        sys.exit(1)
+    if arg == "--all":
+        appids = read_aliases()
+        if not appids:
+            print("[ZHEN] No game aliases found.", file=sys.stderr)
+            print("[ZHEN] Add games to ~/.config/hpo/steam_aliases.txt first", file=sys.stderr)
+            print("[ZHEN]   (e.g. echo 'kao=1370140' >> ~/.config/hpo/steam_aliases.txt)", file=sys.stderr)
+            sys.exit(1)
+    else:
+        appids = [arg] if arg.isdigit() else []
+        if not appids:
+            print(f"[ZHEN] Invalid target: {arg}", file=sys.stderr)
+            sys.exit(1)
 
     content = open(cfg, encoding="utf-8").read()
     shutil.copy(cfg, cfg + ".hpo-bak")
