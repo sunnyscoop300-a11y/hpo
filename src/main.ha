@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.5.5";
+def VERSION = "4.5.6";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1768,6 +1768,10 @@ fn do_steam(o: *opts, target: str) void = {
 		append(steam_args, "-NoProfile")!;
 		append(steam_args, "-Command")!;
 		append(steam_args, steam_ps)!;
+	} else if (action == "rungameid" && check_tool("xdg-open")) {
+		// Brug xdg-open for at sende URI til den KØRENDE Steam (undgår dobbelt-Steam)
+		append(steam_args, "xdg-open")!;
+		append(steam_args, uri)!;
 	} else if (check_tool("steam")) {
 		append(steam_args, "steam")!;
 		append(steam_args, uri)!;
@@ -2324,7 +2328,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.5.5")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.5.6")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
