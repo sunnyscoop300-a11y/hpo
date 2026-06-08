@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.5.4";
+def VERSION = "4.5.5";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1684,9 +1684,35 @@ fn do_steam(o: *opts, target: str) void = {
 		if (len(gamedir) > 0) {
 			const exe = find_game_exe(gamedir);
 			// DRM-beskyttede spil kan ikke launches via umu - lad Steam h\u00e5ndtere dem
-			const is_drm = match (strings::index(exe, "DRM")) {
+			let is_drm = match (strings::index(exe, "DRM")) {
 			case size => yield true;
 			case void => yield false;
+			};
+			// requires-native liste: EA/launcher-spil hvis exe ikke siger "DRM"
+			// men som alligevel skal via steam:// (fx Alice = 19680)
+			if (!is_drm) {
+				static let rn_buf: [512]u8 = [0...];
+				const rn_path = fmt::bsprintf(rn_buf, "{}/.config/hpo/steam_requires_native.txt", home)!;
+				match (os::open(rn_path)) {
+				case let f: io::file =>
+					defer io::close(f)!;
+					const rn_data = match (io::drain(f)) {
+					case let d: []u8 => yield d;
+					case io::error => yield [] : []u8;
+					};
+					defer free(rn_data);
+					const rn_str = strings::fromutf8(rn_data)!;
+					const lines = strings::split(rn_str, "\n")!;
+					defer free(lines);
+					for (let i = 0z; i < len(lines); i += 1) {
+						const ln = strings::trim(lines[i]);
+						if (ln == appid) {
+							is_drm = true;
+							break;
+						};
+					};
+				case fs::error => void;
+				};
 			};
 			if (is_drm) {
 				if (!o.quiet) {
@@ -2298,7 +2324,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.5.4")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.5.5")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
