@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.5.1";
+def VERSION = "4.5.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1120,7 +1120,16 @@ fn do_setup(o: *opts) void = {
 ")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 
-	// 1) System packages via apt (kræver sudo)
+	// 1) Update package lists first (avoids stale-cache 404 errors)
+	cprint(C_YELLOW, "SETUP", "Updating package lists (apt update)...", o.nocolor);
+	let aptup: []str = alloc([], 3)!;
+	defer free(aptup);
+	append(aptup, "sudo")!;
+	append(aptup, "apt")!;
+	append(aptup, "update")!;
+	let _ = run_cmd(aptup, o.nocolor);
+
+	// 2) System packages via apt (kræver sudo)
 	cprint(C_YELLOW, "SETUP", "Installing system packages (needs sudo)...", o.nocolor);
 	let apt: []str = alloc([], 12)!;
 	defer free(apt);
@@ -2289,7 +2298,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.5.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.5.2")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
