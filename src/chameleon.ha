@@ -1082,7 +1082,17 @@ fn find_game_exe(gamedir: str) str = {
 		"-not", "-iname", "*DXSETUP*",
 		"-not", "-iname", "*VC_redist*",
 		"-not", "-iname", "*UnityCrashHandler*",
-		"-not", "-iname", "*vcredist*")) {
+		"-not", "-iname", "*vcredist*",
+		"-not", "-iname", "*dotnetfx*",
+		"-not", "-iname", "*dotNetFx*",
+		"-not", "-ipath", "*/DotNet/*",
+		"-not", "-ipath", "*/Redistributable/*",
+		"-not", "-ipath", "*/DirectX/*",
+		"-not", "-iname", "*PatchProgress*",
+		"-not", "-iname", "*activation*",
+		"-not", "-iname", "*EAProxyInstaller*",
+		"-not", "-iname", "*EACoreServer*",
+		"-not", "-iname", "*EAInstaller*")) {
 	case let c: exec::command => yield c;
 	case => return "";
 	};
