@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.5.6";
+def VERSION = "4.5.7";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1183,6 +1183,15 @@ fn do_setup(o: *opts) void = {
 	fmt::printfln("   megadl ...... {}", if (check_tool("megadl")) "OK" else "MISSING")!;
 	fmt::printfln("   gdown ....... {}", if (check_tool("gdown")) "OK" else "MISSING")!;
 	fmt::printfln("   legendary ... {}", if (check_tool("legendary")) "OK" else "MISSING")!;
+	let scmd = false;
+	match (os::getenv("HOME")) {
+	case let h: str =>
+		let p = fmt::asprintf("{}/.local/share/hpo/steamcmd/steamcmd.sh", h)!;
+		defer free(p);
+		scmd = os::exists(p);
+	case => void;
+	};
+	fmt::printfln("   steamcmd .... {}", if (scmd) "OK" else "MISSING")!;
 	fmt::println("")!;
 	fmt::println("  Set your Steam account for 'zhen install':")!;
 	fmt::println("   echo 'youruser' > ~/.config/hpo/steam_account.txt")!;
@@ -2328,7 +2337,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.5.6")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.5.7")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
