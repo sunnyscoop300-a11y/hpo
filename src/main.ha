@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.5.7";
+def VERSION = "4.6.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -72,6 +72,8 @@ type opts = struct {
 	do_full_setup: bool,
 	zhen_install: bool,
 	zhen_force: bool,
+	ping: bool,
+	ping_setup: bool,
 	zhen_force_target: str,
 	zhen_install_target: str,
 	zhen_update: bool,
@@ -2337,7 +2339,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.5.7")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.6.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2939,6 +2941,34 @@ fn dist_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) f64 = {
 	return babylon_sqrt(dlat*dlat + dlon*dlon);
 };
 
+fn do_ping(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_YELLOW)!;
+	fmt::println("   [PING] Mr. Ping fyrer op for nudelgryden... og Roblox!")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+
+	if (o.ping_setup) {
+		cprint(C_YELLOW, "PING", "Installing Sober (Roblox) via Flatpak...", o.nocolor);
+		let a: []str = alloc([], 6)!;
+		defer free(a);
+		append(a, "flatpak")!;
+		append(a, "install")!;
+		append(a, "-y")!;
+		append(a, "flathub")!;
+		append(a, "org.vinegarhq.Sober")!;
+		let _ = run_cmd(a, o.nocolor);
+		cprint(C_GREEN, "PING", "Sober installed! Run: hpo ping", o.nocolor);
+		return;
+	};
+
+	cprint(C_GREEN, "PING", "Serving up Roblox! Skadoosh!", o.nocolor);
+	let a: []str = alloc([], 4)!;
+	defer free(a);
+	append(a, "flatpak")!;
+	append(a, "run")!;
+	append(a, "org.vinegarhq.Sober")!;
+	let _ = run_cmd(a, o.nocolor);
+};
+
 fn do_shifu(o: *opts) void = {
 	fmt::println("")!;
 	fmt::println("              \x1b[33m🐭  [MASTER SHIFU]  🐭\x1b[0m")!;
@@ -3388,6 +3418,8 @@ export fn main() void = {
 		do_full_setup = false,
 		zhen_install = false,
 		zhen_force = false,
+			ping = false,
+			ping_setup = false,
 		zhen_force_target = "",
 		zhen_install_target = "",
 		zhen_update = false,
@@ -3491,6 +3523,12 @@ export fn main() void = {
                                         i += 1;
                                 };
                         };
+                } else if (a == "ping") {
+                	o.ping = true;
+                	if (i + 1 < len(args) && args[i + 1] == "setup") {
+                		o.ping_setup = true;
+                		i += 1;
+                	};
                 } else if (a == "shifu") {
                         o.shifu = true;
                         // Slurp alle remaining args som "city + day" combined
@@ -3703,6 +3741,10 @@ export fn main() void = {
 	};
 	if (o.roz) {
 		do_roz(&o);
+		return;
+	};
+	if (o.ping) {
+		do_ping(&o);
 		return;
 	};
 	if (o.shifu) {
