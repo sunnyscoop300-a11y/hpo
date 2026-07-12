@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.7.0";
+def VERSION = "4.8.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -54,6 +54,7 @@ type opts = struct {
 	piyoko_target: str,
 	xp: bool,
 	xp_action: str,
+	xp_rom: str,
 	tailung: bool,
 	tailung_urls: []str,
 	url:     str,
@@ -2341,7 +2342,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.7.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.8.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2978,8 +2979,24 @@ fn do_xp(o: *opts) void = {
 
 	piyoko_save(bal - 2);
 	cprint(C_GREEN, "ARCADE", "*CLINK* CREDIT 1 - GAME START!", o.nocolor);
+	// Multi-system: nes/snes/genesis/gb via MAME cores
+	const systems: [](str, str, str) = [
+		("nes", "nes", ".nes"),
+		("snes", "snes", ".sfc"),
+		("genesis", "genesis", ".md"),
+		("gb", "gbcolor", ".gb"),
+	];
+	for (let si = 0z; si < len(systems); si += 1) {
+		if (o.xp_action == systems[si].0 && o.xp_rom != "") {
+			const sysbuf: [512]u8 = [0...];
+			const syspath = fmt::bsprintf(sysbuf, "{}/.local/share/hpo/arcade/{}/{}{}", home, systems[si].0, o.xp_rom, systems[si].2)!;
+			fmt::printfln("   Booting {} [{}]... (2 PYO spent, {} left)", o.xp_rom, systems[si].0, bal - 2)!;
+			const con_args: []str = ["mame", systems[si].1, "-cart", syspath];
+			let _ = run_cmd(con_args, o.nocolor);
+			return;
+		};
+	};
 	fmt::printfln("   Booting {}... (2 PYO spent, {} left)", o.xp_action, bal - 2)!;
-
 	const mame_args: []str = ["mame", "-rompath", romdir, o.xp_action];
 	let _ = run_cmd(mame_args, o.nocolor);
 };
@@ -3465,6 +3482,7 @@ export fn main() void = {
 			ping_setup = false,
 			xp = false,
 			xp_action = "",
+			xp_rom = "",
 		zhen_force_target = "",
 		zhen_install_target = "",
 		zhen_update = false,
@@ -3572,6 +3590,10 @@ export fn main() void = {
                 	o.xp = true;
                 	if (i + 1 < len(args)) {
                 		o.xp_action = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.xp_rom = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "ping") {
