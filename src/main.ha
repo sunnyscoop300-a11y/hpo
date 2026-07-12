@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.10.0";
+def VERSION = "4.11.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -76,6 +76,7 @@ type opts = struct {
 	zhen_install: bool,
 	zhen_force: bool,
 	ping: bool,
+	mantis: bool,
 	ping_setup: bool,
 	bnet: bool,
 	bnet_setup: bool,
@@ -2344,7 +2345,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.10.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.11.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3053,6 +3054,17 @@ fn do_bnet(o: *opts) void = {
 	let _ = run_cmd(args, o.nocolor);
 };
 
+fn do_mantis(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_GREEN)!;
+	fmt::println("   [MANTIS] Swift and precise! Opening your Sakamoto Days cart...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	const cbuf: [512]u8 = [0...];
+	const cmd = fmt::bsprintf(cbuf, "cd {}/Documents/sakamoto && ./sakamoto_cart", home)!;
+	const args: []str = ["sh", "-c", cmd];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_ping(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
 	fmt::println("   [PING] Mr. Ping fyrer op for nudelgryden... og Roblox!")!;
@@ -3531,6 +3543,7 @@ export fn main() void = {
 		zhen_install = false,
 		zhen_force = false,
 			ping = false,
+			mantis = false,
 			ping_setup = false,
 			bnet = false,
 			bnet_setup = false,
@@ -3656,6 +3669,8 @@ export fn main() void = {
                 		o.bnet_setup = true;
                 		i += 1;
                 	};
+                } else if (a == "mantis") {
+                	o.mantis = true;
                 } else if (a == "ping") {
                 	o.ping = true;
                 	if (i + 1 < len(args) && args[i + 1] == "setup") {
@@ -3882,6 +3897,10 @@ export fn main() void = {
 	};
 	if (o.bnet) {
 		do_bnet(&o);
+		return;
+	};
+	if (o.mantis) {
+		do_mantis(&o);
 		return;
 	};
 	if (o.ping) {
