@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.6.1";
+def VERSION = "4.7.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -52,6 +52,8 @@ type opts = struct {
 	piyoko: bool,
 	piyoko_action: str,
 	piyoko_target: str,
+	xp: bool,
+	xp_action: str,
 	tailung: bool,
 	tailung_urls: []str,
 	url:     str,
@@ -2339,7 +2341,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.6.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.7.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2941,6 +2943,47 @@ fn dist_km(lat1: f64, lon1: f64, lat2: f64, lon2: f64) f64 = {
 	return babylon_sqrt(dlat*dlat + dlon*dlon);
 };
 
+fn do_xp(o: *opts) void = {
+	const bal = piyoko_balance();
+	if (!o.nocolor) fmt::print(C_YELLOW)!;
+	fmt::println("")!;
+	fmt::println("   \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")!;
+	fmt::println("   \u2551  PIYOKO ARCADE  \u2551")!;
+	fmt::println("   \u2551  INSERT COIN!!  \u2551")!;
+	fmt::printfln("   \u2551  CREDITS: {} PYO \u2551", bal)!;
+	fmt::println("   \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+
+	const romdir_buf: [512]u8 = [0...];
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	const romdir = fmt::bsprintf(romdir_buf, "{}/.local/share/hpo/arcade/roms", home)!;
+
+	if (o.xp_action == "" || o.xp_action == "list") {
+		cprint(C_GREEN, "ARCADE", "Available machines:", o.nocolor);
+		const ls_args: []str = ["ls", romdir];
+		let _ = run_cmd(ls_args, o.nocolor);
+		fmt::println("")!;
+		cprint(C_BLUE, "ARCADE", "Play: hpo xp <romname>  (costs 2 PYO)", o.nocolor);
+		return;
+	};
+
+	if (bal < 2) {
+		cprint(C_RED, "ARCADE", "INSUFFICIENT CREDITS! Need 2 PYO.", o.nocolor);
+		cprint(C_YELLOW, "ARCADE", "Earn PYO by downloading: hpo <url>", o.nocolor);
+		return;
+	};
+
+	piyoko_save(bal - 2);
+	cprint(C_GREEN, "ARCADE", "*CLINK* CREDIT 1 - GAME START!", o.nocolor);
+	fmt::printfln("   Booting {}... (2 PYO spent, {} left)", o.xp_action, bal - 2)!;
+
+	const mame_args: []str = ["mame", "-rompath", romdir, o.xp_action];
+	let _ = run_cmd(mame_args, o.nocolor);
+};
+
 fn do_ping(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
 	fmt::println("   [PING] Mr. Ping fyrer op for nudelgryden... og Roblox!")!;
@@ -3420,6 +3463,8 @@ export fn main() void = {
 		zhen_force = false,
 			ping = false,
 			ping_setup = false,
+			xp = false,
+			xp_action = "",
 		zhen_force_target = "",
 		zhen_install_target = "",
 		zhen_update = false,
@@ -3523,6 +3568,12 @@ export fn main() void = {
                                         i += 1;
                                 };
                         };
+                } else if (a == "xp") {
+                	o.xp = true;
+                	if (i + 1 < len(args)) {
+                		o.xp_action = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "ping") {
                 	o.ping = true;
                 	if (i + 1 < len(args) && args[i + 1] == "setup") {
@@ -3741,6 +3792,10 @@ export fn main() void = {
 	};
 	if (o.roz) {
 		do_roz(&o);
+		return;
+	};
+	if (o.xp) {
+		do_xp(&o);
 		return;
 	};
 	if (o.ping) {
