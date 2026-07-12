@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.13.0";
+def VERSION = "4.14.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -77,6 +77,7 @@ type opts = struct {
 	zhen_force: bool,
 	ping: bool,
 	mantis: bool,
+	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
 	bnet_setup: bool,
@@ -2373,7 +2374,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.13.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.14.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3082,6 +3083,46 @@ fn do_bnet(o: *opts) void = {
 	let _ = run_cmd(args, o.nocolor);
 };
 
+fn do_doctor(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_BLUE)!;
+	fmt::println("")!;
+	fmt::println("   =====================================")!;
+	fmt::println("    HPO DOCTOR - System Check")!;
+	fmt::println("   =====================================")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	fmt::println("")!;
+	cprint(C_YELLOW, "GPU", "Graphics", o.nocolor);
+	fmt::printf("   nvidia-smi .... ")!;
+	if (check_tool("nvidia-smi")) fmt::println("OK")! else fmt::println("MISSING")!;
+	fmt::println("")!;
+	cprint(C_YELLOW, "ZHEN", "Gaming engine", o.nocolor);
+	fmt::printf("   umu-run ....... ")!;
+	match (os::getenv("HOME")) { case let h: str => { const fp = fmt::asprintf("{}/.local/share/hpo/zhen/umu-run", h)!; defer free(fp); if (os::exists(fp)) fmt::println("OK")! else fmt::println("MISSING")!; }; case => fmt::println("?")!; };
+	fmt::printf("   GE-Proton11-1 . ")!;
+	match (os::getenv("HOME")) { case let h: str => { const fp = fmt::asprintf("{}/.local/share/hpo/zhen/proton/GE-Proton11-1", h)!; defer free(fp); if (os::exists(fp)) fmt::println("OK")! else fmt::println("MISSING")!; }; case => fmt::println("?")!; };
+	fmt::printf("   SteamCMD ...... ")!;
+	match (os::getenv("HOME")) { case let h: str => { const fp = fmt::asprintf("{}/.local/share/hpo/steamcmd/steamcmd.sh", h)!; defer free(fp); if (os::exists(fp)) fmt::println("OK")! else fmt::println("MISSING")!; }; case => fmt::println("?")!; };
+	fmt::println("")!;
+	cprint(C_YELLOW, "ARCADE", "Emulators (hpo xp)", o.nocolor);
+	fmt::printf("   mame .......... ")!;
+	if (check_tool("mame")) fmt::println("OK")! else fmt::println("MISSING")!;
+	fmt::printf("   mgba .......... ")!;
+	if (check_tool("mgba")) fmt::println("OK")! else fmt::println("MISSING")!;
+	fmt::printf("   fceux ......... ")!;
+	if (check_tool("fceux")) fmt::println("OK")! else fmt::println("MISSING")!;
+	fmt::printf("   DuckStation ... ")!;
+	match (os::getenv("HOME")) { case let h: str => { const fp = fmt::asprintf("{}/.local/share/hpo/duckstation.AppImage", h)!; defer free(fp); if (os::exists(fp)) fmt::println("OK")! else fmt::println("MISSING")!; }; case => fmt::println("?")!; };
+	fmt::println("")!;
+	cprint(C_YELLOW, "TOOLS", "Download tools", o.nocolor);
+	fmt::printf("   curl .......... ")!;
+	if (check_tool("curl")) fmt::println("OK")! else fmt::println("MISSING")!;
+	fmt::printf("   aria2c ........ ")!;
+	if (check_tool("aria2c")) fmt::println("OK")! else fmt::println("MISSING")!;
+	fmt::println("")!;
+	cprint(C_GREEN, "DOCTOR", "Any MISSING? Run: hpo --setup", o.nocolor);
+	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
+};
+
 fn do_mantis(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	if (!o.nocolor) fmt::print(C_GREEN)!;
@@ -3595,6 +3636,7 @@ export fn main() void = {
 		zhen_force = false,
 			ping = false,
 			mantis = false,
+			doctor = false,
 			ping_setup = false,
 			bnet = false,
 			bnet_setup = false,
@@ -3720,6 +3762,8 @@ export fn main() void = {
                 		o.bnet_setup = true;
                 		i += 1;
                 	};
+                } else if (a == "doctor") {
+                	o.doctor = true;
                 } else if (a == "mantis") {
                 	o.mantis = true;
                 } else if (a == "ping") {
@@ -3948,6 +3992,10 @@ export fn main() void = {
 	};
 	if (o.bnet) {
 		do_bnet(&o);
+		return;
+	};
+	if (o.doctor) {
+		do_doctor(&o);
 		return;
 	};
 	if (o.mantis) {
