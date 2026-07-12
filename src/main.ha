@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.9.0";
+def VERSION = "4.10.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -77,6 +77,8 @@ type opts = struct {
 	zhen_force: bool,
 	ping: bool,
 	ping_setup: bool,
+	bnet: bool,
+	bnet_setup: bool,
 	zhen_force_target: str,
 	zhen_install_target: str,
 	zhen_update: bool,
@@ -2342,7 +2344,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.9.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.10.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3013,6 +3015,44 @@ fn do_xp(o: *opts) void = {
 	let _ = run_cmd(mame_args, o.nocolor);
 };
 
+fn do_bnet(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_BLUE)!;
+	fmt::println("   [BNET] Opening the Dark Portal to Battle.net...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	const pbuf: [512]u8 = [0...];
+	const proton = fmt::bsprintf(pbuf, "{}/.local/share/hpo/zhen/proton/GE-Proton11-1", home)!;
+	const ubuf: [512]u8 = [0...];
+	const umu = fmt::bsprintf(ubuf, "{}/.local/share/hpo/zhen/umu-run", home)!;
+	const prefbuf: [512]u8 = [0...];
+	const prefix = fmt::bsprintf(prefbuf, "{}/.proton-prefix-bnet", home)!;
+	const zbuf: [512]u8 = [0...];
+	const zhen = fmt::bsprintf(zbuf, "{}/.local/share/hpo/zhen", home)!;
+	os::setenv("WINEPREFIX", prefix)!;
+	os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+	os::setenv("STEAM_COMPAT_CLIENT_INSTALL_PATH", zhen)!;
+	os::setenv("PROTONPATH", proton)!;
+	os::setenv("GAMEID", "umu-0")!;
+	os::setenv("STORE", "none")!;
+	os::setenv("WINEDLLOVERRIDES", "locationapi=d")!;
+	os::setenv("WINE_SIMULATE_WRITECOPY", "1")!;
+	os::setenv("WINEFSYNC", "1")!;
+	if (o.bnet_setup) {
+		cprint(C_YELLOW, "BNET", "Installing Battle.net via Zhen (GE-Proton11-1)...", o.nocolor);
+		const sbuf: [512]u8 = [0...];
+		const setup = fmt::bsprintf(sbuf, "{}/.local/share/hpo/bnet/Battle.net-Setup.exe", home)!;
+		const args: []str = [umu, setup];
+		let _ = run_cmd(args, o.nocolor);
+		cprint(C_GREEN, "BNET", "Setup done! Launch with: hpo bnet", o.nocolor);
+		return;
+	};
+	cprint(C_GREEN, "BNET", "For the Horde! Launching Battle.net...", o.nocolor);
+	const bbuf: [512]u8 = [0...];
+	const bnetexe = fmt::bsprintf(bbuf, "{}/.proton-prefix-bnet/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe", home)!;
+	const args: []str = [umu, bnetexe];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_ping(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
 	fmt::println("   [PING] Mr. Ping fyrer op for nudelgryden... og Roblox!")!;
@@ -3492,6 +3532,8 @@ export fn main() void = {
 		zhen_force = false,
 			ping = false,
 			ping_setup = false,
+			bnet = false,
+			bnet_setup = false,
 			xp = false,
 			xp_action = "",
 			xp_rom = "",
@@ -3606,6 +3648,12 @@ export fn main() void = {
                 	};
                 	if (i + 1 < len(args)) {
                 		o.xp_rom = args[i + 1];
+                		i += 1;
+                	};
+                } else if (a == "bnet") {
+                	o.bnet = true;
+                	if (i + 1 < len(args) && args[i + 1] == "setup") {
+                		o.bnet_setup = true;
                 		i += 1;
                 	};
                 } else if (a == "ping") {
@@ -3830,6 +3878,10 @@ export fn main() void = {
 	};
 	if (o.xp) {
 		do_xp(&o);
+		return;
+	};
+	if (o.bnet) {
+		do_bnet(&o);
 		return;
 	};
 	if (o.ping) {
