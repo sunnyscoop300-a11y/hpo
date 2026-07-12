@@ -1,14 +1,22 @@
-# Byggede filer
+# Bygget binary
 hpo
 *.o
 
-# ROMs og spildata skal ALDRIG committes (ophavsret)
+# DuckStation/emulator config der lander i mappen
+console_history.cfg
+console_settings.cfg
+*.cfg
+
+# Spil/ROM-data skal ALDRIG i repo (ophavsret)
 *.zip
 *.nes
-*.md
 *.sfc
 *.gb
 *.gba
 *.bin
+*.cue
+*.chd
+*.AppImage
 roms/
 arcade/
+convergence_a_league_of_legends_story/
