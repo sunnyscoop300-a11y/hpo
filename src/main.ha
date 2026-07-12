@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.8.0";
+def VERSION = "4.8.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2342,7 +2342,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.8.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.8.1")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2984,15 +2984,20 @@ fn do_xp(o: *opts) void = {
 		("nes", "nes", ".nes"),
 		("snes", "snes", ".sfc"),
 		("genesis", "genesis", ".md"),
-		("gb", "gbcolor", ".gb"),
+		("gb", "gameboy", ".gb"),
 	];
 	for (let si = 0z; si < len(systems); si += 1) {
 		if (o.xp_action == systems[si].0 && o.xp_rom != "") {
 			const sysbuf: [512]u8 = [0...];
 			const syspath = fmt::bsprintf(sysbuf, "{}/.local/share/hpo/arcade/{}/{}{}", home, systems[si].0, o.xp_rom, systems[si].2)!;
 			fmt::printfln("   Booting {} [{}]... (2 PYO spent, {} left)", o.xp_rom, systems[si].0, bal - 2)!;
-			const con_args: []str = ["mame", systems[si].1, "-cart", syspath];
-			let _ = run_cmd(con_args, o.nocolor);
+			if (systems[si].0 == "gb") {
+				const gb_args: []str = ["mgba", syspath];
+				let _ = run_cmd(gb_args, o.nocolor);
+			} else {
+				const con_args: []str = ["mame", systems[si].1, "-cart", syspath];
+				let _ = run_cmd(con_args, o.nocolor);
+			};
 			return;
 		};
 	};
