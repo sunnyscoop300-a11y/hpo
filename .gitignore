@@ -1,2 +1,14 @@
+# Byggede filer
 hpo
 *.o
+
+# ROMs og spildata skal ALDRIG committes (ophavsret)
+*.zip
+*.nes
+*.md
+*.sfc
+*.gb
+*.gba
+*.bin
+roms/
+arcade/

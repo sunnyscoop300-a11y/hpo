@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.8.1";
+def VERSION = "4.9.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2342,7 +2342,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.8.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.9.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2985,13 +2985,20 @@ fn do_xp(o: *opts) void = {
 		("snes", "snes", ".sfc"),
 		("genesis", "genesis", ".md"),
 		("gb", "gameboy", ".gb"),
+		("psx", "duckstation", ".cue"),
 	];
 	for (let si = 0z; si < len(systems); si += 1) {
 		if (o.xp_action == systems[si].0 && o.xp_rom != "") {
 			const sysbuf: [512]u8 = [0...];
 			const syspath = fmt::bsprintf(sysbuf, "{}/.local/share/hpo/arcade/{}/{}{}", home, systems[si].0, o.xp_rom, systems[si].2)!;
 			fmt::printfln("   Booting {} [{}]... (2 PYO spent, {} left)", o.xp_rom, systems[si].0, bal - 2)!;
-			if (systems[si].0 == "gb") {
+			if (systems[si].0 == "psx") {
+				const home2 = match (os::getenv("HOME")) { case let s: str => yield s; case void => yield "/tmp"; };
+				const dbuf: [512]u8 = [0...];
+				const duck = fmt::bsprintf(dbuf, "{}/.local/share/hpo/duckstation.AppImage", home2)!;
+				const psx_args: []str = [duck, syspath];
+				let _ = run_cmd(psx_args, o.nocolor);
+			} else if (systems[si].0 == "gb") {
 				const gb_args: []str = ["mgba", syspath];
 				let _ = run_cmd(gb_args, o.nocolor);
 			} else {
