@@ -2,7 +2,7 @@
 """hpo zhen force - set GE-Proton in the REAL CompatToolMapping block"""
 import sys, os, re, shutil, subprocess
 
-PROTON = "GE-Proton10-34"
+PROTON = "GE-Proton11-1"
 
 def find_config():
     for c in [

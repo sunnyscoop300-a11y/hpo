@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.6.0";
+def VERSION = "4.6.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1288,19 +1288,19 @@ fn do_zhen_setup(o: *opts) void = {
 		static let proton_dir_buf: [512]u8 = [0...];
 		const proton_dir = fmt::bsprintf(proton_dir_buf, "{}/proton", zhen_dir)!;
 		static let proton_target_buf: [512]u8 = [0...];
-		const proton_target = fmt::bsprintf(proton_target_buf, "{}/GE-Proton10-34", proton_dir)!;
+		const proton_target = fmt::bsprintf(proton_target_buf, "{}/GE-Proton11-1", proton_dir)!;
 
 		if (os::exists(proton_target)) {
-			if (!o.quiet) cprint(C_YELLOW, "ZHEN", "GE-Proton10-34 already installed, skipping.", o.nocolor);
+			if (!o.quiet) cprint(C_YELLOW, "ZHEN", "GE-Proton11-1 already installed, skipping.", o.nocolor);
 		} else {
 			if (!o.quiet) {
 				fmt::println("")!;
-				cprint(C_BLUE, "ZHEN", "Downloading GE-Proton10-34 (~700MB, patience grasshopper)...", o.nocolor);
+				cprint(C_BLUE, "ZHEN", "Downloading GE-Proton11-1 (~700MB, patience grasshopper)...", o.nocolor);
 			};
 			os::mkdir(proton_dir, 0o755): void;
 			static let proton_tar_buf: [512]u8 = [0...];
 			const proton_tar = fmt::bsprintf(proton_tar_buf, "{}/proton.tar.gz", proton_dir)!;
-			const proton_url = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton10-34/GE-Proton10-34.tar.gz";
+			const proton_url = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-1/GE-Proton11-1.tar.gz";
 
 			let pdl_args: []str = alloc([], 6)!;
 			defer free(pdl_args);
@@ -1329,7 +1329,7 @@ fn do_zhen_setup(o: *opts) void = {
 
 			if (os::exists(proton_target)) {
 				if (!o.quiet) {
-					cprint(C_GREEN, "ZHEN", "GE-Proton10-34 installed! Full independence achieved.", o.nocolor);
+					cprint(C_GREEN, "ZHEN", "GE-Proton11-1 installed! Full independence achieved.", o.nocolor);
 					fmt::printfln("  Path: {}", proton_target)!;
 				};
 			} else {
@@ -1647,11 +1647,11 @@ fn do_steam(o: *opts, target: str) void = {
 
 	// Auto-link Zhen's GE-Proton til Steam (kun på native Linux, ikke WSL)
 	static let zhen_src_buf: [512]u8 = [0...];
-	const zhen_proton_src = fmt::bsprintf(zhen_src_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton10-34", home)!;
+	const zhen_proton_src = fmt::bsprintf(zhen_src_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton11-1", home)!;
 	static let steam_compat_buf: [512]u8 = [0...];
 	const steam_compat_dir = fmt::bsprintf(steam_compat_buf, "{}/.var/app/com.valvesoftware.Steam/.local/share/Steam/compatibilitytools.d", home)!;
 	static let steam_target_buf: [512]u8 = [0...];
-	const steam_target = fmt::bsprintf(steam_target_buf, "{}/GE-Proton10-34", steam_compat_dir)!;
+	const steam_target = fmt::bsprintf(steam_target_buf, "{}/GE-Proton11-1", steam_compat_dir)!;
 	if (!on_wsl && os::exists(zhen_proton_src) && !os::exists(steam_target)) {
 		if (!o.quiet) cprint(C_YELLOW, "ZHEN", "Linking Zhen's GE-Proton to Steam...", o.nocolor);
 		os::mkdir(steam_compat_dir, 0o755): void;
@@ -1686,7 +1686,7 @@ fn do_steam(o: *opts, target: str) void = {
 	// Bestem launch-metode: WSL → cmd.exe, native Linux → steam/flatpak
 	// ZHEN: Force GE-Proton som default compatibility tool
 	if (!on_wsl && os::exists(steam_target)) {
-		os::setenv("STEAM_COMPAT_TOOL_OVERRIDE", "GE-Proton10-34")!;
+		os::setenv("STEAM_COMPAT_TOOL_OVERRIDE", "GE-Proton11-1")!;
 	};
 
 	// ZHEN umu-launch: ægte GE-Proton for Steam-spil på Linux (launch only)
@@ -1751,7 +1751,7 @@ fn do_steam(o: *opts, target: str) void = {
 					os::setenv("WINEESYNC", "1")!;
 					os::setenv("WINEFSYNC", "1")!;
 					if (!o.quiet) {
-						cprint(C_YELLOW, "ZHEN", "Zhen engine awakening with GE-Proton10-34...", o.nocolor);
+						cprint(C_YELLOW, "ZHEN", "Zhen engine awakening with GE-Proton11-1...", o.nocolor);
 						fmt::printfln("  Exe: {}", exe)!;
 						fmt::println("")!;
 					};
@@ -1791,7 +1791,7 @@ fn do_steam(o: *opts, target: str) void = {
 		append(steam_args, "run")!;
 		// ZHEN: Pass GE-Proton override into Flatpak sandbox
 		if (os::exists(steam_target)) {
-			append(steam_args, "--env=STEAM_COMPAT_TOOL_OVERRIDE=GE-Proton10-34")!;
+			append(steam_args, "--env=STEAM_COMPAT_TOOL_OVERRIDE=GE-Proton11-1")!;
 		};
 		append(steam_args, "com.valvesoftware.Steam")!;
 		append(steam_args, uri)!;
@@ -1913,7 +1913,7 @@ fn do_epic(o: *opts, gamename_in: str) void = {
 		const prefix = fmt::bsprintf(prefix_buf, "{}/{}", base, gamename)!;
 		os::mkdir(prefix, 0o755): void;
 		static let proton_buf: [512]u8 = [0...];
-		const proton_path = fmt::bsprintf(proton_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton10-34", home)!;
+		const proton_path = fmt::bsprintf(proton_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton11-1", home)!;
 		if (!os::exists(proton_path)) {
 			cprint(C_RED, "ERR", "Zhen Proton not found! Run: hpo --zhen-setup --proton", o.nocolor);
 			os::exit(1);
@@ -1938,7 +1938,7 @@ fn do_epic(o: *opts, gamename_in: str) void = {
 		os::setenv("WINEFSYNC", "1")!;
 		if (!o.quiet) {
 			fmt::printfln("  Prefix: {}", prefix)!;
-			fmt::printfln("  Proton: GE-Proton10-34")!;
+			fmt::printfln("  Proton: GE-Proton11-1")!;
 			fmt::println("")!;
 		};
 	};
@@ -2339,7 +2339,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.6.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.6.1")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2389,7 +2389,7 @@ fn print_help() void = {
 	fmt::println("ZHEN ENGINE (self-contained gaming runtime):")!;
 	fmt::println("  hpo --setup                           Install EVERYTHING (apt+pip+zhen+steamcmd)")!;
 	fmt::println("  hpo --zhen-setup                      Install umu-launcher")!;
-	fmt::println("  hpo --zhen-setup --proton             Also install GE-Proton10-34")!;
+	fmt::println("  hpo --zhen-setup --proton             Also install GE-Proton11-1")!;
 	fmt::println("  hpo --zhen-update                     Check & install latest GE-Proton")!;
 	fmt::println("  hpo zhen install <alias>              Install a Steam game via SteamCMD")!;
 	fmt::println("  hpo zhen force <alias>                Set GE-Proton for a game (DRM-safe)")!;
