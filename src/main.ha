@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.12.0";
+def VERSION = "4.13.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -1177,6 +1177,34 @@ fn do_setup(o: *opts) void = {
 	o.zhen_proton = true;
 	do_zhen_setup(o);
 
+	// 3b) Retro-emulatorer til Piyoko Arcade (hpo xp)
+	cprint(C_YELLOW, "SETUP", "Installing retro emulators (MAME, mGBA, fceux)...", o.nocolor);
+	let emu: []str = alloc([], 7)!;
+	defer free(emu);
+	append(emu, "sudo")!;
+	append(emu, "apt")!;
+	append(emu, "install")!;
+	append(emu, "-y")!;
+	append(emu, "mame")!;
+	append(emu, "fceux")!;
+	append(emu, "mgba-sdl")!;
+	let _ = run_cmd(emu, o.nocolor);
+	// 3c) DuckStation (PSX) AppImage + arcade-mapper
+	cprint(C_YELLOW, "SETUP", "Installing DuckStation + arcade folders...", o.nocolor);
+	match (os::getenv("HOME")) {
+		case let h: str =>
+			let mk = fmt::asprintf("mkdir -p {}/.local/share/hpo/arcade/roms {}/.local/share/hpo/arcade/nes {}/.local/share/hpo/arcade/snes {}/.local/share/hpo/arcade/genesis {}/.local/share/hpo/arcade/gb {}/.local/share/hpo/arcade/psx {}/.local/share/hpo/arcade/bios", h, h, h, h, h, h, h)!;
+			defer free(mk);
+			let mkargs: []str = ["sh", "-c", mk];
+			let _ = run_cmd(mkargs, o.nocolor);
+			let duck = fmt::asprintf("{}/.local/share/hpo/duckstation.AppImage", h)!;
+			defer free(duck);
+			let dl: []str = ["curl", "-L", "-o", duck, "https://github.com/stenzek/duckstation/releases/download/latest/duckstation-x64.AppImage"];
+			let _ = run_cmd(dl, o.nocolor);
+			let chm: []str = ["chmod", "+x", duck];
+			let _ = run_cmd(chm, o.nocolor);
+		case => void;
+	};
 	// 4) Summary
 	fmt::println("")!;
 	if (!o.nocolor) fmt::print(C_GREEN)!;
@@ -2345,7 +2373,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.12.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.13.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
