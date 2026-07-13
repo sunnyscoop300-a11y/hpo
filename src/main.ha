@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.25.0";
+def VERSION = "4.26.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2383,7 +2383,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.25.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.26.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3144,14 +3144,29 @@ fn do_kai(o: *opts) void = {
 	const sh = "~/.config/mpv/shaders/Anime4K_Clamp_Highlights.glsl:~/.config/mpv/shaders/Anime4K_Restore_CNN_M.glsl:~/.config/mpv/shaders/Anime4K_Thin_HQ.glsl:~/.config/mpv/shaders/Anime4K_Darken_HQ.glsl";
 	const shaderarg = fmt::asprintf("--glsl-shaders={}", sh)!;
 	defer free(shaderarg);
-	let target = o.kai_arg;
-	if (!strings::hasprefix(o.kai_arg, "http") && !strings::hasprefix(o.kai_arg, "/") && !strings::hasprefix(o.kai_arg, "~") && !strings::hasprefix(o.kai_arg, ".")) {
-		cprint(C_GREEN, "KAI", "Searching YouTube for anime...", o.nocolor);
-		target = fmt::asprintf("ytdl://ytsearch1:{}", o.kai_arg)!;
+	const is_local = strings::hasprefix(o.kai_arg, "/") || strings::hasprefix(o.kai_arg, "~") || strings::hasprefix(o.kai_arg, ".");
+	if (is_local) {
+		cprint(C_GREEN, "KAI", "Playing local anime with Anime4K...", o.nocolor);
+		const args: []str = ["mpv", shaderarg, o.kai_arg];
+		let _ = run_cmd(args, o.nocolor);
+		return;
 	};
+	let src = o.kai_arg;
+	if (!strings::hasprefix(o.kai_arg, "http")) {
+		cprint(C_GREEN, "KAI", "Searching YouTube...", o.nocolor);
+		src = fmt::asprintf("ytsearch1:{}", o.kai_arg)!;
+	};
+	cprint(C_YELLOW, "KAI", "Fetching 1080p... (a moment)", o.nocolor);
+	const tmp = "/tmp/hpo-kai-stream.mp4";
+	os::remove(tmp): void;
+	const dbuf: [4096]u8 = [0...];
+	const dl = fmt::bsprintf(dbuf, "yt-dlp -f \"bestvideo[height<=1080]+bestaudio/best[height<=1080]/best\" --no-part -o {} \"{}\"", tmp, src)!;
+	const dlargs: []str = ["sh", "-c", dl];
+	let _ = run_cmd(dlargs, o.nocolor);
 	cprint(C_GREEN, "KAI", "Playing with Anime4K upscaling...", o.nocolor);
-	const args: []str = ["mpv", shaderarg, "--ytdl-format=bestvideo+bestaudio/best", "--ytdl-raw-options=cookies-from-browser=brave", target];
+	const args: []str = ["mpv", shaderarg, tmp];
 	let _ = run_cmd(args, o.nocolor);
+	os::remove(tmp): void;
 };
 
 fn do_crane(o: *opts) void = {
