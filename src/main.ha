@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.14.0";
+def VERSION = "4.15.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -77,6 +77,8 @@ type opts = struct {
 	zhen_force: bool,
 	ping: bool,
 	mantis: bool,
+	viper: bool,
+	viper_setup: bool,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2374,7 +2376,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.14.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.15.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3123,6 +3125,24 @@ fn do_doctor(o: *opts) void = {
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
 };
 
+fn do_viper(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_GREEN)!;
+	fmt::println("   [VIPER] Swift and graceful - PlayStation Remote Play!")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	if (o.viper_setup) {
+		cprint(C_YELLOW, "VIPER", "Installing chiaki-ng (PS4/PS5 Remote Play)...", o.nocolor);
+		const inst: []str = ["flatpak", "install", "-y", "flathub", "io.github.streetpea.Chiaki4deck"];
+		let _ = run_cmd(inst, o.nocolor);
+		cprint(C_BLUE, "VIPER", "Need your PSN Account ID? Run the psn-account-id script.", o.nocolor);
+		cprint(C_BLUE, "VIPER", "On PS5: Settings > System > Remote Play > Link Device for the PIN.", o.nocolor);
+		cprint(C_GREEN, "VIPER", "Setup done! Launch with: hpo viper", o.nocolor);
+		return;
+	};
+	cprint(C_GREEN, "VIPER", "Striking into the stream...", o.nocolor);
+	const args: []str = ["flatpak", "run", "io.github.streetpea.Chiaki4deck"];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_mantis(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	if (!o.nocolor) fmt::print(C_GREEN)!;
@@ -3636,6 +3656,8 @@ export fn main() void = {
 		zhen_force = false,
 			ping = false,
 			mantis = false,
+			viper = false,
+			viper_setup = false,
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -3764,6 +3786,12 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "viper") {
+                	o.viper = true;
+                	if (i + 1 < len(args) && args[i + 1] == "setup") {
+                		o.viper_setup = true;
+                		i += 1;
+                	};
                 } else if (a == "mantis") {
                 	o.mantis = true;
                 } else if (a == "ping") {
@@ -3996,6 +4024,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.viper) {
+		do_viper(&o);
 		return;
 	};
 	if (o.mantis) {
