@@ -3181,6 +3181,9 @@ fn do_rukhmini(o: *opts) void = {
 	cprint(C_GREEN, "RUKHMINI", "Starting movie server (open the Network URL on your phone/TV)...", o.nocolor);
 	static let sbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/rukhmini-server.js", home)!;
+	// Draeb gamle rukhmini-servere foerst (undgaa EADDRINUSE)
+	const kill_args: []str = ["pkill", "-9", "-f", "rukhmini-server"];
+	let _ = run_cmd(kill_args, true);
 	const args: []str = ["node", script, dir, "8377"];
 	let _ = run_cmd(args, o.nocolor);
 };
