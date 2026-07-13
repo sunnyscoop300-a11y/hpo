@@ -1,6 +1,6 @@
 # hpo 🐯
 
-**The Hare Download & Game Manager** — a Kung Fu Panda + Rooster Fighter + The Wild Robot themed CLI multitool written in [Hare](https://harelang.org/).
+**The Hare Download, Game & Media Manager** — a Kung Fu Panda + Rooster Fighter + The Wild Robot themed CLI multitool written in [Hare](https://harelang.org/).
 
 ---
 
@@ -28,12 +28,88 @@ hpo "rooster:?xt=AES256:U2FsdGVkX1..." --code "skadoosh123"
 ```
 Works with HTTP, Google Drive, and magnet links alike — the encrypted token is safe to share publicly.
 
+---
+
+## 🎮 Gaming
+
 ### 🎮 Game Launchers
 - **Epic Games** via legendary + Zhen engine (Linux) or PowerShell bridge (WSL)
 - **Steam / Foxfire** via URI handler + Zhen GE-Proton (Linux) or PowerShell bridge (WSL)
 - **`hpo --steam list`** — shows installed games with names + AppIDs (works on WSL too)
 - Launch shows the full game name, looked up from Steam's manifests
 - Per-game aliases in `~/.config/hpo/{steam,epic}_aliases.txt`
+
+### 🐉 Zhen Engine
+- Self-contained gaming runtime built on **umu-launcher + GE-Proton11-1**
+- Auto-symlinks GE-Proton into Steam's `compatibilitytools.d`
+- Install: `hpo --zhen-setup --proton`
+- Update: `hpo --zhen-update`
+- On WSL: bridges Steam/Epic to Windows via PowerShell `Start-Process`
+
+### ⚽ Monkey — Rocket League
+- `hpo monkey` — launches Rocket League via Epic (legendary) + umu + GE-Proton11-1
+- Handles Easy Anti-Cheat (EAC) through umu's EGS protonfixes
+- `hpo monkey setup` — install Rocket League
+
+### 🗡️ Bnet — Battle.net / World of Warcraft
+- `hpo bnet` — launches Battle.net (and WoW) via Zhen + umu
+- DRM-safe launch flags for a stable Blizzard login
+
+### 🐍 Viper — PlayStation Remote Play
+- `hpo viper` — PS5/PS4 Remote Play via chiaki-ng (Flatpak)
+- Stream your own console over the network
+
+### 🦆 Mr. Ping — Roblox
+- `hpo ping` — launches Roblox via Sober (Flatpak)
+
+### 🐊 Croc — Space Cadet Pinball
+- `hpo croc` — Master Croc racks the ball! Classic 3D Space Cadet Pinball
+- `hpo croc setup` — install via Flatpak (open-source SpaceCadetPinball engine)
+
+### 🐤 Piyoko Arcade — Retro Gaming
+- `hpo xp <system> <game>` — multi-system retro arcade
+- Systems: NES, SNES, Genesis (via MAME), Game Boy (mGBA), PSX (DuckStation)
+- Earn Piyokocoin as you play
+- **Legal note:** works with your *own* game dumps, homebrew, and free MAME ROMs only
+
+---
+
+## 🎵 Media
+
+### 🐦 Crane — Music Player
+*Elegant and soaring* — Crane streams music from anywhere.
+- `hpo crane search <words>` — SoundCloud search
+- `hpo crane radio <words>` — SoundCloud radio (10 tracks in a row)
+- `hpo crane yt <words>` — YouTube search
+- `hpo crane ytradio <words>` — YouTube radio (10 tracks)
+- `hpo crane local <path>` — play local music (Suno tracks, downloads)
+- `hpo crane mix <path>` — **DJ mode**: shuffle + loop your collection
+- `hpo crane web <words>` — open SoundCloud search in your browser
+- `hpo crane <url>` — play a direct SoundCloud/YouTube URL
+- Respects DRM — skips protected tracks (plays only freely available music)
+
+### 🐃 Kai — Anime Player with Anime4K
+*"Take his chi!"* — Kai makes your anime jade-sharp.
+- `hpo kai <file>` — play a local anime/video with **Anime4K upscaling**
+- `hpo kai <folder>` — play a whole folder
+- `hpo kai <youtube-url>` — YouTube in **1080p + Anime4K**
+- `hpo kai <search words>` — search YouTube and play
+- Perfect for your own anime Blu-rays (rip with MakeMKV → jade-sharp playback)
+- Anime4K v4.0 shaders (MIT) in `~/.config/mpv/shaders/`, tuned for 1080p
+
+### 🦗 Mantis — Manga Cart Hub
+- `hpo mantis` — a themed TUI hub for tracking manga carts
+- Keep your reading list and shopping carts in one place
+
+### 🥋 Master Shifu Cinema Oracle
+- **Live schedules** for 90+ Danish cinemas via `bio.ebillet.dk`
+- Day filter: `idag`, `imorgen`, weekday names, `weekend`, `uge`
+- **Fuzzy match** — suggests the nearest cinema if you mistype
+- Custom ASCII portrait via `~/.config/hpo/art/shifu.txt`
+
+---
+
+## 🛠️ Tools & Extras
 
 ### 🦎 Chameleon — Save Manager
 *"Your power... is now MINE!"* — The Chameleon steals (backs up) and restores your game saves.
@@ -44,13 +120,6 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 - **Auto-prune**: keeps only the newest backup per game
 - Saves stored in `~/hpo-saves/`
 
-### 🐉 Zhen Engine
-- Self-contained gaming runtime built on **umu-launcher + GE-Proton10-34**
-- Auto-symlinks GE-Proton into Steam's `compatibilitytools.d`
-- Install: `hpo --zhen-setup --proton`
-- Update: `hpo --zhen-update`
-- On WSL: bridges Steam/Epic to Windows via PowerShell `Start-Process`
-
 ### 🐯 Tigress — Quote of the Day
 - `hpo tigress` — a daily dose of motivation from Master Tigress
 - Same quote all day, changes at midnight
@@ -58,6 +127,7 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 ### 🪙 Piyoko — Piyokocoin Wallet
 - `hpo piyoko` — show your Piyokocoin balance with 8-bit coin art
 - Earn **1 Piyokocoin per completed download**, automatically
+- `hpo piyoko spin`, `hpo piyoko cook`, `hpo piyoko cookbook`, `hpo piyoko recipe <n>`
 - Balance stored in `~/.config/hpo/piyokocoin`
 
 ### 🐢 Oogway Meditation
@@ -70,11 +140,10 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 - City override: `hpo roz vejr københavn`, `hpo roz vejr sydney`
 - Poetic, Wild-Robot-themed descriptions; full Unicode (ø, æ, å)
 
-### 🥋 Master Shifu Cinema Oracle
-- **Live schedules** for 90+ Danish cinemas via `bio.ebillet.dk`
-- Day filter: `idag`, `imorgen`, weekday names, `weekend`, `uge`
-- **Fuzzy match** — suggests the nearest cinema if you mistype
-- Custom ASCII portrait via `~/.config/hpo/art/shifu.txt`
+### 🩺 Doctor & Setup
+- `hpo doctor` — system health check (verifies tools & backends)
+- `hpo --setup` — install everything (apt + pip + Zhen + emulators)
+- `install.sh` — beginner-friendly bootstrap (builds Hare + hpo from scratch)
 
 ---
 
@@ -84,9 +153,10 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 - [Hare](https://harelang.org/) compiler (`harec`, `qbe`) — built/tested on Hare 0.26.0
 - `curl`, `aria2c`, `openssl`, `xdg-open` for download backends
 - `gdown` (`pip install gdown`) for Google Drive
-- `mpv` for the Oogway bell
+- `mpv` for the Oogway bell, Crane music, and Kai video
 - `python3` for the Shifu cinema helper
 - `legendary` (`pipx install legendary-gl`) for Epic Games on Linux
+- `yt-dlp` for Crane/Kai YouTube support
 - Optional: Flatpak Steam or native `steam`
 
 ### Build
@@ -98,9 +168,35 @@ sudo install -m755 hpo /usr/local/bin/hpo
 sudo install -m755 helpers/shifu-events.py /usr/local/share/hpo/
 ```
 
+Or use the beginner-friendly bootstrap (builds the whole Hare toolchain first):
+```bash
+./install.sh
+```
+
 ### Zhen Engine (for Epic/Steam gaming)
 ```bash
 hpo --zhen-setup --proton
+```
+
+### Anime4K shaders (for Kai)
+```bash
+mkdir -p ~/.config/mpv/shaders
+cd ~/.config/mpv/shaders
+curl -LO https://github.com/bloc97/Anime4K/releases/download/v4.0.1/Anime4K_v4.0.zip
+unzip -o Anime4K_v4.0.zip
+```
+
+### YouTube setup (for Crane & Kai)
+YouTube's 2026 anti-bot system needs a JavaScript runtime. Install Deno and configure yt-dlp:
+```bash
+curl -fsSL https://deno.land/install.sh | sh
+mkdir -p ~/.config/yt-dlp
+cat > ~/.config/yt-dlp/config << 'EOF'
+--js-runtimes deno:$HOME/.deno/bin/deno
+--remote-components ejs:github
+--cookies-from-browser brave
+--extractor-args youtube:player_client=web_safari
+EOF
 ```
 
 ### Bell sound for Oogway
@@ -141,14 +237,31 @@ This makes `hpo shifu` go from ~1.7s to ~4ms on the second call (**~400x faster*
 hpo draws on **Kung Fu Panda**, **Rooster Fighter**, and **The Wild Robot**:
 
 - 🐯 **Po / Tigress** — Steam alias & quote of the day
-- 🦊 **Zhen** — the gaming engine (KFP4)
+- 🐉 **Zhen** — the gaming engine (KFP4)
 - 🦎 **The Chameleon** — save manager villain (KFP4)
 - 🐆 **Tai Lung** — parallel download (KFP1)
+- 🐵 **Monkey** — Rocket League (Furious Five)
+- 🐍 **Viper** — PlayStation Remote Play (Furious Five)
+- 🦗 **Mantis** — manga cart hub (Furious Five)
+- 🐦 **Crane** — music player (Furious Five)
+- 🐃 **Kai** — anime player with Anime4K (KFP3, the jade master)
+- 🐊 **Master Croc** — Space Cadet Pinball (Kung Fu Council)
 - 🐢 **Oogway** — meditation
 - 🥋 **Shifu** — cinema oracle
+- 🗡️ **Bnet** — Battle.net / WoW launcher
+- 🦆 **Mr. Ping** — Roblox launcher
+- 🐤 **Piyoko** — Piyokocoin wallet & retro arcade (Rooster Fighter)
 - 🐓 **Rooster / Keiji** — encrypted Rooster links (Rooster Fighter)
-- 🪙 **Piyoko** — Piyokocoin wallet (Rooster Fighter)
 - 🤖 **Roz / Brightbill** — weather robot (The Wild Robot)
+
+---
+
+## Legal
+
+hpo only helps with legal content: your own files, purchased games (Steam/Epic/GOG),
+your own disc/cartridge dumps, your own Blu-rays (personal backups via MakeMKV),
+your own Suno generations, free MAME ROMs, homebrew, and freely-available streaming.
+It respects DRM and does not circumvent copy protection.
 
 ---
 
