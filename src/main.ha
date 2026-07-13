@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.26.0";
+def VERSION = "4.27.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -86,6 +86,8 @@ type opts = struct {
 	crane_arg2: str,
 	kai: bool,
 	kai_arg: str,
+	croc: bool,
+	croc_setup: bool,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2383,7 +2385,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.26.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.27.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3132,6 +3134,22 @@ fn do_doctor(o: *opts) void = {
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
 };
 
+fn do_croc(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_GREEN)!;
+	fmt::println("   [CROC] Master Croc racks the ball - Space Cadet Pinball!")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	if (o.croc_setup) {
+		cprint(C_YELLOW, "CROC", "Installing Space Cadet Pinball...", o.nocolor);
+		const inst: []str = ["flatpak", "install", "-y", "flathub", "com.github.k4zmu2a.spacecadetpinball"];
+		let _ = run_cmd(inst, o.nocolor);
+		cprint(C_GREEN, "CROC", "Done! Play with: hpo croc", o.nocolor);
+		return;
+	};
+	cprint(C_GREEN, "CROC", "TILT! Launching pinball...", o.nocolor);
+	const args: []str = ["flatpak", "run", "com.github.k4zmu2a.spacecadetpinball"];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_kai(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_GREEN)!;
 	fmt::println("   [KAI] Take his chi! Jade-sharp anime with Anime4K...")!;
@@ -3798,6 +3816,8 @@ export fn main() void = {
 			crane_arg2 = "",
 			kai = false,
 			kai_arg = "",
+			croc = false,
+			croc_setup = false,
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -3926,6 +3946,12 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "croc") {
+                	o.croc = true;
+                	if (i + 1 < len(args) && args[i + 1] == "setup") {
+                		o.croc_setup = true;
+                		i += 1;
+                	};
                 } else if (a == "kai") {
                 	o.kai = true;
                 	if (i + 1 < len(args)) {
@@ -4186,6 +4212,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.croc) {
+		do_croc(&o);
 		return;
 	};
 	if (o.kai) {
