@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.27.0";
+def VERSION = "4.28.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2385,7 +2385,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.27.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.28.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2489,6 +2489,38 @@ fn print_help() void = {
 	fmt::println("  hpo oogway 300                        5 minutes of inner peace")!;
 	fmt::println("  hpo roz vejr                          Should I bring a raincoat?")!;
 	fmt::println("  hpo shifu haderslev weekend           What's playing this weekend?")!;
+	fmt::println("")!;
+	fmt::println("MEDIA - MUSIC (Crane, the SoundCloud & YouTube player):")!;
+	fmt::println("  hpo crane search <words>              SoundCloud search")!;
+	fmt::println("  hpo crane radio <words>               SoundCloud radio (10 tracks)")!;
+	fmt::println("  hpo crane yt <words>                  YouTube search")!;
+	fmt::println("  hpo crane ytradio <words>             YouTube radio (10 tracks)")!;
+	fmt::println("  hpo crane local <path>                Play local music (Suno, downloads)")!;
+	fmt::println("  hpo crane mix <path>                  DJ mode - shuffle + loop")!;
+	fmt::println("  hpo crane web <words>                 Open SoundCloud search in browser")!;
+	fmt::println("")!;
+	fmt::println("MEDIA - ANIME/VIDEO (Kai, Anime4K jade-sharp upscaling):")!;
+	fmt::println("  hpo kai <file>                        Play local anime/video with Anime4K")!;
+	fmt::println("  hpo kai <folder>                      Play a whole folder")!;
+	fmt::println("  hpo kai <youtube-url>                 YouTube in 1080p + Anime4K")!;
+	fmt::println("  hpo kai <search words>                Search YouTube + play")!;
+	fmt::println("  Shaders: ~/.config/mpv/shaders/ (Anime4K v4.0, MIT)")!;
+	fmt::println("")!;
+	fmt::println("MORE GAMING (Furious Five & friends):")!;
+	fmt::println("  hpo monkey                            Rocket League (Epic + Zhen/umu + EAC)")!;
+	fmt::println("  hpo bnet                              Battle.net / World of Warcraft")!;
+	fmt::println("  hpo viper                             PS5/PS4 Remote Play (chiaki-ng)")!;
+	fmt::println("  hpo ping                              Roblox (via Sober)")!;
+	fmt::println("  hpo croc                              Space Cadet Pinball (Master Croc)")!;
+	fmt::println("  hpo croc setup                        Install pinball via Flatpak")!;
+	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
+	fmt::println("")!;
+	fmt::println("MANGA (Mantis cart hub):")!;
+	fmt::println("  hpo mantis                            Open the manga cart hub (TUI)")!;
+	fmt::println("")!;
+	fmt::println("SYSTEM:")!;
+	fmt::println("  hpo doctor                            System health check")!;
+	fmt::println("  hpo --setup                           Install everything")!;
 	fmt::println("")!;
 	fmt::println("DOWNLOAD BACKENDS:")!;
 	fmt::println("  HTTP/HTTPS/FTP  -> curl (dragon progress bar)")!;
