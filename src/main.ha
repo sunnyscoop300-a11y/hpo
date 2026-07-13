@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.15.0";
+def VERSION = "4.16.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -79,6 +79,8 @@ type opts = struct {
 	mantis: bool,
 	viper: bool,
 	viper_setup: bool,
+	monkey: bool,
+	monkey_setup: bool,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2376,7 +2378,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.15.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.16.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3125,6 +3127,27 @@ fn do_doctor(o: *opts) void = {
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
 };
 
+fn do_monkey(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_YELLOW)!;
+	fmt::println("   [MONKEY] Acrobatic and fast - launching Rocket League!")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	const pbuf: [512]u8 = [0...];
+	const proton = fmt::bsprintf(pbuf, "{}/.local/share/hpo/zhen/proton/GE-Proton11-1", home)!;
+	if (o.monkey_setup) {
+		cprint(C_YELLOW, "MONKEY", "Installing Rocket League via Epic (legendary)...", o.nocolor);
+		const inst: []str = ["legendary", "install", "Sugar", "-y"];
+		let _ = run_cmd(inst, o.nocolor);
+		cprint(C_GREEN, "MONKEY", "Done! Launch with: hpo monkey", o.nocolor);
+		return;
+	};
+	cprint(C_GREEN, "MONKEY", "GOAL! Booting Rocket League with GE-Proton11-1...", o.nocolor);
+	os::setenv("PROTONPATH", proton)!;
+	const args: []str = ["legendary", "launch", "Sugar", "--no-wine", "--wrapper", "", "--wine-prefix", ""];
+	const simple: []str = ["legendary", "launch", "Sugar"];
+	let _ = run_cmd(simple, o.nocolor);
+};
+
 fn do_viper(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_GREEN)!;
 	fmt::println("   [VIPER] Swift and graceful - PlayStation Remote Play!")!;
@@ -3658,6 +3681,8 @@ export fn main() void = {
 			mantis = false,
 			viper = false,
 			viper_setup = false,
+			monkey = false,
+			monkey_setup = false,
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -3786,6 +3811,12 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "monkey") {
+                	o.monkey = true;
+                	if (i + 1 < len(args) && args[i + 1] == "setup") {
+                		o.monkey_setup = true;
+                		i += 1;
+                	};
                 } else if (a == "viper") {
                 	o.viper = true;
                 	if (i + 1 < len(args) && args[i + 1] == "setup") {
@@ -4024,6 +4055,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.monkey) {
+		do_monkey(&o);
 		return;
 	};
 	if (o.viper) {
