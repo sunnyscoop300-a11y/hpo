@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.24.0";
+def VERSION = "4.25.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2383,7 +2383,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.24.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.25.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3150,7 +3150,7 @@ fn do_kai(o: *opts) void = {
 		target = fmt::asprintf("ytdl://ytsearch1:{}", o.kai_arg)!;
 	};
 	cprint(C_GREEN, "KAI", "Playing with Anime4K upscaling...", o.nocolor);
-	const args: []str = ["mpv", shaderarg, target];
+	const args: []str = ["mpv", shaderarg, "--ytdl-format=bestvideo+bestaudio/best", "--ytdl-raw-options=cookies-from-browser=brave", target];
 	let _ = run_cmd(args, o.nocolor);
 };
 
