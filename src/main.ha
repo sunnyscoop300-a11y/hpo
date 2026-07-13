@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.18.0";
+def VERSION = "4.19.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2381,7 +2381,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.18.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.19.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3135,7 +3135,7 @@ fn do_crane(o: *opts) void = {
 	fmt::println("   [CRANE] Elegant and soaring - SoundCloud player!")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	if (o.crane_arg == "") {
-		cprint(C_YELLOW, "CRANE", "Usage: hpo crane <soundcloud-url>  OR  hpo crane search <words>", o.nocolor);
+		cprint(C_YELLOW, "CRANE", "Usage: hpo crane <url> | search <w> | radio <w> | yt <w> | ytradio <w> | web <w>", o.nocolor);
 		return;
 	};
 	if (o.crane_arg == "search" && o.crane_arg2 != "") {
@@ -3151,6 +3151,30 @@ fn do_crane(o: *opts) void = {
 		const q = fmt::asprintf("ytdl://ytsearch1:{}", o.crane_arg2)!;
 		defer free(q);
 		const args: []str = ["mpv", "--no-video", q];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
+	if (o.crane_arg == "radio" && o.crane_arg2 != "") {
+		cprint(C_GREEN, "CRANE", "SoundCloud radio (10 tracks)...", o.nocolor);
+		const q = fmt::asprintf("ytdl://scsearch10:{}", o.crane_arg2)!;
+		defer free(q);
+		const args: []str = ["mpv", "--no-video", q];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
+	if (o.crane_arg == "ytradio" && o.crane_arg2 != "") {
+		cprint(C_GREEN, "CRANE", "YouTube radio (10 tracks)...", o.nocolor);
+		const q = fmt::asprintf("ytdl://ytsearch10:{}", o.crane_arg2)!;
+		defer free(q);
+		const args: []str = ["mpv", "--no-video", q];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
+	if (o.crane_arg == "web" && o.crane_arg2 != "") {
+		cprint(C_GREEN, "CRANE", "Opening SoundCloud search in browser...", o.nocolor);
+		const url = fmt::asprintf("https://soundcloud.com/search?q={}", o.crane_arg2)!;
+		defer free(url);
+		const args: []str = ["xdg-open", url];
 		let _ = run_cmd(args, o.nocolor);
 		return;
 	};
