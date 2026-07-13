@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.21.0";
+def VERSION = "4.22.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -84,6 +84,8 @@ type opts = struct {
 	crane: bool,
 	crane_arg: str,
 	crane_arg2: str,
+	kai: bool,
+	kai_arg: str,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2381,7 +2383,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.21.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.22.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3130,6 +3132,23 @@ fn do_doctor(o: *opts) void = {
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
 };
 
+fn do_kai(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_GREEN)!;
+	fmt::println("   [KAI] Take his chi! Jade-sharp anime with Anime4K...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	if (o.kai_arg == "") {
+		cprint(C_YELLOW, "KAI", "Usage: hpo kai <anime-file-or-folder>", o.nocolor);
+		return;
+	};
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	const sh = "~/.config/mpv/shaders/Anime4K_Clamp_Highlights.glsl:~/.config/mpv/shaders/Anime4K_Restore_CNN_M.glsl:~/.config/mpv/shaders/Anime4K_Thin_HQ.glsl:~/.config/mpv/shaders/Anime4K_Darken_HQ.glsl";
+	const shaderarg = fmt::asprintf("--glsl-shaders={}", sh)!;
+	defer free(shaderarg);
+	cprint(C_GREEN, "KAI", "Playing with Anime4K upscaling...", o.nocolor);
+	const args: []str = ["mpv", shaderarg, o.kai_arg];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_crane(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_CYAN)!;
 	fmt::println("   [CRANE] Elegant and soaring - SoundCloud player!")!;
@@ -3751,6 +3770,8 @@ export fn main() void = {
 			crane = false,
 			crane_arg = "",
 			crane_arg2 = "",
+			kai = false,
+			kai_arg = "",
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -3879,6 +3900,12 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "kai") {
+                	o.kai = true;
+                	if (i + 1 < len(args)) {
+                		o.kai_arg = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "crane") {
                 	o.crane = true;
                 	if (i + 1 < len(args)) {
@@ -4133,6 +4160,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.kai) {
+		do_kai(&o);
 		return;
 	};
 	if (o.crane) {
