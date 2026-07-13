@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.22.0";
+def VERSION = "4.23.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2383,7 +2383,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.22.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.23.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3154,7 +3154,7 @@ fn do_crane(o: *opts) void = {
 	fmt::println("   [CRANE] Elegant and soaring - SoundCloud player!")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	if (o.crane_arg == "") {
-		cprint(C_YELLOW, "CRANE", "Usage: hpo crane <url> | search <w> | radio <w> | yt <w> | ytradio <w> | web <w> | local <path>", o.nocolor);
+		cprint(C_YELLOW, "CRANE", "Usage: hpo crane <url> | search | radio | yt | ytradio | web | local <path> | mix <path>", o.nocolor);
 		return;
 	};
 	if (o.crane_arg == "search" && o.crane_arg2 != "") {
@@ -3200,6 +3200,12 @@ fn do_crane(o: *opts) void = {
 	if (o.crane_arg == "local" && o.crane_arg2 != "") {
 		cprint(C_GREEN, "CRANE", "Playing local music (Suno, downloads)...", o.nocolor);
 		const args: []str = ["mpv", "--no-video", o.crane_arg2];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
+	if (o.crane_arg == "mix" && o.crane_arg2 != "") {
+		cprint(C_GREEN, "CRANE", "DJ mode! Shuffling your music...", o.nocolor);
+		const args: []str = ["mpv", "--no-video", "--shuffle", "--loop-playlist", o.crane_arg2];
 		let _ = run_cmd(args, o.nocolor);
 		return;
 	};
