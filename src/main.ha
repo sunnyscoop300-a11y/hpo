@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.16.0";
+def VERSION = "4.17.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -81,6 +81,9 @@ type opts = struct {
 	viper_setup: bool,
 	monkey: bool,
 	monkey_setup: bool,
+	crane: bool,
+	crane_arg: str,
+	crane_arg2: str,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2378,7 +2381,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.16.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.17.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3127,6 +3130,27 @@ fn do_doctor(o: *opts) void = {
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
 };
 
+fn do_crane(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_CYAN)!;
+	fmt::println("   [CRANE] Elegant and soaring - SoundCloud player!")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	if (o.crane_arg == "") {
+		cprint(C_YELLOW, "CRANE", "Usage: hpo crane <soundcloud-url>  OR  hpo crane search <words>", o.nocolor);
+		return;
+	};
+	if (o.crane_arg == "search" && o.crane_arg2 != "") {
+		cprint(C_GREEN, "CRANE", "Searching SoundCloud...", o.nocolor);
+		const q = fmt::asprintf("ytdl://scsearch1:{}", o.crane_arg2)!;
+		defer free(q);
+		const args: []str = ["mpv", "--no-video", q];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
+	cprint(C_GREEN, "CRANE", "Now playing...", o.nocolor);
+	const args: []str = ["mpv", "--no-video", o.crane_arg];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_monkey(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
 	fmt::println("   [MONKEY] Acrobatic and fast - launching Rocket League!")!;
@@ -3683,6 +3707,9 @@ export fn main() void = {
 			viper_setup = false,
 			monkey = false,
 			monkey_setup = false,
+			crane = false,
+			crane_arg = "",
+			crane_arg2 = "",
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -3811,6 +3838,16 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "crane") {
+                	o.crane = true;
+                	if (i + 1 < len(args)) {
+                		o.crane_arg = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.crane_arg2 = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "monkey") {
                 	o.monkey = true;
                 	if (i + 1 < len(args) && args[i + 1] == "setup") {
@@ -4055,6 +4092,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.crane) {
+		do_crane(&o);
 		return;
 	};
 	if (o.monkey) {
