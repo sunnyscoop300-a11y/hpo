@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.29.1";
+def VERSION = "4.29.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2387,7 +2387,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.29.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.29.2")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3181,9 +3181,6 @@ fn do_rukhmini(o: *opts) void = {
 	cprint(C_GREEN, "RUKHMINI", "Starting movie server (open the Network URL on your phone/TV)...", o.nocolor);
 	static let sbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/rukhmini-server.js", home)!;
-	// Draeb gamle rukhmini-servere foerst (undgaa EADDRINUSE)
-	const kill_args: []str = ["sh", "-c", "fuser -k 8377/tcp 2>/dev/null; pkill -9 -f rukhmini-server 2>/dev/null; true"];
-	let _ = run_cmd(kill_args, true);
 	const args: []str = ["node", script, dir, "8377"];
 	let _ = run_cmd(args, o.nocolor);
 };
