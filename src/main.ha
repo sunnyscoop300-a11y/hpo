@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.17.0";
+def VERSION = "4.18.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2381,7 +2381,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.17.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.18.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3141,6 +3141,14 @@ fn do_crane(o: *opts) void = {
 	if (o.crane_arg == "search" && o.crane_arg2 != "") {
 		cprint(C_GREEN, "CRANE", "Searching SoundCloud...", o.nocolor);
 		const q = fmt::asprintf("ytdl://scsearch1:{}", o.crane_arg2)!;
+		defer free(q);
+		const args: []str = ["mpv", "--no-video", q];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
+	if (o.crane_arg == "yt" && o.crane_arg2 != "") {
+		cprint(C_GREEN, "CRANE", "Searching YouTube...", o.nocolor);
+		const q = fmt::asprintf("ytdl://ytsearch1:{}", o.crane_arg2)!;
 		defer free(q);
 		const args: []str = ["mpv", "--no-video", q];
 		let _ = run_cmd(args, o.nocolor);
