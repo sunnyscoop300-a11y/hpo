@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.19.0";
+def VERSION = "4.20.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2381,7 +2381,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.19.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.20.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3198,10 +3198,13 @@ fn do_monkey(o: *opts) void = {
 		return;
 	};
 	cprint(C_GREEN, "MONKEY", "GOAL! Booting Rocket League with GE-Proton11-1...", o.nocolor);
+	const ubuf: [512]u8 = [0...];
+	const umu = fmt::bsprintf(ubuf, "{}/.local/share/hpo/zhen/umu-run", home)!;
 	os::setenv("PROTONPATH", proton)!;
-	const args: []str = ["legendary", "launch", "Sugar", "--no-wine", "--wrapper", "", "--wine-prefix", ""];
-	const simple: []str = ["legendary", "launch", "Sugar"];
-	let _ = run_cmd(simple, o.nocolor);
+	os::setenv("GAMEID", "umu-0")!;
+	os::setenv("STORE", "egs")!;
+	const args: []str = ["legendary", "launch", "Sugar", "--no-wine", "--wrapper", umu];
+	let _ = run_cmd(args, o.nocolor);
 };
 
 fn do_viper(o: *opts) void = {
