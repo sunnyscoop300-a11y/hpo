@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.28.0";
+def VERSION = "4.29.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2385,7 +2385,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.28.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.29.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3337,6 +3337,7 @@ fn do_mantis(o: *opts) void = {
 	fmt::println("   1  Sakamoto Days    (mestmanga.dk)")!;
 	fmt::println("   2  Ichi the Witch   (mestmanga.dk)")!;
 	fmt::println("   3  Nue\x27s Exorcist   (williamdam.dk)")!;
+	fmt::println("   4  Black Torch      (mestmanga.dk)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3347,15 +3348,17 @@ fn do_mantis(o: *opts) void = {
 	const choice = strings::trim(line);
 	let dir = "";
 	let bin = "";
-	if (choice == "1") { dir = "sakamoto"; bin = "sakamoto_cart"; }
-	else if (choice == "2") { dir = "Ichi"; bin = "ichi_cart"; }
-	else if (choice == "3") { dir = "williamdam_cart"; bin = "build/a.out"; }
+	let path = "";
+	if (choice == "1") { path = "Documents/sakamoto"; bin = "sakamoto_cart"; }
+	else if (choice == "2") { path = "Documents/Ichi"; bin = "ichi_cart"; }
+	else if (choice == "3") { path = "Music/Atlas77/williamdam_cart"; bin = "build/a.out"; }
+	else if (choice == "4") { path = "Music/Atlas77/blacktorch_cart"; bin = "build/a.out"; }
 	else { cprint(C_YELLOW, "MANTIS", "Afslutter.", o.nocolor); return; };
 	if (!o.nocolor) fmt::print(C_GREEN)!;
-	fmt::printfln("   [MANTIS] Swift and precise! Opening {}...", dir)!;
+	fmt::printfln("   [MANTIS] Swift and precise! Opening {}...", path)!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	const cbuf: [1024]u8 = [0...];
-	const cmd = fmt::bsprintf(cbuf, "cd {}/Documents/{} && ./{}", home, dir, bin)!;
+	const cmd = fmt::bsprintf(cbuf, "cd {}/{} && ./{}", home, path, bin)!;
 	const args: []str = ["sh", "-c", cmd];
 	let _ = run_cmd(args, o.nocolor);
 };
