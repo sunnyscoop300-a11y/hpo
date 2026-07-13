@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.20.0";
+def VERSION = "4.21.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2381,7 +2381,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.20.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.21.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3135,14 +3135,14 @@ fn do_crane(o: *opts) void = {
 	fmt::println("   [CRANE] Elegant and soaring - SoundCloud player!")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	if (o.crane_arg == "") {
-		cprint(C_YELLOW, "CRANE", "Usage: hpo crane <url> | search <w> | radio <w> | yt <w> | ytradio <w> | web <w>", o.nocolor);
+		cprint(C_YELLOW, "CRANE", "Usage: hpo crane <url> | search <w> | radio <w> | yt <w> | ytradio <w> | web <w> | local <path>", o.nocolor);
 		return;
 	};
 	if (o.crane_arg == "search" && o.crane_arg2 != "") {
 		cprint(C_GREEN, "CRANE", "Searching SoundCloud...", o.nocolor);
-		const q = fmt::asprintf("ytdl://scsearch1:{}", o.crane_arg2)!;
+		const q = fmt::asprintf("ytdl://scsearch5:{}", o.crane_arg2)!;
 		defer free(q);
-		const args: []str = ["mpv", "--no-video", q];
+		const args: []str = ["mpv", "--no-video", "--ytdl-raw-options=cookies-from-browser=brave", q];
 		let _ = run_cmd(args, o.nocolor);
 		return;
 	};
@@ -3150,7 +3150,7 @@ fn do_crane(o: *opts) void = {
 		cprint(C_GREEN, "CRANE", "Searching YouTube...", o.nocolor);
 		const q = fmt::asprintf("ytdl://ytsearch1:{}", o.crane_arg2)!;
 		defer free(q);
-		const args: []str = ["mpv", "--no-video", q];
+		const args: []str = ["mpv", "--no-video", "--ytdl-raw-options=cookies-from-browser=brave", q];
 		let _ = run_cmd(args, o.nocolor);
 		return;
 	};
@@ -3158,7 +3158,7 @@ fn do_crane(o: *opts) void = {
 		cprint(C_GREEN, "CRANE", "SoundCloud radio (10 tracks)...", o.nocolor);
 		const q = fmt::asprintf("ytdl://scsearch10:{}", o.crane_arg2)!;
 		defer free(q);
-		const args: []str = ["mpv", "--no-video", q];
+		const args: []str = ["mpv", "--no-video", "--ytdl-raw-options=cookies-from-browser=brave", q];
 		let _ = run_cmd(args, o.nocolor);
 		return;
 	};
@@ -3166,7 +3166,7 @@ fn do_crane(o: *opts) void = {
 		cprint(C_GREEN, "CRANE", "YouTube radio (10 tracks)...", o.nocolor);
 		const q = fmt::asprintf("ytdl://ytsearch10:{}", o.crane_arg2)!;
 		defer free(q);
-		const args: []str = ["mpv", "--no-video", q];
+		const args: []str = ["mpv", "--no-video", "--ytdl-raw-options=cookies-from-browser=brave", q];
 		let _ = run_cmd(args, o.nocolor);
 		return;
 	};
@@ -3178,8 +3178,14 @@ fn do_crane(o: *opts) void = {
 		let _ = run_cmd(args, o.nocolor);
 		return;
 	};
+	if (o.crane_arg == "local" && o.crane_arg2 != "") {
+		cprint(C_GREEN, "CRANE", "Playing local music (Suno, downloads)...", o.nocolor);
+		const args: []str = ["mpv", "--no-video", o.crane_arg2];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
 	cprint(C_GREEN, "CRANE", "Now playing...", o.nocolor);
-	const args: []str = ["mpv", "--no-video", o.crane_arg];
+	const args: []str = ["mpv", "--no-video", "--ytdl-raw-options=cookies-from-browser=brave", o.crane_arg];
 	let _ = run_cmd(args, o.nocolor);
 };
 
