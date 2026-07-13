@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.23.0";
+def VERSION = "4.24.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2383,7 +2383,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.23.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.24.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3137,15 +3137,20 @@ fn do_kai(o: *opts) void = {
 	fmt::println("   [KAI] Take his chi! Jade-sharp anime with Anime4K...")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	if (o.kai_arg == "") {
-		cprint(C_YELLOW, "KAI", "Usage: hpo kai <anime-file-or-folder>", o.nocolor);
+		cprint(C_YELLOW, "KAI", "Usage: hpo kai <file> | <youtube-url> | <search words>", o.nocolor);
 		return;
 	};
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	const sh = "~/.config/mpv/shaders/Anime4K_Clamp_Highlights.glsl:~/.config/mpv/shaders/Anime4K_Restore_CNN_M.glsl:~/.config/mpv/shaders/Anime4K_Thin_HQ.glsl:~/.config/mpv/shaders/Anime4K_Darken_HQ.glsl";
 	const shaderarg = fmt::asprintf("--glsl-shaders={}", sh)!;
 	defer free(shaderarg);
+	let target = o.kai_arg;
+	if (!strings::hasprefix(o.kai_arg, "http") && !strings::hasprefix(o.kai_arg, "/") && !strings::hasprefix(o.kai_arg, "~") && !strings::hasprefix(o.kai_arg, ".")) {
+		cprint(C_GREEN, "KAI", "Searching YouTube for anime...", o.nocolor);
+		target = fmt::asprintf("ytdl://ytsearch1:{}", o.kai_arg)!;
+	};
 	cprint(C_GREEN, "KAI", "Playing with Anime4K upscaling...", o.nocolor);
-	const args: []str = ["mpv", shaderarg, o.kai_arg];
+	const args: []str = ["mpv", shaderarg, target];
 	let _ = run_cmd(args, o.nocolor);
 };
 
