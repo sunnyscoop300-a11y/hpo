@@ -88,6 +88,8 @@ type opts = struct {
 	kai_arg: str,
 	croc: bool,
 	croc_setup: bool,
+	rukhmini: bool,
+	rukhmini_arg: str,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -3166,6 +3168,23 @@ fn do_doctor(o: *opts) void = {
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
 };
 
+fn do_rukhmini(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_YELLOW)!;
+	fmt::println("   [RUKHMINI] The clever thief serves your movies!")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	let dir = o.rukhmini_arg;
+	if (dir == "") {
+		static let dbuf: [512]u8 = [0...];
+		dir = fmt::bsprintf(dbuf, "{}/Videos", home)!;
+	};
+	cprint(C_GREEN, "RUKHMINI", "Starting movie server (open the Network URL on your phone/TV)...", o.nocolor);
+	static let sbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/rukhmini-server.js", home)!;
+	const args: []str = ["node", script, dir, "8377"];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_croc(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_GREEN)!;
 	fmt::println("   [CROC] Master Croc racks the ball - Space Cadet Pinball!")!;
@@ -3853,6 +3872,8 @@ export fn main() void = {
 			kai_arg = "",
 			croc = false,
 			croc_setup = false,
+			rukhmini = false,
+			rukhmini_arg = "",
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -3981,6 +4002,12 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "rukhmini") {
+                	o.rukhmini = true;
+                	if (i + 1 < len(args)) {
+                		o.rukhmini_arg = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "croc") {
                 	o.croc = true;
                 	if (i + 1 < len(args) && args[i + 1] == "setup") {
@@ -4247,6 +4274,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.rukhmini) {
+		do_rukhmini(&o);
 		return;
 	};
 	if (o.croc) {
