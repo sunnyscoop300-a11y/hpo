@@ -3186,18 +3186,37 @@ fn do_rukhmini(o: *opts) void = {
 };
 
 fn do_croc(o: *opts) void = {
-	if (!o.nocolor) fmt::print(C_GREEN)!;
-	fmt::println("   [CROC] Master Croc racks the ball - Space Cadet Pinball!")!;
-	if (!o.nocolor) fmt::print(C_RESET)!;
 	if (o.croc_setup) {
-		cprint(C_YELLOW, "CROC", "Installing Space Cadet Pinball...", o.nocolor);
-		const inst: []str = ["flatpak", "install", "-y", "flathub", "com.github.k4zmu2a.spacecadetpinball"];
-		let _ = run_cmd(inst, o.nocolor);
+		cprint(C_YELLOW, "CROC", "Installing retro arcade games...", o.nocolor);
+		const pin: []str = ["flatpak", "install", "-y", "flathub", "com.github.k4zmu2a.spacecadetpinball"];
+		let _ = run_cmd(pin, o.nocolor);
+		const brk: []str = ["flatpak", "install", "-y", "flathub", "net.sourceforge.lgames.LBreakoutHD"];
+		let _ = run_cmd(brk, o.nocolor);
 		cprint(C_GREEN, "CROC", "Done! Play with: hpo croc", o.nocolor);
 		return;
 	};
-	cprint(C_GREEN, "CROC", "TILT! Launching pinball...", o.nocolor);
-	const args: []str = ["flatpak", "run", "com.github.k4zmu2a.spacecadetpinball"];
+	if (!o.nocolor) fmt::print(C_GREEN)!;
+	fmt::println("")!;
+	fmt::println("   \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")!;
+	fmt::println("   \u2551  CROC - Retro Arcade Hub   \u2551")!;
+	fmt::println("   \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	fmt::println("   1  Space Cadet Pinball")!;
+	fmt::println("   2  LBreakout HD  (Atari Breakout)")!;
+	fmt::println("   q  Afslut")!;
+	fmt::print("   Vaelg: ")!;
+	bufio::flush(os::stdout)!;
+	const line = match (bufio::read_line(os::stdin)) {
+		case let b: []u8 => yield strings::fromutf8(b)!;
+		case => return;
+	};
+	const choice = strings::trim(line);
+	let appid = "";
+	if (choice == "1") { appid = "com.github.k4zmu2a.spacecadetpinball"; }
+	else if (choice == "2") { appid = "net.sourceforge.lgames.LBreakoutHD"; }
+	else { cprint(C_YELLOW, "CROC", "Afslutter.", o.nocolor); return; };
+	cprint(C_GREEN, "CROC", "TILT! Launching...", o.nocolor);
+	const args: []str = ["flatpak", "run", appid];
 	let _ = run_cmd(args, o.nocolor);
 };
 
