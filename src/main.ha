@@ -3187,12 +3187,38 @@ fn do_rukhmini(o: *opts) void = {
 
 fn do_croc(o: *opts) void = {
 	if (o.croc_setup) {
-		cprint(C_YELLOW, "CROC", "Installing retro arcade games...", o.nocolor);
-		const pin: []str = ["flatpak", "install", "-y", "flathub", "com.github.k4zmu2a.spacecadetpinball"];
-		let _ = run_cmd(pin, o.nocolor);
-		const brk: []str = ["flatpak", "install", "-y", "flathub", "net.sourceforge.lgames.LBreakoutHD"];
-		let _ = run_cmd(brk, o.nocolor);
-		cprint(C_GREEN, "CROC", "Done! Play with: hpo croc", o.nocolor);
+		cprint(C_YELLOW, "CROC", "Master Croc stocks the arcade (10 games)...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[1/10] Space Cadet Pinball...", o.nocolor);
+		const g1: []str = ["flatpak", "install", "-y", "flathub", "com.github.k4zmu2a.spacecadetpinball"];
+		let _ = run_cmd(g1, o.nocolor);
+		cprint(C_CYAN, "CROC", "[2/10] LBreakout HD...", o.nocolor);
+		const g2: []str = ["flatpak", "install", "-y", "flathub", "net.sourceforge.lgames.LBreakoutHD"];
+		let _ = run_cmd(g2, o.nocolor);
+		cprint(C_CYAN, "CROC", "[3/10] OpenTyrian...", o.nocolor);
+		const g3: []str = ["flatpak", "install", "-y", "flathub", "com.github.opentyrian.OpenTyrian"];
+		let _ = run_cmd(g3, o.nocolor);
+		cprint(C_CYAN, "CROC", "[4/10] Frozen Bubble...", o.nocolor);
+		const g4: []str = ["flatpak", "install", "-y", "flathub", "org.frozen_bubble.frozen-bubble"];
+		let _ = run_cmd(g4, o.nocolor);
+		cprint(C_CYAN, "CROC", "[5/10] Nanosaur...", o.nocolor);
+		const g5: []str = ["flatpak", "install", "-y", "flathub", "io.jor.nanosaur"];
+		let _ = run_cmd(g5, o.nocolor);
+		cprint(C_CYAN, "CROC", "[6/10] Sonic Robo Blast 2...", o.nocolor);
+		const g6: []str = ["flatpak", "install", "-y", "flathub", "org.srb2.SRB2"];
+		let _ = run_cmd(g6, o.nocolor);
+		cprint(C_CYAN, "CROC", "[7/10] SRB2 Kart...", o.nocolor);
+		const g7: []str = ["flatpak", "install", "-y", "flathub", "org.srb2.SRB2Kart"];
+		let _ = run_cmd(g7, o.nocolor);
+		cprint(C_CYAN, "CROC", "[8/10] Shattered Pixel Dungeon...", o.nocolor);
+		const g8: []str = ["flatpak", "install", "-y", "flathub", "com.shatteredpixel.shatteredpixeldungeon"];
+		let _ = run_cmd(g8, o.nocolor);
+		cprint(C_CYAN, "CROC", "[9/10] SuperTux...", o.nocolor);
+		const g9: []str = ["flatpak", "install", "-y", "flathub", "org.supertuxproject.SuperTux"];
+		let _ = run_cmd(g9, o.nocolor);
+		cprint(C_CYAN, "CROC", "[10/10] SuperTuxKart...", o.nocolor);
+		const g10: []str = ["flatpak", "install", "-y", "flathub", "net.supertuxkart.SuperTuxKart"];
+		let _ = run_cmd(g10, o.nocolor);
+		cprint(C_GREEN, "CROC", "Arcade ready! Play with: hpo croc", o.nocolor);
 		return;
 	};
 	if (!o.nocolor) fmt::print(C_GREEN)!;
@@ -3202,7 +3228,15 @@ fn do_croc(o: *opts) void = {
 	fmt::println("   \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	fmt::println("   1  Space Cadet Pinball")!;
-	fmt::println("   2  LBreakout HD  (Atari Breakout)")!;
+	fmt::println("   2  LBreakout HD  (Breakout)")!;
+	fmt::println("   3  OpenTyrian  (shooter)")!;
+	fmt::println("   4  Frozen Bubble  (puzzle)")!;
+	fmt::println("   5  Nanosaur  (3D dino)")!;
+	fmt::println("   6  Sonic Robo Blast 2")!;
+	fmt::println("   7  SRB2 Kart  (racing)")!;
+	fmt::println("   8  Shattered Pixel Dungeon")!;
+	fmt::println("   9  SuperTux  (platformer)")!;
+	fmt::println("   10  SuperTuxKart  (racing)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3214,6 +3248,14 @@ fn do_croc(o: *opts) void = {
 	let appid = "";
 	if (choice == "1") { appid = "com.github.k4zmu2a.spacecadetpinball"; }
 	else if (choice == "2") { appid = "net.sourceforge.lgames.LBreakoutHD"; }
+	else if (choice == "3") { appid = "com.github.opentyrian.OpenTyrian"; }
+	else if (choice == "4") { appid = "org.frozen_bubble.frozen-bubble"; }
+	else if (choice == "5") { appid = "io.jor.nanosaur"; }
+	else if (choice == "6") { appid = "org.srb2.SRB2"; }
+	else if (choice == "7") { appid = "org.srb2.SRB2Kart"; }
+	else if (choice == "8") { appid = "com.shatteredpixel.shatteredpixeldungeon"; }
+	else if (choice == "9") { appid = "org.supertuxproject.SuperTux"; }
+	else if (choice == "10") { appid = "net.supertuxkart.SuperTuxKart"; }
 	else { cprint(C_YELLOW, "CROC", "Afslutter.", o.nocolor); return; };
 	cprint(C_GREEN, "CROC", "TILT! Launching...", o.nocolor);
 	const args: []str = ["flatpak", "run", appid];
