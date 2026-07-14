@@ -99,7 +99,7 @@ const server = http.createServer(async (req, res) => {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🐘 Rukhmini - hpo Film Server</title>
+<title>🐒 Rukhmini - hpo Film Server</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0d0d14; color: #e8e8f0; font-family: system-ui, sans-serif; padding: 1rem; }
