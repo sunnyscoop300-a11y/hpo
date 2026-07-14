@@ -25,3 +25,10 @@ helpers/Movies/
 helpers/Movies /
 helpers/Movies/
 helpers/Movies /
+
+# Secrets - NEVER commit these
+omdb_key.txt
+*_key.txt
+*.key
+rukhmini_posters.json
+rukhmini_titles.json
