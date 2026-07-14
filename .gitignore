@@ -6,7 +6,6 @@ hpo
 console_history.cfg
 console_settings.cfg
 *.cfg
-
 # Spil/ROM-data skal ALDRIG i repo (ophavsret)
 *.zip
 *.nes
@@ -21,11 +20,7 @@ roms/
 arcade/
 convergence_a_league_of_legends_story/
 helpers/Movies/
-helpers/Movies/
 helpers/Movies /
-helpers/Movies/
-helpers/Movies /
-
 # Secrets - NEVER commit these
 omdb_key.txt
 *_key.txt
