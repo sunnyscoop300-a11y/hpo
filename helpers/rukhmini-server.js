@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Rukhmini - hpo film-streaming server
-// The clever elephant thief serves your movies across the network
+// The clever macaque thief serves your movies across the network
 // Usage: node rukhmini-server.js <video-dir> <port>
 
 const http = require('http');
@@ -103,7 +103,9 @@ const server = http.createServer(async (req, res) => {
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: #0d0d14; color: #e8e8f0; font-family: system-ui, sans-serif; padding: 1rem; }
-  h1 { color: #c9a24b; margin-bottom: 0.3rem; font-size: 1.6rem; }
+  .hd { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.3rem; }
+  .logo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: #1a1a26; border: 2px solid #c9a24b; }
+  h1 { color: #c9a24b; font-size: 1.6rem; }
   .sub { color: #888; margin-bottom: 1.5rem; font-size: 0.9rem; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
   .movie { background: #1a1a26; border-radius: 12px; padding: 1rem; cursor: pointer; transition: transform 0.15s, background 0.15s; border: 1px solid #262636; }
@@ -121,7 +123,7 @@ const server = http.createServer(async (req, res) => {
 </style>
 </head>
 <body>
-  <h1>🐘 Rukhmini</h1>
+  <div class="hd"><img class="logo" src="/rukhmini.png" alt="Rukhmini"><h1>Rukhmini</h1></div>
   <div class="sub">hpo film server &mdash; ${videos.length} film fundet</div>
   <div class="grid">${items || '<div class="empty">Ingen film fundet i ' + esc(VIDEO_DIR) + '</div>'}</div>
   <div id="player">
@@ -155,6 +157,16 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Streaming endpoint with range support (crucial for seeking + mobile)
+  if (url === '/rukhmini.png') {
+    const img = path.join(__dirname, 'rukhmini-assets', 'rukhmini.png');
+    try {
+      const stat = fs.statSync(img);
+      res.writeHead(200, { 'Content-Type': 'image/png', 'Content-Length': stat.size });
+      fs.createReadStream(img).pipe(res);
+    } catch (e) { res.writeHead(404); res.end('no logo'); }
+    return;
+  }
+
   if (url.startsWith('/stream/')) {
     const rel = url.slice('/stream/'.length);
     // Security: resolve and confirm it's inside VIDEO_DIR
