@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.34.0";
+def VERSION = "4.35.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2390,7 +2390,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.34.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.35.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3329,9 +3329,16 @@ fn do_crane(o: *opts) void = {
 		cprint(C_YELLOW, "CRANE", "Usage: hpo crane <url> | search | radio | yt | ytradio | web | local <path> | mix <path>", o.nocolor);
 		return;
 	};
+	// repeat <fil>? Loop sangen uendeligt
+	if (o.crane_arg == "repeat" && o.crane_arg2 != "") {
+		cprint(C_GREEN, "CRANE", "Repeat mode! (p=pause, q=quit)", o.nocolor);
+		const args: []str = ["mpv", "--no-video", "--loop-file=inf", o.crane_arg2];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
 	// Lokal fil-sti? Spil direkte med mpv
 	if (strings::hasprefix(o.crane_arg, "/") || strings::hasprefix(o.crane_arg, "~") || strings::hasprefix(o.crane_arg, ".")) {
-		cprint(C_GREEN, "CRANE", "Playing local track...", o.nocolor);
+		cprint(C_GREEN, "CRANE", "Playing local track... (p=pause, q=quit)", o.nocolor);
 		const args: []str = ["mpv", "--no-video", o.crane_arg];
 		let _ = run_cmd(args, o.nocolor);
 		return;
