@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.35.0";
+def VERSION = "4.35.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2390,7 +2390,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.35.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.35.1")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3339,7 +3339,7 @@ fn do_crane(o: *opts) void = {
 	// Lokal fil-sti? Spil direkte med mpv
 	if (strings::hasprefix(o.crane_arg, "/") || strings::hasprefix(o.crane_arg, "~") || strings::hasprefix(o.crane_arg, ".")) {
 		cprint(C_GREEN, "CRANE", "Playing local track... (p=pause, q=quit)", o.nocolor);
-		const args: []str = ["mpv", "--no-video", o.crane_arg];
+		const args: []str = ["mpv", "--no-video", "--term-playing-msg=\u266a ${media-title}", o.crane_arg];
 		let _ = run_cmd(args, o.nocolor);
 		return;
 	};
@@ -3396,7 +3396,7 @@ fn do_crane(o: *opts) void = {
 		return;
 	};
 	cprint(C_GREEN, "CRANE", "Now playing...", o.nocolor);
-	const args: []str = ["mpv", "--no-video", "--ytdl-raw-options=cookies-from-browser=brave", o.crane_arg];
+	const args: []str = ["mpv", "--no-video", "--term-playing-msg=\u266a ${media-title}", "--ytdl-raw-options=cookies-from-browser=brave", o.crane_arg];
 	let _ = run_cmd(args, o.nocolor);
 };
 
