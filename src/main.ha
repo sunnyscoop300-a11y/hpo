@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.32.1";
+def VERSION = "4.33.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -90,6 +90,9 @@ type opts = struct {
 	croc_setup: bool,
 	rukhmini: bool,
 	rukhmini_arg: str,
+	akna: bool,
+	akna_arg: str,
+	akna_arg2: str,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2387,7 +2390,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.32.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.33.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3168,6 +3171,25 @@ fn do_doctor(o: *opts) void = {
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
 };
 
+fn do_akna(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_CYAN)!;
+	fmt::println("   [AKNA] The memory wizard preserves your hpo setup...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	if (o.akna_arg == "") {
+		cprint(C_YELLOW, "AKNA", "Usage: hpo akna save <usb-dir> | restore <usb-dir> | list <usb-dir>", o.nocolor);
+		return;
+	};
+	if (o.akna_arg2 == "") {
+		cprint(C_YELLOW, "AKNA", "Please give a USB/directory path.", o.nocolor);
+		return;
+	};
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	static let sbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/akna-wizard.sh", home)!;
+	const args: []str = ["bash", script, o.akna_arg, o.akna_arg2];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_rukhmini(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
 	fmt::println("   [RUKHMINI] The clever thief serves your movies!")!;
@@ -3942,6 +3964,9 @@ export fn main() void = {
 			croc_setup = false,
 			rukhmini = false,
 			rukhmini_arg = "",
+			akna = false,
+			akna_arg = "",
+			akna_arg2 = "",
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -4070,6 +4095,16 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "akna") {
+                	o.akna = true;
+                	if (i + 1 < len(args)) {
+                		o.akna_arg = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.akna_arg2 = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "rukhmini") {
                 	o.rukhmini = true;
                 	if (i + 1 < len(args)) {
@@ -4342,6 +4377,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.akna) {
+		do_akna(&o);
 		return;
 	};
 	if (o.rukhmini) {
