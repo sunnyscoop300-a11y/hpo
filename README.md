@@ -1,6 +1,6 @@
 # hpo 🐯
 
-**The Hare Download, Game & Media Manager** — a Kung Fu Panda + Rooster Fighter + The Wild Robot themed CLI multitool written in [Hare](https://harelang.org/).
+**The Hare Download, Game & Media Manager** — a Kung Fu Panda + Dragon Knight + Rooster Fighter + The Wild Robot themed CLI multitool written in [Hare](https://harelang.org/).
 
 ---
 
@@ -38,6 +38,7 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 - **`hpo --steam list`** — shows installed games with names + AppIDs (works on WSL too)
 - Launch shows the full game name, looked up from Steam's manifests
 - Per-game aliases in `~/.config/hpo/{steam,epic}_aliases.txt`
+- **Steam-native games**: appids in `~/.config/hpo/steam_requires_native.txt` launch via the Steam client (for games needing steamclient, e.g. GDK titles)
 
 ### 🐉 Zhen Engine
 - Self-contained gaming runtime built on **umu-launcher + GE-Proton11-1**
@@ -62,9 +63,22 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 ### 🦆 Mr. Ping — Roblox
 - `hpo ping` — launches Roblox via Sober (Flatpak)
 
-### 🐊 Croc — Space Cadet Pinball
-- `hpo croc` — Master Croc racks the ball! Classic 3D Space Cadet Pinball
-- `hpo croc setup` — install via Flatpak (open-source SpaceCadetPinball engine)
+### 🐊 Croc — Retro Arcade Hub
+*Master Croc racks the ball!* — a TUI menu of 10 open-source retro games.
+- `hpo croc` — open the arcade menu, pick a game
+- `hpo croc setup` — install all 10 games via Flatpak (with progress)
+
+The lineup (all free / open-source):
+1. 🎯 Space Cadet Pinball
+2. 🧱 LBreakout HD (Breakout)
+3. 🚀 OpenTyrian (vertical shooter)
+4. 🫧 Frozen Bubble (puzzle)
+5. 🦕 Nanosaur (3D dino shooter)
+6. 🦔 Sonic Robo Blast 2 (3D platformer)
+7. 🏁 SRB2 Kart (racing)
+8. 🗡️ Shattered Pixel Dungeon (roguelike)
+9. 🍄 SuperTux (platformer)
+10. 🏎️ SuperTuxKart (racing)
 
 ### 🐤 Piyoko Arcade — Retro Gaming
 - `hpo xp <system> <game>` — multi-system retro arcade
@@ -74,25 +88,39 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 
 ---
 
-## 🎵 Media
+## 🎬 Media
+
+### 🐒 Rukhmini — Movie Streaming Server
+*The clever macaque thief serves your movies!* — stream your films to any device on your network.
+- `hpo rukhmini` — serve `~/Videos` on port 8377
+- `hpo rukhmini <folder>` — serve a specific folder
+- **OMDb movie posters** — real posters fetched by title (cached)
+- **Network streaming** — open the shown IP on your phone or TV
+- **Range requests** — seeking and mobile playback work smoothly
+- **Size filter** — hides small disc-rip clips (menus, trailers), shows real films
+- Custom macaque logo in the web header
+- Architecture: Hare launches it, **Node.js** streams the video, JS/HTML is the frontend, OMDb supplies posters
+- OMDb key lives in `~/.config/hpo/omdb_key.txt` (free key from omdbapi.com — never committed)
 
 ### 🐦 Crane — Music Player
-*Elegant and soaring* — Crane streams music from anywhere.
+*Elegant and soaring* — Crane plays music from anywhere.
+- `hpo crane <file>` — play a local track directly
+- `hpo crane repeat <file>` — 🔁 loop a track until you're done
+- `hpo crane mix <path>` — 🔀 **DJ mode**: shuffle + loop your collection
+- `hpo crane local <path>` — play a local folder (Suno tracks, downloads)
 - `hpo crane search <words>` — SoundCloud search
 - `hpo crane radio <words>` — SoundCloud radio (10 tracks in a row)
 - `hpo crane yt <words>` — YouTube search
 - `hpo crane ytradio <words>` — YouTube radio (10 tracks)
-- `hpo crane local <path>` — play local music (Suno tracks, downloads)
-- `hpo crane mix <path>` — **DJ mode**: shuffle + loop your collection
 - `hpo crane web <words>` — open SoundCloud search in your browser
-- `hpo crane <url>` — play a direct SoundCloud/YouTube URL
+- **Playback controls** (via mpv): `p`/space = pause, `+`/`-` = volume, `q` = quit
 - Respects DRM — skips protected tracks (plays only freely available music)
 
 ### 🐃 Kai — Anime Player with Anime4K
 *"Take his chi!"* — Kai makes your anime jade-sharp.
 - `hpo kai <file>` — play a local anime/video with **Anime4K upscaling**
 - `hpo kai <folder>` — play a whole folder
-- `hpo kai <youtube-url>` — YouTube in **1080p + Anime4K**
+- `hpo kai <youtube-url>` — YouTube in **1080p + Anime4K** (downloads then plays to avoid HLS 403)
 - `hpo kai <search words>` — search YouTube and play
 - Perfect for your own anime Blu-rays (rip with MakeMKV → jade-sharp playback)
 - Anime4K v4.0 shaders (MIT) in `~/.config/mpv/shaders/`, tuned for 1080p
@@ -110,6 +138,15 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 ---
 
 ## 🛠️ Tools & Extras
+
+### 🪄 Akna — Config Memory Wizard
+*The memory wizard preserves your hpo setup* — back up and restore your whole setup to a USB, perfect for distro-hopping.
+- `hpo akna save <usb-dir>` — save config + art + game list to `akna-hpo-backup.tar.gz`
+- `hpo akna save-all <usb-dir>` — also include your manga carts
+- `hpo akna restore <usb-dir>` — restore config on a new system
+- `hpo akna restore-all <usb-dir>` — restore config + manga carts
+- `hpo akna list <usb-dir>` — show what a backup contains
+- Bundles aliases, keys, art portraits, Piyokocoin balance, and a snapshot of installed games
 
 ### 🦎 Chameleon — Save Manager
 *"Your power... is now MINE!"* — The Chameleon steals (backs up) and restores your game saves.
@@ -154,9 +191,11 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 - `curl`, `aria2c`, `openssl`, `xdg-open` for download backends
 - `gdown` (`pip install gdown`) for Google Drive
 - `mpv` for the Oogway bell, Crane music, and Kai video
+- `node` for the Rukhmini movie server
 - `python3` for the Shifu cinema helper
 - `legendary` (`pipx install legendary-gl`) for Epic Games on Linux
 - `yt-dlp` for Crane/Kai YouTube support
+- `flatpak` for Croc arcade games, Viper, Mr. Ping
 - Optional: Flatpak Steam or native `steam`
 
 ### Build
@@ -176,6 +215,17 @@ Or use the beginner-friendly bootstrap (builds the whole Hare toolchain first):
 ### Zhen Engine (for Epic/Steam gaming)
 ```bash
 hpo --zhen-setup --proton
+```
+
+### Croc arcade (retro games)
+```bash
+hpo croc setup      # installs all 10 open-source games via Flatpak
+```
+
+### Rukhmini movie posters (OMDb)
+```bash
+mkdir -p ~/.config/hpo
+echo "YOUR_OMDB_KEY" > ~/.config/hpo/omdb_key.txt   # free key from omdbapi.com/apikey.aspx
 ```
 
 ### Anime4K shaders (for Kai)
@@ -234,7 +284,7 @@ This makes `hpo shifu` go from ~1.7s to ~4ms on the second call (**~400x faster*
 
 ## Theming
 
-hpo draws on **Kung Fu Panda**, **Rooster Fighter**, and **The Wild Robot**:
+hpo draws on **Kung Fu Panda**, **Kung Fu Panda: The Dragon Knight**, **Rooster Fighter**, and **The Wild Robot**:
 
 - 🐯 **Po / Tigress** — Steam alias & quote of the day
 - 🐉 **Zhen** — the gaming engine (KFP4)
@@ -245,7 +295,9 @@ hpo draws on **Kung Fu Panda**, **Rooster Fighter**, and **The Wild Robot**:
 - 🦗 **Mantis** — manga cart hub (Furious Five)
 - 🐦 **Crane** — music player (Furious Five)
 - 🐃 **Kai** — anime player with Anime4K (KFP3, the jade master)
-- 🐊 **Master Croc** — Space Cadet Pinball (Kung Fu Council)
+- 🐊 **Master Croc** — retro arcade hub (Kung Fu Council)
+- 🐒 **Rukhmini** — movie streaming server (Dragon Knight, the long-tailed macaque thief)
+- 🪄 **Akna** — config memory wizard (Dragon Knight)
 - 🐢 **Oogway** — meditation
 - 🥋 **Shifu** — cinema oracle
 - 🗡️ **Bnet** — Battle.net / WoW launcher
@@ -260,8 +312,8 @@ hpo draws on **Kung Fu Panda**, **Rooster Fighter**, and **The Wild Robot**:
 
 hpo only helps with legal content: your own files, purchased games (Steam/Epic/GOG),
 your own disc/cartridge dumps, your own Blu-rays (personal backups via MakeMKV),
-your own Suno generations, free MAME ROMs, homebrew, and freely-available streaming.
-It respects DRM and does not circumvent copy protection.
+your own Suno generations, free MAME ROMs, homebrew, open-source games, and
+freely-available streaming. It respects DRM and does not circumvent copy protection.
 
 ---
 
