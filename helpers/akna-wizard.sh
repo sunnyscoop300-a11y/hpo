@@ -12,6 +12,14 @@ TARGET="${2:-}"
 BACKUP_NAME="akna-hpo-backup.tar.gz"
 CFG="$HOME/.config/hpo"
 STAGE="/tmp/akna-stage"
+BACKUP_ALL="akna-hpo-full.tar.gz"
+# Manga carts (source projects) - relative to $HOME
+CARTS=(
+  "Documents/sakamoto"
+  "Documents/Ichi"
+  "Music/Atlas77/williamdam_cart"
+  "Music/Atlas77/blacktorch_cart"
+)
 
 die() { echo "AKNA_ERROR: $*"; exit 1; }
 
@@ -75,6 +83,48 @@ case "$ACTION" in
     echo ""
     echo "Saved with hpo version:"
     tar -xzOf "$ARCHIVE" ./akna-version.txt 2>/dev/null || echo "unknown"
+    ;;
+
+  save-all)
+    [ -n "$TARGET" ] || die "no destination given"
+    [ -d "$TARGET" ] || die "destination not found: $TARGET"
+    rm -rf "$STAGE"; mkdir -p "$STAGE/config" "$STAGE/carts"
+    cp -r "$CFG/." "$STAGE/config/" 2>/dev/null
+    {
+      echo "# Akna full snapshot - $(date -Iseconds)"
+      flatpak list --app --columns=application 2>/dev/null | sort -u
+    } > "$STAGE/akna-games.txt"
+    hpo --version 2>/dev/null > "$STAGE/akna-version.txt" || echo "unknown" > "$STAGE/akna-version.txt"
+    # Copy each manga cart
+    for c in "${CARTS[@]}"; do
+      if [ -d "$HOME/$c" ]; then
+        mkdir -p "$STAGE/carts/$(dirname "$c")"
+        cp -r "$HOME/$c" "$STAGE/carts/$(dirname "$c")/" 2>/dev/null
+        echo "  + cart: $c"
+      fi
+    done
+    tar -czf "$TARGET/$BACKUP_ALL" -C "$STAGE" . || die "tar failed"
+    SIZE=$(du -h "$TARGET/$BACKUP_ALL" | cut -f1)
+    rm -rf "$STAGE"
+    echo "AKNA_OK: saved $BACKUP_ALL ($SIZE) to $TARGET (config + carts)"
+    ;;
+
+  restore-all)
+    [ -n "$TARGET" ] || die "no source given"
+    ARCHIVE="$TARGET/$BACKUP_ALL"
+    [ -f "$ARCHIVE" ] || die "no full backup found at $ARCHIVE"
+    rm -rf "$STAGE"; mkdir -p "$STAGE"
+    tar -xzf "$ARCHIVE" -C "$STAGE" || die "extract failed"
+    mkdir -p "$CFG"
+    cp -r "$STAGE/config/." "$CFG/" 2>/dev/null
+    echo "AKNA_OK: config restored to $CFG"
+    # Restore carts
+    if [ -d "$STAGE/carts" ]; then
+      cp -r "$STAGE/carts/." "$HOME/" 2>/dev/null
+      echo "AKNA_OK: manga carts restored to ~/Documents and ~/Music"
+    fi
+    rm -rf "$STAGE"
+    echo "Done! Rebuild carts with their build scripts if needed."
     ;;
 
   *)
