@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.36.0";
+def VERSION = "4.37.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -93,6 +93,7 @@ type opts = struct {
 	akna: bool,
 	akna_arg: str,
 	akna_arg2: str,
+	forouzan: bool,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2390,7 +2391,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.36.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.37.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3169,6 +3170,70 @@ fn do_doctor(o: *opts) void = {
 	fmt::println("")!;
 	cprint(C_GREEN, "DOCTOR", "Any MISSING? Run: hpo --setup", o.nocolor);
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
+};
+
+fn do_forouzan(o: *opts) void = {
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	if (!o.nocolor) fmt::print(C_BLUE)!;
+	fmt::println("")!;
+	fmt::println("   \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")!;
+	fmt::println("   \u2551 FOROUZAN - Launcher Fleet \u2551")!;
+	fmt::println("   \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	fmt::println("   1  Battle.net  (Blizzard)")!;
+	fmt::println("   2  EA App")!;
+	fmt::println("   3  Ubisoft Connect")!;
+	fmt::println("   q  Afslut")!;
+	fmt::print("   Vaelg: ")!;
+	bufio::flush(os::stdout)!;
+	const line = match (bufio::read_line(os::stdin)) {
+		case let b: []u8 => yield strings::fromutf8(b)!;
+		case => return;
+	};
+	const choice = strings::trim(line);
+	// Faelles Zhen/umu opsaetning
+	const pbuf: [512]u8 = [0...];
+	const proton = fmt::bsprintf(pbuf, "{}/.local/share/hpo/zhen/proton/GE-Proton11-1", home)!;
+	const ubuf: [512]u8 = [0...];
+	const umu = fmt::bsprintf(ubuf, "{}/.local/share/hpo/zhen/umu-run", home)!;
+	const zbuf: [512]u8 = [0...];
+	const zhen = fmt::bsprintf(zbuf, "{}/.local/share/hpo/zhen", home)!;
+	os::setenv("STEAM_COMPAT_CLIENT_INSTALL_PATH", zhen)!;
+	os::setenv("PROTONPATH", proton)!;
+	os::setenv("GAMEID", "umu-0")!;
+	os::setenv("STORE", "none")!;
+	os::setenv("WINEFSYNC", "1")!;
+	let exe = "";
+	const ebuf: [512]u8 = [0...];
+	if (choice == "1") {
+		const prbuf: [512]u8 = [0...];
+		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-bnet", home)!;
+		os::setenv("WINEPREFIX", prefix)!;
+		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-bnet/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe", home)!;
+	} else if (choice == "2") {
+		const prbuf: [512]u8 = [0...];
+		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-ea", home)!;
+		os::setenv("WINEPREFIX", prefix)!;
+		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-ea/drive_c/Program Files/Electronic Arts/EA Desktop/EA Desktop/EADesktop.exe", home)!;
+	} else if (choice == "3") {
+		const prbuf: [512]u8 = [0...];
+		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-ubisoft", home)!;
+		os::setenv("WINEPREFIX", prefix)!;
+		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-ubisoft/drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe", home)!;
+	} else {
+		cprint(C_YELLOW, "FOROUZAN", "The fleet rests. Farewell!", o.nocolor);
+		return;
+	};
+	if (!os::exists(exe)) {
+		cprint(C_YELLOW, "FOROUZAN", "Launcher not installed yet - install it first, then try again.", o.nocolor);
+		return;
+	};
+	cprint(C_GREEN, "FOROUZAN", "The Pirate Queen sets sail! Launching...", o.nocolor);
+	const args: []str = [umu, exe];
+	let _ = run_cmd(args, o.nocolor);
 };
 
 fn do_akna(o: *opts) void = {
@@ -3984,6 +4049,7 @@ export fn main() void = {
 			akna = false,
 			akna_arg = "",
 			akna_arg2 = "",
+			forouzan = false,
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -4112,6 +4178,8 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "forouzan") {
+                	o.forouzan = true;
                 } else if (a == "akna") {
                 	o.akna = true;
                 	if (i + 1 < len(args)) {
@@ -4394,6 +4462,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.forouzan) {
+		do_forouzan(&o);
 		return;
 	};
 	if (o.akna) {
