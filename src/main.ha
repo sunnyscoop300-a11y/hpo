@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.35.1";
+def VERSION = "4.36.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2390,7 +2390,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.35.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.36.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3209,37 +3209,43 @@ fn do_rukhmini(o: *opts) void = {
 
 fn do_croc(o: *opts) void = {
 	if (o.croc_setup) {
-		cprint(C_YELLOW, "CROC", "Master Croc stocks the arcade (10 games)...", o.nocolor);
-		cprint(C_CYAN, "CROC", "[1/10] Space Cadet Pinball...", o.nocolor);
+		cprint(C_YELLOW, "CROC", "Master Croc stocks the arcade (12 games)...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[1/12] Space Cadet Pinball...", o.nocolor);
 		const g1: []str = ["flatpak", "install", "-y", "flathub", "com.github.k4zmu2a.spacecadetpinball"];
 		let _ = run_cmd(g1, o.nocolor);
-		cprint(C_CYAN, "CROC", "[2/10] LBreakout HD...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[2/12] LBreakout HD...", o.nocolor);
 		const g2: []str = ["flatpak", "install", "-y", "flathub", "net.sourceforge.lgames.LBreakoutHD"];
 		let _ = run_cmd(g2, o.nocolor);
-		cprint(C_CYAN, "CROC", "[3/10] OpenTyrian...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[3/12] OpenTyrian...", o.nocolor);
 		const g3: []str = ["flatpak", "install", "-y", "flathub", "com.github.opentyrian.OpenTyrian"];
 		let _ = run_cmd(g3, o.nocolor);
-		cprint(C_CYAN, "CROC", "[4/10] Frozen Bubble...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[4/12] Frozen Bubble...", o.nocolor);
 		const g4: []str = ["flatpak", "install", "-y", "flathub", "org.frozen_bubble.frozen-bubble"];
 		let _ = run_cmd(g4, o.nocolor);
-		cprint(C_CYAN, "CROC", "[5/10] Nanosaur...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[5/12] Nanosaur...", o.nocolor);
 		const g5: []str = ["flatpak", "install", "-y", "flathub", "io.jor.nanosaur"];
 		let _ = run_cmd(g5, o.nocolor);
-		cprint(C_CYAN, "CROC", "[6/10] Sonic Robo Blast 2...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[6/12] Sonic Robo Blast 2...", o.nocolor);
 		const g6: []str = ["flatpak", "install", "-y", "flathub", "org.srb2.SRB2"];
 		let _ = run_cmd(g6, o.nocolor);
-		cprint(C_CYAN, "CROC", "[7/10] SRB2 Kart...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[7/12] SRB2 Kart...", o.nocolor);
 		const g7: []str = ["flatpak", "install", "-y", "flathub", "org.srb2.SRB2Kart"];
 		let _ = run_cmd(g7, o.nocolor);
-		cprint(C_CYAN, "CROC", "[8/10] Shattered Pixel Dungeon...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[8/12] Shattered Pixel Dungeon...", o.nocolor);
 		const g8: []str = ["flatpak", "install", "-y", "flathub", "com.shatteredpixel.shatteredpixeldungeon"];
 		let _ = run_cmd(g8, o.nocolor);
-		cprint(C_CYAN, "CROC", "[9/10] SuperTux...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[9/12] SuperTux...", o.nocolor);
 		const g9: []str = ["flatpak", "install", "-y", "flathub", "org.supertuxproject.SuperTux"];
 		let _ = run_cmd(g9, o.nocolor);
-		cprint(C_CYAN, "CROC", "[10/10] SuperTuxKart...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[10/12] SuperTuxKart...", o.nocolor);
 		const g10: []str = ["flatpak", "install", "-y", "flathub", "net.supertuxkart.SuperTuxKart"];
 		let _ = run_cmd(g10, o.nocolor);
+		cprint(C_CYAN, "CROC", "[11/12] OpenSurge...", o.nocolor);
+		const g11: []str = ["flatpak", "install", "-y", "flathub", "org.opensurge2d.OpenSurge"];
+		let _ = run_cmd(g11, o.nocolor);
+		cprint(C_CYAN, "CROC", "[12/12] Dynablaster Revenge...", o.nocolor);
+		const g12: []str = ["flatpak", "install", "-y", "flathub", "com.github.varnholt.dynablaster_revenge"];
+		let _ = run_cmd(g12, o.nocolor);
 		cprint(C_GREEN, "CROC", "Arcade ready! Play with: hpo croc", o.nocolor);
 		return;
 	};
@@ -3259,6 +3265,8 @@ fn do_croc(o: *opts) void = {
 	fmt::println("   8  Shattered Pixel Dungeon")!;
 	fmt::println("   9  SuperTux  (platformer)")!;
 	fmt::println("   10  SuperTuxKart  (racing)")!;
+	fmt::println("   11  OpenSurge  (Sonic-like)")!;
+	fmt::println("   12  Dynablaster  (Bomberman)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3278,6 +3286,8 @@ fn do_croc(o: *opts) void = {
 	else if (choice == "8") { appid = "com.shatteredpixel.shatteredpixeldungeon"; }
 	else if (choice == "9") { appid = "org.supertuxproject.SuperTux"; }
 	else if (choice == "10") { appid = "net.supertuxkart.SuperTuxKart"; }
+	else if (choice == "11") { appid = "org.opensurge2d.OpenSurge"; }
+	else if (choice == "12") { appid = "com.github.varnholt.dynablaster_revenge"; }
 	else { cprint(C_YELLOW, "CROC", "Afslutter.", o.nocolor); return; };
 	cprint(C_GREEN, "CROC", "TILT! Launching...", o.nocolor);
 	const args: []str = ["flatpak", "run", appid];
