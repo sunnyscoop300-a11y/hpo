@@ -3307,6 +3307,13 @@ fn do_crane(o: *opts) void = {
 		cprint(C_YELLOW, "CRANE", "Usage: hpo crane <url> | search | radio | yt | ytradio | web | local <path> | mix <path>", o.nocolor);
 		return;
 	};
+	// Lokal fil-sti? Spil direkte med mpv
+	if (strings::hasprefix(o.crane_arg, "/") || strings::hasprefix(o.crane_arg, "~") || strings::hasprefix(o.crane_arg, ".")) {
+		cprint(C_GREEN, "CRANE", "Playing local track...", o.nocolor);
+		const args: []str = ["mpv", "--no-video", o.crane_arg];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
 	if (o.crane_arg == "search" && o.crane_arg2 != "") {
 		cprint(C_GREEN, "CRANE", "Searching SoundCloud...", o.nocolor);
 		const q = fmt::asprintf("ytdl://scsearch5:{}", o.crane_arg2)!;
