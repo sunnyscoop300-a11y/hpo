@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.38.1";
+def VERSION = "4.39.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -94,6 +94,8 @@ type opts = struct {
 	akna_arg: str,
 	akna_arg2: str,
 	forouzan: bool,
+	klaus: bool,
+	klaus_arg: str,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2391,7 +2393,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.38.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.39.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3187,6 +3189,40 @@ fn do_doctor(o: *opts) void = {
 	fmt::println("")!;
 	cprint(C_GREEN, "DOCTOR", "Any MISSING? Run: hpo --setup", o.nocolor);
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
+};
+
+fn do_klaus(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_RED)!;
+	fmt::println("   [KLAUS] The artist conjures your image...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	if (o.klaus_arg == "") {
+		cprint(C_YELLOW, "KLAUS", "Usage: hpo klaus \"your image prompt\"", o.nocolor);
+		return;
+	};
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	// URL-encode prompten (mellemrum -> %20 osv.)
+	const enc = strings::replace(o.klaus_arg, " ", "%20")!;
+	// Byg output-filnavn (timestamp)
+	const ts = time::now(time::clock::REALTIME);
+	static let obuf: [512]u8 = [0...];
+	const outdir = fmt::bsprintf(obuf, "{}/Pictures/klaus", home)!;
+	const mkargs: []str = ["mkdir", "-p", outdir];
+	let _ = run_cmd(mkargs, true);
+	static let fbuf: [640]u8 = [0...];
+	const outfile = fmt::bsprintf(fbuf, "{}/Pictures/klaus/klaus-{}.jpg", home, ts.sec)!;
+	static let ubuf: [2048]u8 = [0...];
+	const url = fmt::bsprintf(ubuf, "https://image.pollinations.ai/prompt/{}?width=1024&height=1024&nologo=true", enc)!;
+	cprint(C_YELLOW, "KLAUS", "Painting... (this takes a few seconds)", o.nocolor);
+	const args: []str = ["curl", "-s", url, "-o", outfile];
+	let ok = run_cmd(args, o.nocolor);
+	if (ok) {
+		cprint(C_GREEN, "KLAUS", "Masterpiece complete!", o.nocolor);
+		fmt::printfln("   Saved: {}", outfile)!;
+		const openargs: []str = ["xdg-open", outfile];
+		let _ = run_cmd(openargs, true);
+	} else {
+		cprint(C_RED, "KLAUS", "The canvas failed. Try again.", o.nocolor);
+	};
 };
 
 fn do_forouzan(o: *opts) void = {
@@ -4067,6 +4103,8 @@ export fn main() void = {
 			akna_arg = "",
 			akna_arg2 = "",
 			forouzan = false,
+			klaus = false,
+			klaus_arg = "",
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -4195,6 +4233,12 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "klaus") {
+                	o.klaus = true;
+                	if (i + 1 < len(args)) {
+                		o.klaus_arg = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "forouzan") {
                 	o.forouzan = true;
                 } else if (a == "akna") {
@@ -4479,6 +4523,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.klaus) {
+		do_klaus(&o);
 		return;
 	};
 	if (o.forouzan) {
