@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.37.0";
+def VERSION = "4.38.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2391,7 +2391,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.37.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.38.1")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2497,6 +2497,8 @@ fn print_help() void = {
 	fmt::println("  hpo shifu haderslev weekend           What's playing this weekend?")!;
 	fmt::println("")!;
 	fmt::println("MEDIA - MUSIC (Crane, the SoundCloud & YouTube player):")!;
+	fmt::println("  hpo crane <file>                      Play a local track directly")!;
+	fmt::println("  hpo crane repeat <file>               Loop a track (p=pause, +/-=vol)")!;
 	fmt::println("  hpo crane search <words>              SoundCloud search")!;
 	fmt::println("  hpo crane radio <words>               SoundCloud radio (10 tracks)")!;
 	fmt::println("  hpo crane yt <words>                  YouTube search")!;
@@ -2517,9 +2519,24 @@ fn print_help() void = {
 	fmt::println("  hpo bnet                              Battle.net / World of Warcraft")!;
 	fmt::println("  hpo viper                             PS5/PS4 Remote Play (chiaki-ng)")!;
 	fmt::println("  hpo ping                              Roblox (via Sober)")!;
-	fmt::println("  hpo croc                              Space Cadet Pinball (Master Croc)")!;
-	fmt::println("  hpo croc setup                        Install pinball via Flatpak")!;
+	fmt::println("  hpo croc                              Retro arcade hub - 12 games (Master Croc)")!;
+	fmt::println("  hpo croc setup                        Install all 12 arcade games via Flatpak")!;
 	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
+	fmt::println("")!;
+	fmt::println("MEDIA - MOVIES (Rukhmini movie streaming server):")!;
+	fmt::println("  hpo rukhmini                          Stream ~/Videos to phone/TV (port 8377)")!;
+	fmt::println("  hpo rukhmini <folder>                 Serve a specific folder")!;
+	fmt::println("  OMDb key: ~/.config/hpo/omdb_key.txt (posters)")!;
+	fmt::println("")!;
+	fmt::println("LAUNCHERS (Forouzan launcher fleet):")!;
+	fmt::println("  hpo forouzan                          TUI menu: Battle.net, EA App, Ubisoft")!;
+	fmt::println("")!;
+	fmt::println("CONFIG BACKUP (Akna config memory wizard):")!;
+	fmt::println("  hpo akna save <usb-dir>               Back up config + art to USB")!;
+	fmt::println("  hpo akna save-all <usb-dir>           Also include manga carts")!;
+	fmt::println("  hpo akna restore <usb-dir>            Restore config on a new system")!;
+	fmt::println("  hpo akna restore-all <usb-dir>        Restore config + carts")!;
+	fmt::println("  hpo akna list <usb-dir>               Show backup contents")!;
 	fmt::println("")!;
 	fmt::println("MANGA (Mantis cart hub):")!;
 	fmt::println("  hpo mantis                            Open the manga cart hub (TUI)")!;
@@ -3216,7 +3233,7 @@ fn do_forouzan(o: *opts) void = {
 		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-ea", home)!;
 		os::setenv("WINEPREFIX", prefix)!;
 		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
-		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-ea/drive_c/Program Files/Electronic Arts/EA Desktop/EA Desktop/EADesktop.exe", home)!;
+		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-ea/drive_c/Program Files/Electronic Arts/EA Desktop/13.743.1.6250/EA Desktop/EADesktop.exe", home)!;
 	} else if (choice == "3") {
 		const prbuf: [512]u8 = [0...];
 		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-ubisoft", home)!;
