@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.39.0";
+def VERSION = "4.40.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -96,6 +96,8 @@ type opts = struct {
 	forouzan: bool,
 	klaus: bool,
 	klaus_arg: str,
+	veruca: bool,
+	veruca_arg: str,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2393,7 +2395,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.39.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.40.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3189,6 +3191,27 @@ fn do_doctor(o: *opts) void = {
 	fmt::println("")!;
 	cprint(C_GREEN, "DOCTOR", "Any MISSING? Run: hpo --setup", o.nocolor);
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
+};
+
+fn do_veruca(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_BLUE)!;
+	fmt::println("   [VERUCA] The dark mage weaves a higher art...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	if (o.veruca_arg == "") {
+		// Ingen prompt -> aabn den visuelle HTML-side i browseren
+		cprint(C_BLUE, "VERUCA", "Opening the visual summoning circle in your browser...", o.nocolor);
+		static let hbuf: [512]u8 = [0...];
+		const page = fmt::bsprintf(hbuf, "{}/hpo/helpers/veruca.html", home)!;
+		const oargs: []str = ["xdg-open", page];
+		let _ = run_cmd(oargs, o.nocolor);
+		return;
+	};
+	static let sbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/veruca-gen.py", home)!;
+	cprint(C_YELLOW, "VERUCA", "Summoning the image (API call, may take a moment)...", o.nocolor);
+	const args: []str = ["python3", script, o.veruca_arg];
+	let _ = run_cmd(args, o.nocolor);
 };
 
 fn do_klaus(o: *opts) void = {
@@ -4105,6 +4128,8 @@ export fn main() void = {
 			forouzan = false,
 			klaus = false,
 			klaus_arg = "",
+			veruca = false,
+			veruca_arg = "",
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -4233,6 +4258,12 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "veruca") {
+                	o.veruca = true;
+                	if (i + 1 < len(args)) {
+                		o.veruca_arg = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "klaus") {
                 	o.klaus = true;
                 	if (i + 1 < len(args)) {
@@ -4523,6 +4554,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.veruca) {
+		do_veruca(&o);
 		return;
 	};
 	if (o.klaus) {
