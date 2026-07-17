@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.40.0";
+def VERSION = "4.41.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -98,6 +98,7 @@ type opts = struct {
 	klaus_arg: str,
 	veruca: bool,
 	veruca_arg: str,
+	zuma: bool,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2395,7 +2396,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.40.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.41.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3191,6 +3192,35 @@ fn do_doctor(o: *opts) void = {
 	fmt::println("")!;
 	cprint(C_GREEN, "DOCTOR", "Any MISSING? Run: hpo --setup", o.nocolor);
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
+};
+
+fn do_zuma(o: *opts) void = {
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	if (!o.nocolor) fmt::print(C_MAGENTA)!;
+	fmt::println("")!;
+	fmt::println("   \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")!;
+	fmt::println("   \u2551 QUEEN ZUMA - Anime Tracker \u2551")!;
+	fmt::println("   \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	fmt::println("   1  Record of Ragnarok S3")!;
+	fmt::println("   2  Grimgar of Fantasy and Ash")!;
+	fmt::println("   q  Afslut")!;
+	fmt::print("   Vaelg: ")!;
+	bufio::flush(os::stdout)!;
+	const line = match (bufio::read_line(os::stdin)) {
+		case let b: []u8 => yield strings::fromutf8(b)!;
+		case => return;
+	};
+	const choice = strings::trim(line);
+	let bin = "";
+	if (choice == "1") { bin = "ragnarok_s3"; }
+	else if (choice == "2") { bin = "grimgar"; }
+	else { cprint(C_MAGENTA, "ZUMA", "The Queen retires.", o.nocolor); return; };
+	cprint(C_MAGENTA, "ZUMA", "Opening your chronicle...", o.nocolor);
+	const cbuf: [1024]u8 = [0...];
+	const cmd = fmt::bsprintf(cbuf, "cd {}/Documents/anime-trackers && ./{}", home, bin)!;
+	const args: []str = ["sh", "-c", cmd];
+	let _ = run_cmd(args, o.nocolor);
 };
 
 fn do_veruca(o: *opts) void = {
@@ -4130,6 +4160,7 @@ export fn main() void = {
 			klaus_arg = "",
 			veruca = false,
 			veruca_arg = "",
+			zuma = false,
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -4258,6 +4289,8 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "zuma") {
+                	o.zuma = true;
                 } else if (a == "veruca") {
                 	o.veruca = true;
                 	if (i + 1 < len(args)) {
@@ -4554,6 +4587,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.zuma) {
+		do_zuma(&o);
 		return;
 	};
 	if (o.veruca) {
