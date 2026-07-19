@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.42.0";
+def VERSION = "4.43.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2396,7 +2396,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.42.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.43.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3205,6 +3205,7 @@ fn do_zuma(o: *opts) void = {
 	fmt::println("   1  Record of Ragnarok S3")!;
 	fmt::println("   2  Grimgar of Fantasy and Ash")!;
 	fmt::println("   3  Darwin\x27s Game  (Atlas77/raylib)")!;
+	fmt::println("   4  Dororo  (Atlas77/raylib)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3217,12 +3218,15 @@ fn do_zuma(o: *opts) void = {
 	if (choice == "1") { bin = "ragnarok_s3"; }
 	else if (choice == "2") { bin = "grimgar"; }
 	else if (choice == "3") { bin = "darwin"; }
+	else if (choice == "4") { bin = "dororo"; }
 	else { cprint(C_MAGENTA, "ZUMA", "The Queen retires.", o.nocolor); return; };
 	cprint(C_MAGENTA, "ZUMA", "Opening your chronicle...", o.nocolor);
 	const cbuf: [1024]u8 = [0...];
 	let cmd = "";
 	if (bin == "darwin") {
 		cmd = fmt::bsprintf(cbuf, "cd {}/Music/Atlas77/darwinsgame_tracker && ./build/a.out", home)!;
+	} else if (bin == "dororo") {
+		cmd = fmt::bsprintf(cbuf, "cd {}/Music/Atlas77/dororo_tracker && ./build/a.out", home)!;
 	} else {
 		cmd = fmt::bsprintf(cbuf, "cd {}/Documents/anime-trackers && ./{}", home, bin)!;
 	};
