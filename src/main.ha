@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.43.0";
+def VERSION = "4.43.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2396,7 +2396,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.43.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.43.1")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3504,7 +3504,7 @@ fn do_kai(o: *opts) void = {
 	const tmp = "/tmp/hpo-kai-stream.mp4";
 	os::remove(tmp): void;
 	const dbuf: [4096]u8 = [0...];
-	const dl = fmt::bsprintf(dbuf, "yt-dlp -f \"bestvideo[height<=1080]+bestaudio/best[height<=1080]/best\" --no-part -o {} \"{}\"", tmp, src)!;
+	const dl = fmt::bsprintf(dbuf, "yt-dlp -f \"bestvideo[height<=1080]+bestaudio/best[height<=1080]/best\" --merge-output-format mp4 --no-part -o {} \"{}\"", tmp, src)!;
 	const dlargs: []str = ["sh", "-c", dl];
 	let _ = run_cmd(dlargs, o.nocolor);
 	cprint(C_GREEN, "KAI", "Playing with Anime4K upscaling...", o.nocolor);
