@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.43.1";
+def VERSION = "4.44.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -99,6 +99,8 @@ type opts = struct {
 	veruca: bool,
 	veruca_arg: str,
 	zuma: bool,
+	mastodon: bool,
+	mastodon_arg: str,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2396,7 +2398,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.43.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.44.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3192,6 +3194,22 @@ fn do_doctor(o: *opts) void = {
 	fmt::println("")!;
 	cprint(C_GREEN, "DOCTOR", "Any MISSING? Run: hpo --setup", o.nocolor);
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
+};
+
+fn do_mastodon(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_CYAN)!;
+	fmt::println("   [MASTODON] The wise elephant ponders...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	if (o.mastodon_arg == "") {
+		cprint(C_YELLOW, "MASTODON", "Usage: hpo mastodon \"your question\"", o.nocolor);
+		cprint(C_YELLOW, "MASTODON", "Needs ~/.config/hpo/mastodon.conf (api_key)", o.nocolor);
+		return;
+	};
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	static let sbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/mastodon-chat.py", home)!;
+	const args: []str = ["python3", script, o.mastodon_arg];
+	let _ = run_cmd(args, o.nocolor);
 };
 
 fn do_zuma(o: *opts) void = {
@@ -4172,6 +4190,8 @@ export fn main() void = {
 			veruca = false,
 			veruca_arg = "",
 			zuma = false,
+			mastodon = false,
+			mastodon_arg = "",
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -4300,6 +4320,12 @@ export fn main() void = {
                 	};
                 } else if (a == "doctor") {
                 	o.doctor = true;
+                } else if (a == "mastodon") {
+                	o.mastodon = true;
+                	if (i + 1 < len(args)) {
+                		o.mastodon_arg = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "zuma") {
                 	o.zuma = true;
                 } else if (a == "veruca") {
@@ -4598,6 +4624,10 @@ export fn main() void = {
 	};
 	if (o.doctor) {
 		do_doctor(&o);
+		return;
+	};
+	if (o.mastodon) {
+		do_mastodon(&o);
 		return;
 	};
 	if (o.zuma) {
