@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.44.1";
+def VERSION = "4.44.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2398,7 +2398,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.44.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.44.2")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3628,14 +3628,44 @@ fn do_monkey(o: *opts) void = {
 		cprint(C_GREEN, "MONKEY", "Done! Launch with: hpo monkey", o.nocolor);
 		return;
 	};
-	cprint(C_GREEN, "MONKEY", "GOAL! Booting Rocket League with GE-Proton11-1...", o.nocolor);
-	const ubuf: [512]u8 = [0...];
-	const umu = fmt::bsprintf(ubuf, "{}/.local/share/hpo/zhen/umu-run", home)!;
-	os::setenv("PROTONPATH", proton)!;
-	os::setenv("GAMEID", "umu-0")!;
-	os::setenv("STORE", "egs")!;
-	const args: []str = ["legendary", "launch", "Sugar", "--no-wine", "--wrapper", umu];
-	let _ = run_cmd(args, o.nocolor);
+	// --- Monkey TUI: Epic-spil-menu ---
+	for (true) {
+		if (!o.nocolor) fmt::print(C_YELLOW)!;
+		fmt::println("")!;
+		fmt::println("   \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")!;
+		fmt::println("   \u2551  MASTER MONKEY - Epic Games   \u2551")!;
+		fmt::println("   \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d")!;
+		if (!o.nocolor) fmt::print(C_RESET)!;
+		fmt::println("   1  Rocket League          (EAC)")!;
+		fmt::println("   2  Fall Guys              (EAC)")!;
+		fmt::println("   3  Fallout: New Vegas")!;
+		fmt::println("   4  Fallout 3 GOTY")!;
+		fmt::println("   5  Towerfall Ascension")!;
+		fmt::println("   6  Shadowrun Dragonfall")!;
+		fmt::println("   q  Afslut")!;
+		fmt::print("   Vaelg: ")!;
+		bufio::flush(os::stdout)!;
+		const choice = match (bufio::read_line(os::stdin)) {
+		case let b: []u8 => yield strings::fromutf8(b)!;
+		case io::EOF => yield "q";
+		case => yield "q";
+		};
+		let game = "";
+		if (choice == "1") { game = "Sugar"; }
+		else if (choice == "2") { game = "0a2d9f6403244d12969e11da6713137b"; }
+		else if (choice == "3") { game = "5daeb974a22a435988892319b3a4f476"; }
+		else if (choice == "4") { game = "adeae8bbfc94427db57c7dfecce3f1d4"; }
+		else if (choice == "5") { game = "Bichir"; }
+		else if (choice == "6") { game = "5b41454974be4d5883056ba298e53675"; }
+		else if (choice == "q" || choice == "Q") {
+			cprint(C_YELLOW, "MONKEY", "The monkey swings away.", o.nocolor);
+			return;
+		}
+		else { continue; };
+		o.epic_cmd = "launch";
+		do_epic(o, game);
+		return;
+	};
 };
 
 fn do_viper(o: *opts) void = {
