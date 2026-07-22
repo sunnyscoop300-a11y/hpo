@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.44.2";
+def VERSION = "4.44.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2398,7 +2398,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.44.2")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.44.3")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3642,6 +3642,7 @@ fn do_monkey(o: *opts) void = {
 		fmt::println("   4  Fallout 3 GOTY")!;
 		fmt::println("   5  Towerfall Ascension")!;
 		fmt::println("   6  Shadowrun Dragonfall")!;
+		fmt::println("   7  Pinball FX")!;
 		fmt::println("   q  Afslut")!;
 		fmt::print("   Vaelg: ")!;
 		bufio::flush(os::stdout)!;
@@ -3657,6 +3658,7 @@ fn do_monkey(o: *opts) void = {
 		else if (choice == "4") { game = "adeae8bbfc94427db57c7dfecce3f1d4"; }
 		else if (choice == "5") { game = "Bichir"; }
 		else if (choice == "6") { game = "5b41454974be4d5883056ba298e53675"; }
+		else if (choice == "7") { game = "56a31432931740cdb0112d237d7d65aa"; }
 		else if (choice == "q" || choice == "Q") {
 			cprint(C_YELLOW, "MONKEY", "The monkey swings away.", o.nocolor);
 			return;
