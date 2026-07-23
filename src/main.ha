@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.44.3";
+def VERSION = "4.44.4";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -99,6 +99,7 @@ type opts = struct {
 	veruca: bool,
 	veruca_arg: str,
 	zuma: bool,
+	redpanda: bool,
 	mastodon: bool,
 	mastodon_arg: str,
 	doctor: bool,
@@ -2398,7 +2399,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.44.3")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.44.4")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3067,6 +3068,43 @@ fn do_xp(o: *opts) void = {
 	};
 	const romdir = fmt::bsprintf(romdir_buf, "{}/.local/share/hpo/arcade/roms", home)!;
 
+	if (o.xp_action == "setup") {
+		cprint(C_YELLOW, "ARCADE", "SETUP MODE - installing emulators...", o.nocolor);
+		const mame: []str = ["flatpak", "install", "-y", "flathub", "org.mamedev.MAME"];
+		let _ = run_cmd(mame, o.nocolor);
+		const mgba: []str = ["flatpak", "install", "-y", "flathub", "io.mgba.mGBA"];
+		let _ = run_cmd(mgba, o.nocolor);
+		static let dbuf: [512]u8 = [0...];
+		const base = fmt::bsprintf(dbuf, "{}/.local/share/hpo/arcade", home)!;
+		os::mkdirs(base, 0o755): void;
+		static let rbuf: [512]u8 = [0...];
+		const roms = fmt::bsprintf(rbuf, "{}/.local/share/hpo/arcade/roms", home)!;
+		os::mkdirs(roms, 0o755): void;
+		static let n1: [512]u8 = [0...];
+		const d1 = fmt::bsprintf(n1, "{}/.local/share/hpo/arcade/nes", home)!;
+		os::mkdirs(d1, 0o755): void;
+		static let n2: [512]u8 = [0...];
+		const d2 = fmt::bsprintf(n2, "{}/.local/share/hpo/arcade/snes", home)!;
+		os::mkdirs(d2, 0o755): void;
+		static let n3: [512]u8 = [0...];
+		const d3 = fmt::bsprintf(n3, "{}/.local/share/hpo/arcade/genesis", home)!;
+		os::mkdirs(d3, 0o755): void;
+		static let n4: [512]u8 = [0...];
+		const d4 = fmt::bsprintf(n4, "{}/.local/share/hpo/arcade/gb", home)!;
+		os::mkdirs(d4, 0o755): void;
+		static let n5: [512]u8 = [0...];
+		const d5 = fmt::bsprintf(n5, "{}/.local/share/hpo/arcade/psx", home)!;
+		os::mkdirs(d5, 0o755): void;
+		fmt::println("")!;
+		cprint(C_GREEN, "ARCADE", "Setup complete! Folders created:", o.nocolor);
+		fmt::printfln("   arcade ROMs: {}/.local/share/hpo/arcade/roms", home)!;
+		fmt::printfln("   nes/snes/genesis/gb/psx: {}/.local/share/hpo/arcade/<system>", home)!;
+		fmt::println("")!;
+		cprint(C_BLUE, "ARCADE", "Place your own legal ROM dumps in those folders.", o.nocolor);
+		cprint(C_BLUE, "ARCADE", "Play: hpo xp <romname>  or  hpo xp nes <romname>", o.nocolor);
+		return;
+	};
+
 	if (o.xp_action == "" || o.xp_action == "list") {
 		cprint(C_GREEN, "ARCADE", "Available machines:", o.nocolor);
 		const ls_args: []str = ["ls", romdir];
@@ -3091,6 +3129,7 @@ fn do_xp(o: *opts) void = {
 		("genesis", "genesis", ".md"),
 		("gb", "gameboy", ".gb"),
 		("psx", "duckstation", ".cue"),
+		("nds", "melonds", ".nds"),
 	];
 	for (let si = 0z; si < len(systems); si += 1) {
 		if (o.xp_action == systems[si].0 && o.xp_rom != "") {
@@ -3103,6 +3142,9 @@ fn do_xp(o: *opts) void = {
 				const duck = fmt::bsprintf(dbuf, "{}/.local/share/hpo/duckstation.AppImage", home2)!;
 				const psx_args: []str = [duck, syspath];
 				let _ = run_cmd(psx_args, o.nocolor);
+			} else if (systems[si].0 == "nds") {
+				const nds_args: []str = ["flatpak", "run", "net.kuribo64.melonDS", syspath];
+				let _ = run_cmd(nds_args, o.nocolor);
 			} else if (systems[si].0 == "gb") {
 				const gb_args: []str = ["mgba", syspath];
 				let _ = run_cmd(gb_args, o.nocolor);
@@ -3688,6 +3730,24 @@ fn do_viper(o: *opts) void = {
 	let _ = run_cmd(args, o.nocolor);
 };
 
+fn do_redpanda(o: *opts) void = {
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	if (!o.nocolor) fmt::print(C_RED)!;
+	fmt::println("")!;
+	fmt::println("   \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")!;
+	fmt::println("   \u2551   RED PANDA DS         \u2551")!;
+	fmt::println("   \u2551   Nintendo DS Launcher \u2551")!;
+	fmt::println("   \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d")!;
+	fmt::println("      (\\_/)")!;
+	fmt::println("     ( o.o )  ROMs loading...")!;
+	fmt::println("      c(\")(\")")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	static let cbuf: [2048]u8 = [0...];
+	const cmd = fmt::bsprintf(cbuf, "d=\"{}/.local/share/hpo/arcade/nds\"; if [ ! -d \"$d\" ]; then echo '   Ingen NDS-mappe. Koer: hpo xp setup'; exit 0; fi; i=1; found=0; for f in \"$d\"/*; do case \"$f\" in *.nds|*.NDS|*.zip|*.ZIP|*.7z) ;; *) continue ;; esac; found=1; b=$(basename \"$f\"); echo \"   $i  $b\"; eval \"g$i=\\\"$f\\\"\"; i=$((i+1)); done; if [ \"$found\" = 0 ]; then echo \"   Ingen ROMs i $d\"; exit 0; fi; echo '   q  Afslut'; printf '   Vaelg: '; read c; if [ \"$c\" = q ]; then exit 0; fi; eval \"sel=\\$g$c\"; if [ -z \"$sel\" ]; then echo '   Ugyldigt valg'; exit 0; fi; sb=$(basename \"$sel\"); echo \"   [RED PANDA] Booting $sb...\"; flatpak run net.kuribo64.melonDS \"$sel\"", home)!;
+	const args: []str = ["sh", "-c", cmd];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_mantis(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	if (!o.nocolor) fmt::print(C_GREEN)!;
@@ -4226,6 +4286,7 @@ export fn main() void = {
 			veruca = false,
 			veruca_arg = "",
 			zuma = false,
+			redpanda = false,
 			mastodon = false,
 			mastodon_arg = "",
 			doctor = false,
@@ -4362,6 +4423,8 @@ export fn main() void = {
                 		o.mastodon_arg = args[i + 1];
                 		i += 1;
                 	};
+                } else if (a == "redpanda") {
+                	o.redpanda = true;
                 } else if (a == "zuma") {
                 	o.zuma = true;
                 } else if (a == "veruca") {
@@ -4664,6 +4727,10 @@ export fn main() void = {
 	};
 	if (o.mastodon) {
 		do_mastodon(&o);
+		return;
+	};
+	if (o.redpanda) {
+		do_redpanda(&o);
 		return;
 	};
 	if (o.zuma) {
