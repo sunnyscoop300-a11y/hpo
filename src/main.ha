@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.44.4";
+def VERSION = "4.44.5";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2399,7 +2399,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.44.4")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.44.5")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3267,6 +3267,7 @@ fn do_zuma(o: *opts) void = {
 	fmt::println("   3  Darwin\x27s Game  (Atlas77/raylib)")!;
 	fmt::println("   4  Dororo  (Atlas77/raylib)")!;
 	fmt::println("   5  Blue Eye Samurai  (Atlas77/raylib)")!;
+	fmt::println("   6  Golden Kamuy  (Hare TUI)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3281,6 +3282,7 @@ fn do_zuma(o: *opts) void = {
 	else if (choice == "3") { bin = "darwin"; }
 	else if (choice == "4") { bin = "dororo"; }
 	else if (choice == "5") { bin = "blueeye"; }
+	else if (choice == "6") { bin = "goldenkamuy"; }
 	else { cprint(C_MAGENTA, "ZUMA", "The Queen retires.", o.nocolor); return; };
 	cprint(C_MAGENTA, "ZUMA", "Opening your chronicle...", o.nocolor);
 	const cbuf: [1024]u8 = [0...];
