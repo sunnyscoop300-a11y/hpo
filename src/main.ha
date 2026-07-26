@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.44.9";
+def VERSION = "4.45.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2399,7 +2399,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.44.9")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.45.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3751,7 +3751,7 @@ fn do_redpanda(o: *opts) void = {
 	fmt::println("      c(\")(\")")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	static let cbuf: [2048]u8 = [0...];
-	const cmd = fmt::bsprintf(cbuf, "base=\"{}/.local/share/hpo/arcade\"; i=1; found=0; for sys in nds gba gb gbc; do d=\"$base/$sys\"; [ -d \"$d\" ] || continue; for f in \"$d\"/*; do case \"$f\" in *.nds|*.NDS) tag=NDS ;; *.gba|*.GBA) tag=GBA ;; *.gb|*.GB|*.gbc|*.GBC) tag=GB ;; *.zip|*.ZIP|*.7z) tag=$(echo $sys | tr a-z A-Z) ;; *) continue ;; esac; found=1; b=$(basename \"$f\"); echo \"   $i  [$tag] $b\"; eval \"g$i=\\\"$f\\\"\"; eval \"t$i=$tag\"; i=$((i+1)); done; done; if [ \"$found\" = 0 ]; then echo \"   Ingen ROMs. Koer: hpo xp setup, laeg ROMs i arcade/nds, arcade/gba, arcade/gb\"; exit 0; fi; echo '   q  Afslut'; printf '   Vaelg: '; read c; if [ \"$c\" = q ]; then exit 0; fi; eval \"sel=\\$g$c\"; eval \"typ=\\$t$c\"; if [ -z \"$sel\" ]; then echo '   Ugyldigt valg'; exit 0; fi; sb=$(basename \"$sel\"); echo \"   [RED PANDA] Booting $sb [$typ]...\"; if [ \"$typ\" = NDS ]; then flatpak run net.kuribo64.melonDS \"$sel\"; else flatpak run io.mgba.mGBA \"$sel\"; fi", home)!;
+	const cmd = fmt::bsprintf(cbuf, "base=\"{}/.local/share/hpo/arcade\"; i=1; found=0; for sys in nds gba gb gbc 3ds; do d=\"$base/$sys\"; [ -d \"$d\" ] || continue; for f in \"$d\"/*; do case \"$f\" in *.nds|*.NDS) tag=NDS ;; *.3ds|*.3DS|*.cia|*.CIA) tag=3DS ;; *.gba|*.GBA) tag=GBA ;; *.gb|*.GB|*.gbc|*.GBC) tag=GB ;; *.zip|*.ZIP|*.7z) tag=$(echo $sys | tr a-z A-Z) ;; *) continue ;; esac; found=1; b=$(basename \"$f\"); echo \"   $i  [$tag] $b\"; eval \"g$i=\\\"$f\\\"\"; eval \"t$i=$tag\"; i=$((i+1)); done; done; if [ \"$found\" = 0 ]; then echo \"   Ingen ROMs. Koer: hpo xp setup, laeg ROMs i arcade/nds, arcade/gba, arcade/gb\"; exit 0; fi; echo '   q  Afslut'; printf '   Vaelg: '; read c; if [ \"$c\" = q ]; then exit 0; fi; eval \"sel=\\$g$c\"; eval \"typ=\\$t$c\"; if [ -z \"$sel\" ]; then echo '   Ugyldigt valg'; exit 0; fi; sb=$(basename \"$sel\"); echo \"   [RED PANDA] Booting $sb [$typ]...\"; case \"$sel\" in *.7z|*.7Z) cache=\"$base/.cache\"; mkdir -p \"$cache\"; bn=$(basename \"$sel\" .7z); ex=$(find \"$cache\" -type f \\( -iname \"$bn.nds\" -o -iname \"$bn.gba\" -o -iname \"$bn.gb\" -o -iname \"$bn.gbc\" -o -iname \"$bn.3ds\" -o -iname \"$bn.cia\" \\) | head -1); if [ -z \"$ex\" ]; then echo \"   Udpakker 7z (foerste gang)...\"; 7z x -o\"$cache\" \"$sel\" >/dev/null 2>&1; ex=$(find \"$cache\" -type f \\( -iname \"$bn.nds\" -o -iname \"$bn.gba\" -o -iname \"$bn.gb\" -o -iname \"$bn.gbc\" -o -iname \"$bn.3ds\" -o -iname \"$bn.cia\" \\) | head -1); fi; if [ -z \"$ex\" ]; then ex=$(find \"$cache\" -type f \\( -iname \"*.nds\" -o -iname \"*.gba\" -o -iname \"*.gb\" -o -iname \"*.gbc\" -o -iname \"*.3ds\" -o -iname \"*.cia\" \\) | head -1); fi; if [ -z \"$ex\" ]; then echo \"   Ingen ROM fundet i 7z-arkivet\"; exit 0; fi; sel=\"$ex\" ;; esac; if [ \"$typ\" = NDS ]; then flatpak run net.kuribo64.melonDS \"$sel\"; elif [ \"$typ\" = 3DS ]; then flatpak run org.azahar_emu.Azahar \"$sel\"; else flatpak run io.mgba.mGBA \"$sel\"; fi", home)!;
 	piyoko_save(bal - 2);
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
 	fmt::printfln("   [RED PANDA] *CLINK* 2 PYO spent ({} left)", bal - 2)!;
