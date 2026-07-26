@@ -586,6 +586,12 @@ fn do_tailung(urls: []str, nocolor: bool) void = {
 	static let sum_buf: [128]u8 = [0...];
 	const summary = fmt::bsprintf(sum_buf, "Tai Lung strikes complete! {} done, {} failed.", ok, fail)!;
 	cprint("\x1b[32m", "OK", summary, nocolor);
+	if (ok > 0) {
+		piyoko_earn(ok: u64);
+		static let pyo_buf: [96]u8 = [0...];
+		const pyomsg = fmt::bsprintf(pyo_buf, "+{} PYO earned! (batch download)", ok)!;
+		cprint("\x1b[33m", "PIYOKO", pyomsg, nocolor);
+	};
 };
 
 fn piyoko_path() str = {
