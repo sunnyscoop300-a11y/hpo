@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.46.0";
+def VERSION = "4.46.1";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2400,7 +2400,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.46.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.46.1")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2531,6 +2531,8 @@ fn print_help() void = {
 	fmt::println("  hpo croc                              Retro arcade hub - 12 games (Master Croc)")!;
 	fmt::println("  hpo croc setup                        Install all 12 arcade games via Flatpak")!;
 	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
+	fmt::println("  hpo redpanda                          Nintendo handheld launcher (GB/GBC/GBA/NDS/3DS)")!;
+	fmt::println("  hpo elizabeth [check|install|backup]  Driver mistress (GPU/printer/audio/network)")!;
 	fmt::println("")!;
 	fmt::println("MEDIA - MOVIES (Rukhmini movie streaming server):")!;
 	fmt::println("  hpo rukhmini                          Stream ~/Videos to phone/TV (port 8377)")!;

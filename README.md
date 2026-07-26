@@ -88,6 +88,14 @@ The lineup (all free / open-source):
 
 ---
 
+### 🐼 Red Panda — Nintendo Handheld Launcher
+Play your Game Boy through 3DS collection (Turning Red themed).
+- `hpo redpanda` — browse & launch GB/GBC/GBA/NDS/3DS ROMs from your own dumps
+- Auto-picks emulator: **mGBA** (GB/GBC/GBA), **melonDS** (NDS), **Azahar** (3DS)
+- Supports `.zip` and `.7z` (auto-extract to per-game cache)
+- Costs **2 PYO** per play
+- ROMs live in `~/.local/share/hpo/arcade/{gb,gbc,gba,nds,3ds}/`
+
 ## 🎬 Media
 
 ### 🐒 Rukhmini — Movie Streaming Server
@@ -163,9 +171,16 @@ The lineup (all free / open-source):
 
 ### 🪙 Piyoko — Piyokocoin Wallet
 - `hpo piyoko` — show your Piyokocoin balance with 8-bit coin art
-- Earn **1 Piyokocoin per completed download**, automatically
+- Earn Piyokocoin automatically: **1 per download**, **3 per Rooster link** (premium), **1 per file** in Tai Lung batches
 - `hpo piyoko spin`, `hpo piyoko cook`, `hpo piyoko cookbook`, `hpo piyoko recipe <n>`
 - Balance stored in `~/.config/hpo/piyokocoin`
+
+### 👑 Elizabeth — Driver Mistress
+Elegant and merciless driver manager (Rooster Fighter themed).
+- `hpo elizabeth` — inspect GPU, printer, audio, network, Flatpak drivers
+- `hpo elizabeth install` — install missing drivers (Vulkan, CUPS, Flatpak)
+- `hpo elizabeth backup` / `hpo elizabeth restore` — save/view driver setup
+- *"Your machine will be flawless."*
 
 ### 🐢 Oogway Meditation
 - Guided meditation with **Master Oogway** quotes and a breathing bar
