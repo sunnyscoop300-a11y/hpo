@@ -910,14 +910,14 @@ fn do_piyoko_cookbook(nocolor: bool) void = {
 		if (piyoko_has_recipe(i)) {
 			unlocked += 1;
 			if (!nocolor) fmt::print("\x1b[32m")!;
-			fmt::printfln("    🍜 {}", piyoko_recipe_name(i))!;
+			fmt::printfln("    [{}] 🍜 {}", i, piyoko_recipe_name(i))!;
 			if (!nocolor) fmt::print("\x1b[0m")!;
 			if (!nocolor) fmt::print("\x1b[2m")!;
 			fmt::printfln("       {}", piyoko_recipe_desc(i))!;
 			if (!nocolor) fmt::print("\x1b[0m")!;
 		} else {
 			if (!nocolor) fmt::print("\x1b[2m")!;
-			fmt::println("    🔒 ??? (locked)")!;
+			fmt::printfln("    [{}] 🔒 ??? (locked)", i)!;
 			if (!nocolor) fmt::print("\x1b[0m")!;
 		};
 	};
@@ -925,6 +925,9 @@ fn do_piyoko_cookbook(nocolor: bool) void = {
 	fmt::println("")!;
 	if (!nocolor) fmt::print("\x1b[1m\x1b[33m")!;
 	fmt::printfln("    Collected: {}/{} recipes", unlocked, count)!;
+	if (!nocolor) fmt::print("\x1b[0m")!;
+	if (!nocolor) fmt::print("\x1b[2m")!;
+	fmt::println("    See a recipe: hpo piyoko recipe <number>")!;
 	if (!nocolor) fmt::print("\x1b[0m")!;
 	fmt::println("")!;
 };
