@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.45.3";
+def VERSION = "4.46.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -100,6 +100,8 @@ type opts = struct {
 	veruca_arg: str,
 	zuma: bool,
 	redpanda: bool,
+	elizabeth: bool,
+	elizabeth_arg: str,
 	mastodon: bool,
 	mastodon_arg: str,
 	doctor: bool,
@@ -2398,7 +2400,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.45.3")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.46.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3731,6 +3733,15 @@ fn do_viper(o: *opts) void = {
 	let _ = run_cmd(args, o.nocolor);
 };
 
+fn do_elizabeth(o: *opts) void = {
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	static let sbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/elizabeth-driver.sh", home)!;
+	const act = if (o.elizabeth_arg == "") "check" else o.elizabeth_arg;
+	const args: []str = ["bash", script, act];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_redpanda(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	const bal = piyoko_balance();
@@ -4298,6 +4309,8 @@ export fn main() void = {
 			veruca_arg = "",
 			zuma = false,
 			redpanda = false,
+		elizabeth = false,
+		elizabeth_arg = "",
 			mastodon = false,
 			mastodon_arg = "",
 			doctor = false,
@@ -4433,6 +4446,12 @@ export fn main() void = {
                 	o.mastodon = true;
                 	if (i + 1 < len(args)) {
                 		o.mastodon_arg = args[i + 1];
+                		i += 1;
+                	};
+                } else if (a == "elizabeth") {
+                	o.elizabeth = true;
+                	if (i + 1 < len(args)) {
+                		o.elizabeth_arg = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "redpanda") {
@@ -4739,6 +4758,10 @@ export fn main() void = {
 	};
 	if (o.mastodon) {
 		do_mastodon(&o);
+		return;
+	};
+	if (o.elizabeth) {
+		do_elizabeth(&o);
 		return;
 	};
 	if (o.redpanda) {
