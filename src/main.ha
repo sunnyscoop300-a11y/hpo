@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.45.2";
+def VERSION = "4.45.3";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -114,6 +114,7 @@ type opts = struct {
 	verbose: bool,
 	quiet:   bool,
 	nocolor: bool,
+	is_rooster: bool,
 };
 
 fn cprint(color: str, tag: str, msg: str, nc: bool) void = {
@@ -857,7 +858,7 @@ fn do_http_custom(o: *opts) void = {
 	if (!o.quiet) {
 		fmt::println("")!;
 		cprint(C_GREEN, "OK", "Download complete! The Dragon Warrior delivers!", o.nocolor);
-		piyoko_earn(1);
+		piyoko_earn(if (o.is_rooster) 3u64 else 1u64);
 		fmt::printfln("  Saved to: {}", o.output)!;
 		fmt::printfln("  Size:     {}", format_size(get_file_size(o.output)))!;
 	};
@@ -935,7 +936,7 @@ fn do_magnet(o: *opts) void = {
 		cprint(C_GREEN, "OK", msg, o.nocolor);
 		fmt::printfln("  Saved to: {}", o.output)!;
 	};
-	piyoko_earn(1);
+	piyoko_earn(if (o.is_rooster) 3u64 else 1u64);
 };
 
 fn do_gdrive(o: *opts) void = {
@@ -990,7 +991,7 @@ fn do_gdrive(o: *opts) void = {
 	if (run_cmd(args, o.nocolor)) {
 		if (!o.quiet) {
 			cprint(C_GREEN, "OK", "Download complete! The Dragon Warrior delivers!", o.nocolor);
-		piyoko_earn(1);
+		piyoko_earn(if (o.is_rooster) 3u64 else 1u64);
 			fmt::printfln("  Saved to: {}", o.output)!;
 		};
 	} else {
@@ -1021,7 +1022,7 @@ fn do_mega(o: *opts) void = {
 	if (run_cmd(args, o.nocolor)) {
 		if (!o.quiet) {
 			cprint(C_GREEN, "OK", "Download complete! The Dragon Warrior delivers!", o.nocolor);
-		piyoko_earn(1);
+		piyoko_earn(if (o.is_rooster) 3u64 else 1u64);
 			fmt::printfln("  Saved to: {}", o.output)!;
 		};
 	} else {
@@ -2244,6 +2245,7 @@ fn do_download(o: *opts) void = {
 		};
 
 		o.url = decrypted;
+		o.is_rooster = true;
 		o.output = "";
 		if (len(o.output) == 0) {
 			o.output = default_output(o.url);
@@ -2396,7 +2398,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.45.2")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.45.3")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -4330,6 +4332,7 @@ export fn main() void = {
 		verbose = false,
 		quiet   = false,
 		nocolor = false,
+		is_rooster = false,
 	};
 	let i = 1z;
 	for (i < len(args); i += 1) {
