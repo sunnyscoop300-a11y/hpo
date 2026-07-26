@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.45.1";
+def VERSION = "4.45.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -927,18 +927,15 @@ fn do_magnet(o: *opts) void = {
 	append(args, "--bt-enable-lpd=true")!;
 	append(args, "--allow-overwrite=true")!;
 	append(args, o.url)!;
-	if (run_cmd(args, o.nocolor)) {
-		if (!o.quiet) {
-			const quote = tiger_quote();
-			static let qbuf: [256]u8 = [0...];
-			const msg = fmt::bsprintf(qbuf, "Torrent complete! \"{}\" - Tigress", quote)!;
-			cprint(C_GREEN, "OK", msg, o.nocolor);
-			fmt::printfln("  Saved to: {}", o.output)!;
-			piyoko_earn(1);
-		};
-	} else {
-		os::exit(1);
+	let _ = run_cmd(args, o.nocolor);
+	if (!o.quiet) {
+		const quote = tiger_quote();
+		static let qbuf: [256]u8 = [0...];
+		const msg = fmt::bsprintf(qbuf, "Torrent complete! \"{}\" - Tigress", quote)!;
+		cprint(C_GREEN, "OK", msg, o.nocolor);
+		fmt::printfln("  Saved to: {}", o.output)!;
 	};
+	piyoko_earn(1);
 };
 
 fn do_gdrive(o: *opts) void = {
@@ -2399,7 +2396,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.45.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.45.2")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
