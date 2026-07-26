@@ -3737,15 +3737,15 @@ fn do_redpanda(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_RED)!;
 	fmt::println("")!;
 	fmt::println("   \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")!;
-	fmt::println("   \u2551   RED PANDA DS         \u2551")!;
-	fmt::println("   \u2551   Nintendo DS Launcher \u2551")!;
+	fmt::println("   \u2551   RED PANDA            \u2551")!;
+	fmt::println("   \u2551   Handheld Launcher   \u2551")!;
 	fmt::println("   \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d")!;
 	fmt::println("      (\\_/)")!;
 	fmt::println("     ( o.o )  ROMs loading...")!;
 	fmt::println("      c(\")(\")")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	static let cbuf: [2048]u8 = [0...];
-	const cmd = fmt::bsprintf(cbuf, "d=\"{}/.local/share/hpo/arcade/nds\"; if [ ! -d \"$d\" ]; then echo '   Ingen NDS-mappe. Koer: hpo xp setup'; exit 0; fi; i=1; found=0; for f in \"$d\"/*; do case \"$f\" in *.nds|*.NDS|*.zip|*.ZIP|*.7z) ;; *) continue ;; esac; found=1; b=$(basename \"$f\"); echo \"   $i  $b\"; eval \"g$i=\\\"$f\\\"\"; i=$((i+1)); done; if [ \"$found\" = 0 ]; then echo \"   Ingen ROMs i $d\"; exit 0; fi; echo '   q  Afslut'; printf '   Vaelg: '; read c; if [ \"$c\" = q ]; then exit 0; fi; eval \"sel=\\$g$c\"; if [ -z \"$sel\" ]; then echo '   Ugyldigt valg'; exit 0; fi; sb=$(basename \"$sel\"); echo \"   [RED PANDA] Booting $sb...\"; flatpak run net.kuribo64.melonDS \"$sel\"", home)!;
+	const cmd = fmt::bsprintf(cbuf, "base=\"{}/.local/share/hpo/arcade\"; i=1; found=0; for sys in nds gba gb; do d=\"$base/$sys\"; [ -d \"$d\" ] || continue; for f in \"$d\"/*; do case \"$f\" in *.nds|*.NDS) tag=NDS ;; *.gba|*.GBA) tag=GBA ;; *.gb|*.GB|*.gbc|*.GBC) tag=GB ;; *.zip|*.ZIP|*.7z) tag=$(echo $sys | tr a-z A-Z) ;; *) continue ;; esac; found=1; b=$(basename \"$f\"); echo \"   $i  [$tag] $b\"; eval \"g$i=\\\"$f\\\"\"; eval \"t$i=$tag\"; i=$((i+1)); done; done; if [ \"$found\" = 0 ]; then echo \"   Ingen ROMs. Koer: hpo xp setup, laeg ROMs i arcade/nds, arcade/gba, arcade/gb\"; exit 0; fi; echo '   q  Afslut'; printf '   Vaelg: '; read c; if [ \"$c\" = q ]; then exit 0; fi; eval \"sel=\\$g$c\"; eval \"typ=\\$t$c\"; if [ -z \"$sel\" ]; then echo '   Ugyldigt valg'; exit 0; fi; sb=$(basename \"$sel\"); echo \"   [RED PANDA] Booting $sb [$typ]...\"; if [ \"$typ\" = NDS ]; then flatpak run net.kuribo64.melonDS \"$sel\"; else flatpak run io.mgba.mGBA \"$sel\"; fi", home)!;
 	const args: []str = ["sh", "-c", cmd];
 	let _ = run_cmd(args, o.nocolor);
 };
