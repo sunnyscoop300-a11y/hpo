@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.46.1";
+def VERSION = "4.46.2";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -2400,7 +2400,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.46.1")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.46.2")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -3784,6 +3784,7 @@ fn do_mantis(o: *opts) void = {
 	fmt::println("   2  Ichi the Witch   (mestmanga.dk)")!;
 	fmt::println("   3  Nue\x27s Exorcist   (williamdam.dk)")!;
 	fmt::println("   4  Black Torch      (mestmanga.dk)")!;
+	fmt::println("   5  Rooster Fighter  (mestmanga.dk)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3799,6 +3800,7 @@ fn do_mantis(o: *opts) void = {
 	else if (choice == "2") { path = "Documents/Ichi"; bin = "ichi_cart"; }
 	else if (choice == "3") { path = "Music/Atlas77/williamdam_cart"; bin = "build/a.out"; }
 	else if (choice == "4") { path = "Music/Atlas77/blacktorch_cart"; bin = "build/a.out"; }
+	else if (choice == "5") { path = "Music/Atlas77/roosterfighter_cart"; bin = "build/a.out"; }
 	else { cprint(C_YELLOW, "MANTIS", "Afslutter.", o.nocolor); return; };
 	if (!o.nocolor) fmt::print(C_GREEN)!;
 	fmt::printfln("   [MANTIS] Swift and precise! Opening {}...", path)!;
