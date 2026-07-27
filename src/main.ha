@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.46.2";
+def VERSION = "4.47.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -82,6 +82,8 @@ type opts = struct {
 	monkey: bool,
 	monkey_setup: bool,
 	crane: bool,
+	morio: bool,
+	morio_args: []str,
 	crane_arg: str,
 	crane_arg2: str,
 	kai: bool,
@@ -2400,7 +2402,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.46.2")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.47.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2513,6 +2515,7 @@ fn print_help() void = {
 	fmt::println("  hpo crane yt <words>                  YouTube search")!;
 	fmt::println("  hpo crane ytradio <words>             YouTube radio (10 tracks)")!;
 	fmt::println("  hpo crane local <path>                Play local music (Suno, downloads)")!;
+	fmt::println("  hpo morio <file-or-dir>               Convert FLAC to MP3 (dawn rooster)")!;
 	fmt::println("  hpo crane mix <path>                  DJ mode - shuffle + loop")!;
 	fmt::println("  hpo crane web <words>                 Open SoundCloud search in browser")!;
 	fmt::println("")!;
@@ -4295,6 +4298,8 @@ export fn main() void = {
 			monkey = false,
 			monkey_setup = false,
 			crane = false,
+		morio = false,
+		morio_args = [],
 			crane_arg = "",
 			crane_arg2 = "",
 			kai = false,
@@ -4512,6 +4517,12 @@ export fn main() void = {
                 	};
                 	if (i + 1 < len(args)) {
                 		o.crane_arg2 = args[i + 1];
+                		i += 1;
+                	};
+                } else if (a == "morio") {
+                	o.morio = true;
+                	for (i + 1 < len(args)) {
+                		append(o.morio_args, args[i + 1])!;
                 		i += 1;
                 	};
                 } else if (a == "monkey") {
@@ -4802,6 +4813,10 @@ export fn main() void = {
 	};
 	if (o.kai) {
 		do_kai(&o);
+		return;
+	};
+	if (o.morio) {
+		do_morio(&o);
 		return;
 	};
 	if (o.crane) {
