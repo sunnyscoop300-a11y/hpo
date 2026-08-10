@@ -14,6 +14,7 @@ DEFAULT_SYSTEM = (
     "use ONLY two lines of text in the image - the artist name at the top and the song title at the bottom - "
     "and describe them as 'two lines of bold clear text only, large, correctly spelled: top line ARTIST NAME, bottom line SONG TITLE'. "
     "Never add taglines, subtitles, issue numbers, ratings, or extra words, because image generators render minimal text far more accurately. "
+    "When the cover shows a person or character, ALWAYS state their gender explicitly and clearly (e.g. 'a fierce young woman', 'a male singer', 'a female ninja girl with feminine features') - image generators default to male when gender is unstated, so be explicit to get the right character. "
     "Describe the visual scene richly in one paragraph, then end with just the prompt ready to paste."
 )
 
