@@ -142,6 +142,12 @@ fn is_rooster(url: str) bool = {
 };
 
 fn is_suno(url: str) bool = {
+        return strings::hasprefix(url, "https://suno.com/song/")
+                || strings::contains(url, "suno.ai")
+                || strings::contains(url, "suno.com");
+};
+
+fn is_suno_page(url: str) bool = {
         return strings::hasprefix(url, "https://suno.com/song/");
 };
 
@@ -323,6 +329,13 @@ fn default_output(url: str) str = {
 		return fmt::bsprintf(gbuf, "{}/Downloads", home)!;
 	};
 	const name = filename_from_url(url);
+	if (is_suno(url)) {
+		static let sbuf: [512]u8 = [0...];
+		static let sdir: [512]u8 = [0...];
+		const dir = fmt::bsprintf(sdir, "{}/Music/suno", home)!;
+		os::mkdirs(dir, 0o755: fs::mode)!;
+		return fmt::bsprintf(sbuf, "{}/Music/suno/{}", home, name)!;
+	};
 	static let buf: [512]u8 = [0...];
 	return fmt::bsprintf(buf, "{}/Downloads/{}", home, name)!;
 };
@@ -616,7 +629,6 @@ fn rooster_encrypt(url: str, code: str, nc: bool) void = {
 
 	cprint(C_YELLOW, "HPO", "Encrypting URL with AES-256-CBC...", nc);
 	if (!nc) fmt::print(C_YELLOW)!;
-	fmt::printfln("  URL:  {}", url)!;
 	if (!nc) fmt::print(C_RESET)!;
 
 	const pipecmd = fmt::asprintf(
@@ -767,7 +779,6 @@ fn do_http_custom(o: *opts) void = {
 	if (!o.quiet) {
 		cprint(C_CYAN, "HPO", "Dragon Warrior prepares the download...", o.nocolor);
 		if (!o.nocolor) fmt::print(C_YELLOW)!;
-		fmt::printfln("  URL:    {}", o.url)!;
 		if (!o.nocolor) fmt::print(C_RESET)!;
 		if (!o.nocolor) fmt::print(C_GREEN)!;
 		fmt::printfln("  Output: {}", o.output)!;
@@ -2307,7 +2318,7 @@ fn do_download(o: *opts) void = {
 			o.output = fmt::bsprintf(cbuf, "{}/Downloads/{}{}", home, title, ext)!;
 		};
 	};
-	if (is_suno(o.url)) {
+	if (is_suno_page(o.url)) {
 		const suno_orig = o.url;
 		o.url = suno_to_cdn(o.url);
 		const title = suno_get_title(suno_orig);
@@ -2317,9 +2328,12 @@ fn do_download(o: *opts) void = {
 		case void =>
 			yield "/tmp";
 		};
+		static let tbuf2: [512]u8 = [0...];
+		const sdir = fmt::bsprintf(tbuf2, "{}/Music/suno", home)!;
+		os::mkdirs(sdir, 0o755: fs::mode)!;
 		static let tbuf: [512]u8 = [0...];
 		if (len(title) > 0) {
-			o.output = fmt::bsprintf(tbuf, "{}/Downloads/{}.mp3", home, title)!;
+			o.output = fmt::bsprintf(tbuf, "{}/Music/suno/{}.mp3", home, title)!;
 		} else {
 			o.output = default_output(o.url);
 		};
