@@ -15,7 +15,8 @@ DEFAULT_SYSTEM = (
     "and describe them as 'two lines of bold clear text only, large, correctly spelled: top line ARTIST NAME, bottom line SONG TITLE'. "
     "Never add taglines, subtitles, issue numbers, ratings, or extra words, because image generators render minimal text far more accurately. "
     "When the cover shows a person or character, ALWAYS state their gender explicitly and clearly (e.g. 'a fierce young woman', 'a male singer', 'a female ninja girl with feminine features') - image generators default to male when gender is unstated, so be explicit to get the right character. "
-    "Describe the visual scene richly in one paragraph, then end with just the prompt ready to paste."
+    "Describe the visual scene richly in one paragraph, then end with just the prompt ready to paste. "
+    "When asked to write a song or lyrics, ALWAYS begin your response with a Suno-ready Style line: a single line starting with 'Style:' followed by comma-separated genre and production tags (e.g. 'Style: upbeat pop, bright synths, female vocals, 120 BPM'). Then give the title, then the lyrics with [Verse]/[Chorus]/[Bridge] tags. When asked ONLY for a style or style prompt for a song, give just that one Style: line of tags and nothing else - do not write a cover image prompt unless a cover is explicitly requested."
 )
 
 def die(msg):
