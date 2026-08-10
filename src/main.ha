@@ -3126,8 +3126,6 @@ fn do_xp(o: *opts) void = {
 		return;
 	};
 
-	piyoko_save(bal - 2);
-	cprint(C_GREEN, "ARCADE", "*CLINK* CREDIT 1 - GAME START!", o.nocolor);
 	// Multi-system: nes/snes/genesis/gb via MAME cores
 	const systems: [](str, str, str) = [
 		("nes", "nes", ".nes"),
@@ -3137,6 +3135,26 @@ fn do_xp(o: *opts) void = {
 		("psx", "duckstation", ".cue"),
 		("nds", "melonds", ".nds"),
 	];
+	// Validate ROM exists and is a real file BEFORE charging PYO
+	for (let vi = 0z; vi < len(systems); vi += 1) {
+		if (o.xp_action == systems[vi].0 && o.xp_rom != "") {
+			const vbuf: [512]u8 = [0...];
+			const vpath = fmt::bsprintf(vbuf, "{}/.local/share/hpo/arcade/{}/{}{}", home, systems[vi].0, o.xp_rom, systems[vi].2)!;
+			if (!os::exists(vpath)) {
+				cprint(C_RED, "ARCADE", "ROM not found! (no PYO spent)", o.nocolor);
+				fmt::printfln("   Expected: {}", vpath)!;
+				return;
+			};
+			const st = os::stat(vpath)!;
+			if (st.sz < 32768) {
+				cprint(C_RED, "ARCADE", "ROM too small / invalid (likely not a real ROM). No PYO spent.", o.nocolor);
+				return;
+			};
+			break;
+		};
+	};
+	piyoko_save(bal - 2);
+	cprint(C_GREEN, "ARCADE", "*CLINK* CREDIT 1 - GAME START!", o.nocolor);
 	for (let si = 0z; si < len(systems); si += 1) {
 		if (o.xp_action == systems[si].0 && o.xp_rom != "") {
 			const sysbuf: [512]u8 = [0...];
