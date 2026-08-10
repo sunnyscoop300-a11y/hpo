@@ -155,6 +155,11 @@ fn is_itch(url: str) bool = {
         return strings::hasprefix(url, "itch:");
 };
 
+fn is_hearthis(url: str) bool = {
+        return strings::contains(url, "hearthis.at")
+                || strings::contains(url, "hearthis.app");
+};
+
 fn is_gog(url: str) bool = {
         return strings::hasprefix(url, "gog:");
 };
@@ -329,6 +334,23 @@ fn default_output(url: str) str = {
 		return fmt::bsprintf(gbuf, "{}/Downloads", home)!;
 	};
 	const name = filename_from_url(url);
+	if (is_hearthis(url)) {
+		static let hbuf: [512]u8 = [0...];
+		static let hdir: [512]u8 = [0...];
+		const dir = fmt::bsprintf(hdir, "{}/Music/hearthis", home)!;
+		os::mkdirs(dir, 0o755: fs::mode)!;
+		// Extract track slug from hearthis URL: .../USER/TRACK/stream.mp3
+		let trackname = name;
+		const noquery = strings::cut(url, "?").0;
+		const parts = strings::split(noquery, "/")!;
+		if (len(parts) >= 2) {
+			const last = parts[len(parts) - 1];
+			if (last == "stream.mp3" && len(parts) >= 2) {
+				trackname = strings::concat(parts[len(parts) - 2], ".mp3")!;
+			};
+		};
+		return fmt::bsprintf(hbuf, "{}/Music/hearthis/{}", home, trackname)!;
+	};
 	if (is_suno(url)) {
 		static let sbuf: [512]u8 = [0...];
 		static let sdir: [512]u8 = [0...];
@@ -876,6 +898,13 @@ fn do_http_custom(o: *opts) void = {
 		piyoko_earn(if (o.is_rooster) 3u64 else 1u64);
 		fmt::printfln("  Saved to: {}", o.output)!;
 		fmt::printfln("  Size:     {}", format_size(get_file_size(o.output)))!;
+	};
+	if (is_hearthis(o.url)) {
+		const home2 = match (os::getenv("HOME")) { case let s: str => yield s; case void => yield "/tmp"; };
+		const rbuf: [512]u8 = [0...];
+		const script = fmt::bsprintf(rbuf, "{}/hpo/helpers/hearthis-rename.sh", home2)!;
+		const rargs: []str = ["bash", script, o.output];
+		let _ = run_cmd(rargs, o.nocolor);
 	};
 	if (o.suno && get_file_size(o.output) < 1024) {
 		cprint(C_RED, "ERR", "Song not available - private or deleted on Suno", o.nocolor);
