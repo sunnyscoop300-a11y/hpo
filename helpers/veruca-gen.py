@@ -18,7 +18,7 @@ Output: saved to ~/Pictures/veruca/ by default (or the given path).
 Prints one status line prefixed with VERUCA_ for the Hare side to read.
 """
 
-import sys, os, json, time, base64, configparser, urllib.request, urllib.error
+import sys, os, json, time, base64, configparser, urllib.request, urllib.error, subprocess
 
 CONF = os.path.expanduser("~/.config/hpo/veruca.conf")
 OUTDIR = os.path.expanduser("~/Pictures/veruca")
@@ -76,8 +76,10 @@ def save_bytes(raw, outfile):
     with open(outfile, "wb") as f:
         f.write(raw)
     print(f"VERUCA_OK: saved {outfile}")
-
-
+    try:
+        subprocess.Popen(["xdg-open", outfile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass
 # ---- Provider implementations -------------------------------------------
 
 def gen_leonardo(prompt, key, model, outfile):
