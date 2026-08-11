@@ -3167,6 +3167,9 @@ fn do_xp(o: *opts) void = {
 		static let n6: [512]u8 = [0...];
 		const d6 = fmt::bsprintf(n6, "{}/.local/share/hpo/arcade/neogeo", home)!;
 		os::mkdirs(d6, 0o755): void;
+		static let n7: [512]u8 = [0...];
+		const d7 = fmt::bsprintf(n7, "{}/.local/share/hpo/arcade/gamecube", home)!;
+		os::mkdirs(d7, 0o755): void;
 		fmt::println("")!;
 		cprint(C_GREEN, "ARCADE", "Setup complete! Folders created:", o.nocolor);
 		fmt::printfln("   arcade ROMs: {}/.local/share/hpo/arcade/roms", home)!;
@@ -3202,6 +3205,20 @@ fn do_xp(o: *opts) void = {
 		("nds", "melonds", ".nds"),
 	];
 	// Validate ROM exists and is a real file BEFORE charging PYO
+	if (o.xp_action == "gamecube" && o.xp_rom != "") {
+		const gce = ["rvz", "iso", "gcm", "ciso"];
+		let found = false;
+		for (let gi = 0z; gi < len(gce); gi += 1) {
+			const gvbuf: [512]u8 = [0...];
+			const gvpath = fmt::bsprintf(gvbuf, "{}/.local/share/hpo/arcade/gamecube/{}.{}", home, o.xp_rom, gce[gi])!;
+			if (os::exists(gvpath)) { found = true; break; };
+		};
+		if (!found) {
+			cprint(C_RED, "ARCADE", "GameCube ISO not found! (no PYO spent)", o.nocolor);
+			fmt::printfln("   Expected: {}/.local/share/hpo/arcade/gamecube/{}.rvz (or .iso/.gcm)", home, o.xp_rom)!;
+			return;
+		};
+	};
 	if (o.xp_action == "neogeo" && o.xp_rom != "") {
 		const ngvbuf: [512]u8 = [0...];
 		const ngvpath = fmt::bsprintf(ngvbuf, "{}/.local/share/hpo/arcade/neogeo/{}.zip", home, o.xp_rom)!;
@@ -3260,6 +3277,19 @@ fn do_xp(o: *opts) void = {
 			};
 			return;
 		};
+	};
+	if (o.xp_action == "gamecube" && o.xp_rom != "") {
+		const gcexts = ["rvz", "iso", "gcm", "ciso"];
+		let gcpath = "";
+		static let gcbuf: [512]u8 = [0...];
+		for (let gi = 0z; gi < len(gcexts); gi += 1) {
+			const tryp = fmt::bsprintf(gcbuf, "{}/.local/share/hpo/arcade/gamecube/{}.{}", home, o.xp_rom, gcexts[gi])!;
+			if (os::exists(tryp)) { gcpath = tryp; break; };
+		};
+		fmt::printfln("   Booting {} [gamecube]... (2 PYO spent, {} left)", o.xp_rom, bal - 2)!;
+		const gc_args: []str = ["flatpak", "run", "org.DolphinEmu.dolphin-emu", "-b", "-e", gcpath];
+		let _ = run_cmd(gc_args, o.nocolor);
+		return;
 	};
 	if (o.xp_action == "neogeo" && o.xp_rom != "") {
 		const ngbuf: [512]u8 = [0...];
