@@ -2,21 +2,18 @@
 otmpl="$1"
 url="$2"
 frames=('🐼' '🐾' '🐼' '🥋')
-# Start yt-dlp i baggrunden (stille)
+destdir="$(dirname "$otmpl")"
 yt-dlp --no-warnings -q --no-playlist -x --audio-format mp3 --embed-metadata --force-overwrites -o "$otmpl" "$url" >/dev/null 2>&1 &
 pid=$!
 i=0
 pct=0
-# Tael jaevnt op mod 95% mens den koerer (ca. 30 sek forventet)
 while kill -0 "$pid" 2>/dev/null; do
   f=${frames[$((i % 4))]}
   i=$((i+1))
-  # Oeg procent langsomt, cap ved 95 (rigtige 100 kommer naar faerdig)
   if [ "$pct" -lt 95 ]; then
     pct=$((pct + 3))
     if [ "$pct" -gt 95 ]; then pct=95; fi
   fi
-  # Byg en lille bar
   filled=$((pct / 5))
   bar=""
   for ((b=0; b<20; b++)); do
@@ -27,6 +24,13 @@ while kill -0 "$pid" 2>/dev/null; do
 done
 wait "$pid"
 rc=$?
+# Fjern "NA - " prefix fra evt. nye filer
+for file in "$destdir"/"NA - "*.mp3; do
+  [ -f "$file" ] || continue
+  base="$(basename "$file")"
+  newbase="${base#NA - }"
+  mv -f "$file" "$destdir/$newbase"
+done
 if [ "$rc" -eq 0 ]; then
   printf "\r  🐼 Po henter... [====================] 100%%   \n" > /dev/tty
   printf "  🐼 Po leverede nummeret! Skadoosh!\n" > /dev/tty
