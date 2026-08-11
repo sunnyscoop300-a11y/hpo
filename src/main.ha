@@ -791,6 +791,26 @@ fn rooster_decrypt(token: str, code: str, nc: bool) str = {
 };
 
 fn do_http_custom(o: *opts) void = {
+	if (is_hearthis(o.url)) {
+		const home3 = match (os::getenv("HOME")) { case let s: str => yield s; case void => yield "/tmp"; };
+		const hdbuf: [512]u8 = [0...];
+		const hdir = fmt::bsprintf(hdbuf, "{}/Music/hearthis", home3)!;
+		os::mkdirs(hdir, 0o755: fs::mode)!;
+		const otbuf: [512]u8 = [0...];
+		const otmpl = fmt::bsprintf(otbuf, "{}/Music/hearthis/%(artist,uploader)s - %(title)s.%(ext)s", home3)!;
+		if (!o.quiet) {
+			cprint(C_CYAN, "HPO", "Dragon Warrior fetches the hearthis track...", o.nocolor);
+		};
+		const dlbuf: [512]u8 = [0...];
+		const dlscript = fmt::bsprintf(dlbuf, "{}/hpo/helpers/hearthis-dl.sh", home3)!;
+		const ytargs: []str = ["bash", dlscript, otmpl, o.url];
+		let _ = run_cmd(ytargs, o.nocolor);
+		if (!o.quiet) {
+			cprint(C_GREEN, "OK", "Track saved to ~/Music/hearthis/", o.nocolor);
+		};
+		piyoko_earn(1u64);
+		return;
+	};
 	if (!check_tool("curl")) {
 		cprint(C_RED, "ERR", "curl not found! Install: sudo apt install curl", o.nocolor);
 		os::exit(1);
