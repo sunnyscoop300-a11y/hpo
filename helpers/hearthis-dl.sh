@@ -19,12 +19,11 @@ while kill -0 "$pid" 2>/dev/null; do
   for ((b=0; b<20; b++)); do
     if [ "$b" -lt "$filled" ]; then bar="${bar}="; else bar="${bar}·"; fi
   done
-  printf "\r  %s Po henter... [%s] %3d%%   " "$f" "$bar" "$pct" > /dev/tty
+  printf "\r  %s Po fetches the track... [%s] %3d%%   " "$f" "$bar" "$pct" > /dev/tty
   sleep 0.25
 done
 wait "$pid"
 rc=$?
-# Fjern "NA - " prefix fra evt. nye filer
 for file in "$destdir"/"NA - "*.mp3; do
   [ -f "$file" ] || continue
   base="$(basename "$file")"
@@ -32,8 +31,8 @@ for file in "$destdir"/"NA - "*.mp3; do
   mv -f "$file" "$destdir/$newbase"
 done
 if [ "$rc" -eq 0 ]; then
-  printf "\r  🐼 Po henter... [====================] 100%%   \n" > /dev/tty
-  printf "  🐼 Po leverede nummeret! Skadoosh!\n" > /dev/tty
+  printf "\r  🐼 Po fetches the track... [====================] 100%%   \n" > /dev/tty
+  printf "  🐼 Po delivered the track! Skadoosh!\n" > /dev/tty
 else
-  printf "\r  🐼 Po tabte nummeret (fejl)                        \n" > /dev/tty
+  printf "\r  🐼 Po dropped the track (error)                        \n" > /dev/tty
 fi
