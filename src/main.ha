@@ -3164,6 +3164,9 @@ fn do_xp(o: *opts) void = {
 		static let n5: [512]u8 = [0...];
 		const d5 = fmt::bsprintf(n5, "{}/.local/share/hpo/arcade/psx", home)!;
 		os::mkdirs(d5, 0o755): void;
+		static let n6: [512]u8 = [0...];
+		const d6 = fmt::bsprintf(n6, "{}/.local/share/hpo/arcade/neogeo", home)!;
+		os::mkdirs(d6, 0o755): void;
 		fmt::println("")!;
 		cprint(C_GREEN, "ARCADE", "Setup complete! Folders created:", o.nocolor);
 		fmt::printfln("   arcade ROMs: {}/.local/share/hpo/arcade/roms", home)!;
@@ -3199,6 +3202,22 @@ fn do_xp(o: *opts) void = {
 		("nds", "melonds", ".nds"),
 	];
 	// Validate ROM exists and is a real file BEFORE charging PYO
+	if (o.xp_action == "neogeo" && o.xp_rom != "") {
+		const ngvbuf: [512]u8 = [0...];
+		const ngvpath = fmt::bsprintf(ngvbuf, "{}/.local/share/hpo/arcade/neogeo/{}.zip", home, o.xp_rom)!;
+		if (!os::exists(ngvpath)) {
+			cprint(C_RED, "ARCADE", "Neo Geo ROM not found! (no PYO spent)", o.nocolor);
+			fmt::printfln("   Expected: {}", ngvpath)!;
+			return;
+		};
+		const ngbios: [512]u8 = [0...];
+		const ngbiospath = fmt::bsprintf(ngbios, "{}/.local/share/hpo/arcade/neogeo/neogeo.zip", home)!;
+		if (!os::exists(ngbiospath)) {
+			cprint(C_RED, "ARCADE", "neogeo.zip BIOS missing! (no PYO spent)", o.nocolor);
+			fmt::printfln("   Place your neogeo.zip BIOS in: {}/.local/share/hpo/arcade/neogeo/", home)!;
+			return;
+		};
+	};
 	for (let vi = 0z; vi < len(systems); vi += 1) {
 		if (o.xp_action == systems[vi].0 && o.xp_rom != "") {
 			const vbuf: [512]u8 = [0...];
@@ -3241,6 +3260,14 @@ fn do_xp(o: *opts) void = {
 			};
 			return;
 		};
+	};
+	if (o.xp_action == "neogeo" && o.xp_rom != "") {
+		const ngbuf: [512]u8 = [0...];
+		const ngdir = fmt::bsprintf(ngbuf, "{}/.local/share/hpo/arcade/neogeo", home)!;
+		fmt::printfln("   Booting {} [neogeo]... (2 PYO spent, {} left)", o.xp_rom, bal - 2)!;
+		const ng_args: []str = ["mame", "-rompath", ngdir, o.xp_rom];
+		let _ = run_cmd(ng_args, o.nocolor);
+		return;
 	};
 	fmt::printfln("   Booting {}... (2 PYO spent, {} left)", o.xp_action, bal - 2)!;
 	const mame_args: []str = ["mame", "-rompath", romdir, o.xp_action];
