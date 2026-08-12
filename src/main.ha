@@ -582,6 +582,35 @@ fn get_content_length(url: str, ua: str, token: str, cookie: str) size = {
 	return 0;
 };
 
+fn zhen_latest(home: str) str = {
+	static let out_buf: [128]u8 = [0...];
+	static let scriptbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(scriptbuf, "ls {}/.local/share/hpo/zhen/proton/ 2>/dev/null | grep '^GE-Proton' | sort -V | tail -1", home)!;
+	const args: []str = ["sh", "-c", script];
+	const cmd = match (exec::cmd(args[0], args[1..]...)) {
+	case let c: exec::command => yield c;
+	case => return "GE-Proton11-3";
+	};
+	const pipe = exec::pipe();
+	exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+	const proc = match (exec::start(&cmd)) {
+	case let pr: exec::process => yield pr;
+	case => return "GE-Proton11-3";
+	};
+	io::close(pipe.1)!;
+	const n = match (io::read(pipe.0, out_buf)) {
+	case let nn: size => yield nn;
+	case => yield 0z;
+	};
+	io::close(pipe.0)!;
+	exec::wait(&proc)!;
+	if (n == 0) return "GE-Proton11-3";
+	const result = strings::fromutf8(out_buf[..n])!;
+	const trimmed = strings::trim(result);
+	if (len(trimmed) == 0) return "GE-Proton11-3";
+	return strings::dup(trimmed)!;
+};
+
 fn draw_progress(downloaded: size, total: size, elapsed_secs: size, nc: bool) void = {
 	const bar_width = 30z;
 	const pct = if (total > 0) (downloaded * 100) / total else 0z;
@@ -1785,16 +1814,19 @@ fn do_steam(o: *opts, target: str) void = {
 		else "rungameid";
 	const uri = fmt::bsprintf(uri_buf, "steam://{}/{}", action, appid)!;
 
+	// Find nyeste GE-Proton (dynamisk - ikke hardcodet)
+	const zver = zhen_latest(home);
+
 	// WSL detection: hvis vi er på WSL, bridge til Windows Steam i stedet
 	const on_wsl = is_wsl();
 
 	// Auto-link Zhen's GE-Proton til Steam (kun på native Linux, ikke WSL)
 	static let zhen_src_buf: [512]u8 = [0...];
-	const zhen_proton_src = fmt::bsprintf(zhen_src_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton11-3", home)!;
+	const zhen_proton_src = fmt::bsprintf(zhen_src_buf, "{}/.local/share/hpo/zhen/proton/{}", home, zver)!;
 	static let steam_compat_buf: [512]u8 = [0...];
 	const steam_compat_dir = fmt::bsprintf(steam_compat_buf, "{}/.var/app/com.valvesoftware.Steam/.local/share/Steam/compatibilitytools.d", home)!;
 	static let steam_target_buf: [512]u8 = [0...];
-	const steam_target = fmt::bsprintf(steam_target_buf, "{}/GE-Proton11-3", steam_compat_dir)!;
+	const steam_target = fmt::bsprintf(steam_target_buf, "{}/{}", steam_compat_dir, zver)!;
 	if (!on_wsl && os::exists(zhen_proton_src) && !os::exists(steam_target)) {
 		if (!o.quiet) cprint(C_YELLOW, "ZHEN", "Linking Zhen's GE-Proton to Steam...", o.nocolor);
 		os::mkdir(steam_compat_dir, 0o755): void;
@@ -1829,7 +1861,7 @@ fn do_steam(o: *opts, target: str) void = {
 	// Bestem launch-metode: WSL → cmd.exe, native Linux → steam/flatpak
 	// ZHEN: Force GE-Proton som default compatibility tool
 	if (!on_wsl && os::exists(steam_target)) {
-		os::setenv("STEAM_COMPAT_TOOL_OVERRIDE", "GE-Proton11-3")!;
+		os::setenv("STEAM_COMPAT_TOOL_OVERRIDE", zver)!;
 	};
 
 	// ZHEN umu-launch: ægte GE-Proton for Steam-spil på Linux (launch only)
@@ -1894,18 +1926,23 @@ fn do_steam(o: *opts, target: str) void = {
 					os::setenv("WINEESYNC", "1")!;
 					os::setenv("WINEFSYNC", "1")!;
 					if (!o.quiet) {
-						cprint(C_YELLOW, "ZHEN", "Zhen engine awakening with GE-Proton11-3...", o.nocolor);
+						cprint(C_YELLOW, "ZHEN", fmt::asprintf("Zhen engine awakening with {}...", zver)!, o.nocolor);
 						fmt::printfln("  Exe: {}", exe)!;
 						fmt::println("")!;
 					};
-					let uargs: []str = alloc([], 2)!;
+					static let envbuf: [256]u8 = [0...];
+					const envarg = fmt::bsprintf(envbuf, "--env=STEAM_COMPAT_TOOL_OVERRIDE={}", zver)!;
+					let uargs: []str = alloc([], 5)!;
 					defer free(uargs);
-					append(uargs, umu)!;
-					append(uargs, exe)!;
+					append(uargs, "flatpak")!;
+					append(uargs, "run")!;
+					append(uargs, envarg)!;
+					append(uargs, "com.valvesoftware.Steam")!;
+					append(uargs, uri)!;
 					if (run_cmd_quiet(uargs, o.nocolor)) {
 						if (!o.quiet) cprint(C_GREEN, "OK", "Game launched with GE-Proton! Skadoosh!", o.nocolor);
 					} else {
-						if (!o.quiet) cprint(C_RED, "FAIL", "umu launch failed!", o.nocolor);
+						if (!o.quiet) cprint(C_RED, "FAIL", "Steam launch failed!", o.nocolor);
 					};
 					return;
 				};
@@ -1934,7 +1971,7 @@ fn do_steam(o: *opts, target: str) void = {
 		append(steam_args, "run")!;
 		// ZHEN: Pass GE-Proton override into Flatpak sandbox
 		if (os::exists(steam_target)) {
-			append(steam_args, "--env=STEAM_COMPAT_TOOL_OVERRIDE=GE-Proton11-3")!;
+			append(steam_args, fmt::asprintf("--env=STEAM_COMPAT_TOOL_OVERRIDE={}", zver)!)!;
 		};
 		append(steam_args, "com.valvesoftware.Steam")!;
 		append(steam_args, uri)!;
