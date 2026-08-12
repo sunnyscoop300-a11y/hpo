@@ -3943,15 +3943,32 @@ fn do_shen(o: *opts) void = {
 		cprint(C_BLUE, "SHEN", "Loading binder module...", o.nocolor);
 		const mb: []str = ["sudo", "modprobe", "binder_linux", "devices=binder,hwbinder,vndbinder"];
 		let _ = run_cmd_quiet(mb, o.nocolor);
-		cprint(C_BLUE, "SHEN", "Starting Weston compositor...", o.nocolor);
-		const wst: []str = ["sh", "-c", "pkill -9 weston 2>/dev/null; sleep 1; weston --backend=x11-backend.so --width=1280 --height=720 >/dev/null 2>&1 & sleep 4"];
-		let _ = run_cmd_quiet(wst, o.nocolor);
-		cprint(C_BLUE, "SHEN", "Starting Android session...", o.nocolor);
-		const ss: []str = ["sh", "-c", "sudo systemctl start waydroid-container 2>/dev/null; WAYLAND_DISPLAY=wayland-1 waydroid session start >/dev/null 2>&1 & sleep 12"];
-		let _ = run_cmd_quiet(ss, o.nocolor);
-		const ui: []str = ["sh", "-c", "WAYLAND_DISPLAY=wayland-1 waydroid show-full-ui >/dev/null 2>&1 &"];
-		let _ = run_cmd_quiet(ui, o.nocolor);
-		cprint(C_GREEN, "SHEN", "Android is awakening! (first boot takes ~30-60s)", o.nocolor);
+		const sess = match (os::getenv("XDG_SESSION_TYPE")) {
+		case let st: str => yield st;
+		case void => yield "x11";
+		};
+		let full = "";
+		if (sess == "wayland") {
+			cprint(C_BLUE, "SHEN", "Wayland detected - running Android directly (stable)...", o.nocolor);
+			full = "sudo systemctl start waydroid-container 2>/dev/null; "
+				"setsid waydroid session start >/dev/null 2>&1 < /dev/null & "
+				"for i in $(seq 1 30); do waydroid status 2>/dev/null | grep -q 'Session.*RUNNING' && break; sleep 2; done; "
+				"sleep 3; "
+				"setsid waydroid show-full-ui >/dev/null 2>&1 < /dev/null &";
+		} else {
+			cprint(C_BLUE, "SHEN", "X11 detected - using Weston compositor...", o.nocolor);
+			full = "pkill -9 weston 2>/dev/null; sleep 1; "
+				"setsid weston --backend=x11-backend.so --width=1280 --height=720 >/dev/null 2>&1 < /dev/null & "
+				"for i in $(seq 1 15); do [ -S /run/user/1000/wayland-1 ] && break; sleep 1; done; "
+				"sudo systemctl start waydroid-container 2>/dev/null; "
+				"WAYLAND_DISPLAY=wayland-1 setsid waydroid session start >/dev/null 2>&1 < /dev/null & "
+				"for i in $(seq 1 30); do waydroid status 2>/dev/null | grep -q 'Session.*RUNNING' && break; sleep 2; done; "
+				"sleep 3; "
+				"WAYLAND_DISPLAY=wayland-1 setsid waydroid show-full-ui >/dev/null 2>&1 < /dev/null &";
+		};
+		const allcmd: []str = ["sh", "-c", full];
+		let _ = run_cmd_quiet(allcmd, o.nocolor);
+		cprint(C_GREEN, "SHEN", "Android is ready! The peacock has arrived. Skadoosh!", o.nocolor);
 		return;
 	};
 
