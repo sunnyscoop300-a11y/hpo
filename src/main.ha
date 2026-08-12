@@ -52,6 +52,9 @@ type opts = struct {
 	piyoko: bool,
 	piyoko_action: str,
 	piyoko_target: str,
+	colin3ds: bool,
+	colin3ds_action: str,
+	colin3ds_target: str,
 	xp: bool,
 	xp_action: str,
 	xp_rom: str,
@@ -1125,18 +1128,25 @@ fn do_zhen_update(o: *opts) void = {
 	case => return;
 	};
 	io::close(pipe.1)!;
-	static let json_buf: [16384]u8 = [0...];
-	const n = match (io::read(pipe.0, json_buf)) {
-	case let nn: size => yield nn;
-	case => yield 0z;
+	static let json_buf: [65536]u8 = [0...];
+	let n = 0z;
+	for (true) {
+		const chunk = match (io::read(pipe.0, json_buf[n..])) {
+		case let nn: size => yield nn;
+		case io::EOF => break;
+		case => yield 0z;
+		};
+		if (chunk == 0) break;
+		n += chunk;
+		if (n >= len(json_buf)) break;
 	};
 	io::close(pipe.0)!;
 	exec::wait(&proc)!;
 	const json = strings::fromutf8(json_buf[..n])!;
 
 	// Find "tag_name":"GE-ProtonX-Y"
-	const tag_start = match (strings::index(json, "\"tag_name\":\"")) {
-	case let i: size => yield i + 12;
+	const tag_start = match (strings::index(json, "\"tag_name\": \"")) {
+	case let i: size => yield i + 13;
 	case void => {
 		cprint(C_RED, "ZHEN", "Could not parse latest release", o.nocolor);
 		return;
@@ -1166,14 +1176,15 @@ fn do_zhen_update(o: *opts) void = {
 	// Download tarball
 	cprint(C_BLUE, "ZHEN", "Downloading new Proton-GE...", o.nocolor);
 	static let url_buf: [512]u8 = [0...];
-	const url = fmt::bsprintf(url_buf, "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/{}/{}.tar.gz", latest_tag, latest_tag)!;
+	const url = fmt::bsprintf(url_buf, "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/{}/{}-x86_64.tar.gz", latest_tag, latest_tag)!;
 	static let tar_buf: [512]u8 = [0...];
-	const tar_path = fmt::bsprintf(tar_buf, "/tmp/{}.tar.gz", latest_tag)!;
+	const tar_path = fmt::bsprintf(tar_buf, "/tmp/{}-x86_64.tar.gz", latest_tag)!;
 	let dl_args: []str = alloc([], 6)!;
 	defer free(dl_args);
 	append(dl_args, "curl")!;
 	append(dl_args, "-L")!;
-	append(dl_args, "-#")!;
+	append(dl_args, "-s")!;
+	append(dl_args, "--fail")!;
 	append(dl_args, "-o")!;
 	append(dl_args, tar_path)!;
 	append(dl_args, url)!;
@@ -1197,6 +1208,16 @@ fn do_zhen_update(o: *opts) void = {
 	if (!run_cmd(tar_args, o.nocolor)) {
 		cprint(C_RED, "ZHEN", "Extraction failed", o.nocolor);
 		return;
+	};
+
+	// Omdoeb GE-ProtonX-Y-x86_64 -> GE-ProtonX-Y saa Zhen finder den
+	static let x86buf: [512]u8 = [0...];
+	const x86path = fmt::bsprintf(x86buf, "{}/{}-x86_64", dest, latest_tag)!;
+	static let cleanbuf: [512]u8 = [0...];
+	const cleanpath = fmt::bsprintf(cleanbuf, "{}/{}", dest, latest_tag)!;
+	if (os::exists(x86path)) {
+		const mv_args: []str = ["mv", x86path, cleanpath];
+		let _ = run_cmd(mv_args, o.nocolor);
 	};
 
 	// Cleanup
@@ -2579,6 +2600,9 @@ fn print_help() void = {
 	fmt::println("  hpo crane ytradio <words>             YouTube radio (10 tracks)")!;
 	fmt::println("  hpo crane local <path>                Play local music (Suno, downloads)")!;
 	fmt::println("  hpo morio <file-or-dir>               Convert FLAC to MP3 (dawn rooster)")!;
+	fmt::println("  hpo colin3ds decrypt <fil.3ds>        Decrypt a 3DS ROM (Colin, the tracker)")!;
+	fmt::println("  hpo colin3ds encrypt <fil.3ds>        Re-encrypt a 3DS ROM")!;
+	fmt::println("  hpo colin3ds check <fil.3ds>          Verify ROM integrity (SHA-256)")!;
 	fmt::println("  hpo crane mix <path>                  DJ mode - shuffle + loop")!;
 	fmt::println("  hpo crane web <words>                 Open SoundCloud search in browser")!;
 	fmt::println("")!;
@@ -4486,6 +4510,9 @@ export fn main() void = {
 		piyoko = false,
 		piyoko_action = "",
 		piyoko_target = "",
+		colin3ds = false,
+		colin3ds_action = "",
+		colin3ds_target = "",
 		tailung = false,
 		tailung_urls = [],
                 suno    = false,
@@ -4763,6 +4790,16 @@ export fn main() void = {
                 		append(o.tailung_urls, args[i + 1])!;
                 		i += 1;
                 	};
+                } else if (a == "colin3ds") {
+                	o.colin3ds = true;
+                	if (i + 1 < len(args)) {
+                		o.colin3ds_action = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.colin3ds_target = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "piyoko") {
                 	o.piyoko = true;
                 	if (i + 1 < len(args)) {
@@ -4861,6 +4898,10 @@ export fn main() void = {
 	};
 	if (o.tailung) {
 		do_tailung(o.tailung_urls, o.nocolor);
+		return;
+	};
+	if (o.colin3ds) {
+		do_colin3ds(o.colin3ds_action, o.colin3ds_target);
 		return;
 	};
 	if (o.piyoko) {
