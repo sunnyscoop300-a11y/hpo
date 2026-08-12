@@ -89,6 +89,9 @@ type opts = struct {
 	morio_args: []str,
 	crane_arg: str,
 	crane_arg2: str,
+	shen: bool,
+	shen_arg: str,
+	shen_arg2: str,
 	kai: bool,
 	kai_arg: str,
 	croc: bool,
@@ -3919,6 +3922,73 @@ fn do_monkey(o: *opts) void = {
 	};
 };
 
+fn do_shen(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_CYAN)!;
+	fmt::println("   [SHEN] The peacock brings Android to your machine!")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+
+	const home = match (os::getenv("HOME")) {
+	case let h: str => yield h;
+	case void => yield "/tmp";
+	};
+
+	const cmd = o.shen_arg;
+
+	if (cmd == "" || cmd == "help") {
+		cprint(C_YELLOW, "SHEN", "Usage: hpo shen <start|ui|install <apk>|list|stop>", o.nocolor);
+		return;
+	};
+
+	if (cmd == "start") {
+		cprint(C_BLUE, "SHEN", "Loading binder module...", o.nocolor);
+		const mb: []str = ["sudo", "modprobe", "binder_linux", "devices=binder,hwbinder,vndbinder"];
+		let _ = run_cmd_quiet(mb, o.nocolor);
+		cprint(C_BLUE, "SHEN", "Starting Weston compositor...", o.nocolor);
+		const wst: []str = ["sh", "-c", "pkill -9 weston 2>/dev/null; sleep 1; weston --backend=x11-backend.so --width=1280 --height=720 >/dev/null 2>&1 & sleep 4"];
+		let _ = run_cmd_quiet(wst, o.nocolor);
+		cprint(C_BLUE, "SHEN", "Starting Android session...", o.nocolor);
+		const ss: []str = ["sh", "-c", "sudo systemctl start waydroid-container 2>/dev/null; WAYLAND_DISPLAY=wayland-1 waydroid session start >/dev/null 2>&1 & sleep 12"];
+		let _ = run_cmd_quiet(ss, o.nocolor);
+		const ui: []str = ["sh", "-c", "WAYLAND_DISPLAY=wayland-1 waydroid show-full-ui >/dev/null 2>&1 &"];
+		let _ = run_cmd_quiet(ui, o.nocolor);
+		cprint(C_GREEN, "SHEN", "Android is awakening! (first boot takes ~30-60s)", o.nocolor);
+		return;
+	};
+
+	if (cmd == "ui") {
+		const ui: []str = ["sh", "-c", "WAYLAND_DISPLAY=wayland-1 waydroid show-full-ui >/dev/null 2>&1 &"];
+		let _ = run_cmd_quiet(ui, o.nocolor);
+		cprint(C_GREEN, "SHEN", "Opening Android UI...", o.nocolor);
+		return;
+	};
+
+	if (cmd == "install" && o.shen_arg2 != "") {
+		cprint(C_BLUE, "SHEN", "Installing APK (legal apps only)...", o.nocolor);
+		const ins: []str = ["waydroid", "app", "install", o.shen_arg2];
+		if (run_cmd(ins, o.nocolor)) {
+			cprint(C_GREEN, "SHEN", "APK installed! Skadoosh!", o.nocolor);
+		} else {
+			cprint(C_RED, "SHEN", "Install failed", o.nocolor);
+		};
+		return;
+	};
+
+	if (cmd == "list") {
+		const ls: []str = ["waydroid", "app", "list"];
+		let _ = run_cmd(ls, o.nocolor);
+		return;
+	};
+
+	if (cmd == "stop") {
+		const st: []str = ["sh", "-c", "waydroid session stop 2>/dev/null; sudo systemctl stop waydroid-container 2>/dev/null; pkill -9 weston 2>/dev/null"];
+		let _ = run_cmd_quiet(st, o.nocolor);
+		cprint(C_GREEN, "SHEN", "Android session stopped.", o.nocolor);
+		return;
+	};
+
+	cprint(C_YELLOW, "SHEN", "Unknown command. Use: start|ui|install <apk>|list|stop", o.nocolor);
+};
+
 fn do_viper(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_GREEN)!;
 	fmt::println("   [VIPER] Swift and graceful - PlayStation Remote Play!")!;
@@ -4500,6 +4570,9 @@ export fn main() void = {
 		morio = false,
 		morio_args = [],
 			crane_arg = "",
+			shen = false,
+			shen_arg = "",
+			shen_arg2 = "",
 			crane_arg2 = "",
 			kai = false,
 			kai_arg = "",
@@ -4733,6 +4806,10 @@ export fn main() void = {
                 		o.monkey_setup = true;
                 		i += 1;
                 	};
+                } else if (a == "shen") {
+                	o.shen = true;
+                	if (i + 1 < len(args)) o.shen_arg = args[i + 1];
+                	if (i + 2 < len(args)) o.shen_arg2 = args[i + 2];
                 } else if (a == "viper") {
                 	o.viper = true;
                 	if (i + 1 < len(args) && args[i + 1] == "setup") {
@@ -5045,6 +5122,10 @@ export fn main() void = {
 	};
 	if (o.viper) {
 		do_viper(&o);
+		return;
+	};
+	if (o.shen) {
+		do_shen(&o);
 		return;
 	};
 	if (o.mantis) {
