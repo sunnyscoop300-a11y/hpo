@@ -3588,6 +3588,7 @@ fn do_forouzan(o: *opts) void = {
 	fmt::println("   5  World of Tanks  (Wargaming)")!;
 	fmt::println("   6  Rockstar Games")!;
 	fmt::println("   7  League of Legends  (Riot)")!;
+	fmt::println("   8  Genshin Impact  (HoYoverse)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3658,6 +3659,12 @@ fn do_forouzan(o: *opts) void = {
 		os::setenv("WINEPREFIX", prefix)!;
 		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
 		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-riot/drive_c/Riot Games/Riot Client/RiotClientServices.exe", home)!;
+	} else if (choice == "8") {
+		const prbuf: [512]u8 = [0...];
+		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-genshin", home)!;
+		os::setenv("WINEPREFIX", prefix)!;
+		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-genshin/drive_c/Program Files/HoYoPlay/launcher.exe", home)!;
 	} else {
 		cprint(C_YELLOW, "FOROUZAN", "The fleet rests. Farewell!", o.nocolor);
 		return;
