@@ -2095,8 +2095,9 @@ fn do_epic(o: *opts, gamename_in: str) void = {
 		static let prefix_buf: [512]u8 = [0...];
 		const prefix = fmt::bsprintf(prefix_buf, "{}/{}", base, gamename)!;
 		os::mkdir(prefix, 0o755): void;
+		const zver = zhen_latest(home);
 		static let proton_buf: [512]u8 = [0...];
-		const proton_path = fmt::bsprintf(proton_buf, "{}/.local/share/hpo/zhen/proton/GE-Proton11-3", home)!;
+		const proton_path = fmt::bsprintf(proton_buf, "{}/.local/share/hpo/zhen/proton/{}", home, zver)!;
 		if (!os::exists(proton_path)) {
 			cprint(C_RED, "ERR", "Zhen Proton not found! Run: hpo --zhen-setup --proton", o.nocolor);
 			os::exit(1);
@@ -2121,9 +2122,15 @@ fn do_epic(o: *opts, gamename_in: str) void = {
 		os::setenv("WINEFSYNC", "1")!;
 		if (!o.quiet) {
 			fmt::printfln("  Prefix: {}", prefix)!;
-			fmt::printfln("  Proton: GE-Proton11-3")!;
+			fmt::printfln("  Proton: {}", zver)!;
 			fmt::println("")!;
 		};
+	};
+	// Auto-update foer launch (undgaa "out of date")
+	if (o.epic_cmd == "launch") {
+		cprint(C_YELLOW, "MONKEY", "Checking for game updates...", o.nocolor);
+		const upd: []str = ["legendary", "update", gamename, "-y"];
+		let _ = run_cmd(upd, o.nocolor);
 	};
 	let args: []str = alloc([], 8)!;
 	defer free(args);
@@ -3872,7 +3879,8 @@ fn do_monkey(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	const pbuf: [512]u8 = [0...];
-	const proton = fmt::bsprintf(pbuf, "{}/.local/share/hpo/zhen/proton/GE-Proton11-3", home)!;
+	const zver = zhen_latest(home);
+	const proton = fmt::bsprintf(pbuf, "{}/.local/share/hpo/zhen/proton/{}", home, zver)!;
 	if (o.monkey_setup) {
 		cprint(C_YELLOW, "MONKEY", "Installing Rocket League via Epic (legendary)...", o.nocolor);
 		const inst: []str = ["legendary", "install", "Sugar", "-y"];
