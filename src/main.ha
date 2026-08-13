@@ -85,10 +85,13 @@ type opts = struct {
 	monkey: bool,
 	monkey_setup: bool,
 	crane: bool,
+	li: bool,
 	morio: bool,
 	morio_args: []str,
 	crane_arg: str,
 	crane_arg2: str,
+	li_arg: str,
+	li_arg2: str,
 	shen: bool,
 	shen_arg: str,
 	shen_arg2: str,
@@ -3794,6 +3797,73 @@ fn do_kai(o: *opts) void = {
 	os::remove(tmp): void;
 };
 
+fn do_li(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_CYAN)!;
+	fmt::println("   [LI] Panda dad casts your content to the big screen!")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+
+	// Laes gemt cast-enhed
+	const home = match (os::getenv("HOME")) {
+	case let h: str => yield h;
+	case void => yield "/tmp";
+	};
+	static let devbuf: [512]u8 = [0...];
+	const devpath = fmt::bsprintf(devbuf, "{}/.config/hpo/cast_device.txt", home)!;
+	let dev = "";
+	match (os::open(devpath)) {
+	case let f: io::file => {
+		static let rb: [128]u8 = [0...];
+		const n = match (io::read(f, rb)) {
+		case let nn: size => yield nn;
+		case => yield 0z;
+		};
+		io::close(f)!;
+		if (n > 0) dev = strings::dup(strings::trim(strings::fromutf8(rb[..n])!))!;
+	};
+	case => void;
+	};
+
+	if (o.li_arg == "") {
+		cprint(C_YELLOW, "LI", "Usage: hpo li <url|file> | scan | stop | pause | play | status | set <ip>", o.nocolor);
+		if (len(dev) > 0) fmt::printfln("   Current device: {}", dev)!;
+		return;
+	};
+
+	// scan - find cast-enheder
+	if (o.li_arg == "scan") {
+		cprint(C_GREEN, "LI", "Scanning for cast devices...", o.nocolor);
+		const args: []str = ["catt", "scan"];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
+
+	// set <ip> - gem cast-enhed
+	if (o.li_arg == "set" && o.li_arg2 != "") {
+		const wargs: []str = ["sh", "-c", fmt::asprintf("echo '{}' > {}/.config/hpo/cast_device.txt", o.li_arg2, home)!];
+		let _ = run_cmd(wargs, o.nocolor);
+		cprint(C_GREEN, "LI", fmt::asprintf("Cast device set to {}", o.li_arg2)!, o.nocolor);
+		return;
+	};
+
+	if (len(dev) == 0) {
+		cprint(C_RED, "LI", "No cast device set. Run: hpo li scan  then  hpo li set <ip>", o.nocolor);
+		return;
+	};
+
+	// stop / pause / play / status - kontrol
+	if (o.li_arg == "stop" || o.li_arg == "pause" || o.li_arg == "play" || o.li_arg == "status") {
+		cprint(C_GREEN, "LI", fmt::asprintf("{} on {}", o.li_arg, dev)!, o.nocolor);
+		const args: []str = ["catt", "-d", dev, o.li_arg];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
+
+	// Ellers: cast url/fil
+	cprint(C_GREEN, "LI", fmt::asprintf("Casting to {}... Skadoosh!", dev)!, o.nocolor);
+	const args: []str = ["catt", "-d", dev, "cast", o.li_arg];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_crane(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_CYAN)!;
 	fmt::println("   [CRANE] Elegant and soaring - SoundCloud player!")!;
@@ -4595,6 +4665,9 @@ export fn main() void = {
 		morio = false,
 		morio_args = [],
 			crane_arg = "",
+			li = false,
+			li_arg = "",
+			li_arg2 = "",
 			shen = false,
 			shen_arg = "",
 			shen_arg2 = "",
@@ -4741,6 +4814,16 @@ export fn main() void = {
                 	};
                 	if (i + 1 < len(args)) {
                 		o.xp_rom = args[i + 1];
+                		i += 1;
+                	};
+                } else if (a == "li") {
+                	o.li = true;
+                	if (i + 1 < len(args)) {
+                		o.li_arg = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.li_arg2 = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "bnet") {
@@ -5135,6 +5218,10 @@ export fn main() void = {
 	};
 	if (o.morio) {
 		do_morio(&o);
+		return;
+	};
+	if (o.li) {
+		do_li(&o);
 		return;
 	};
 	if (o.crane) {
