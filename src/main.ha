@@ -3586,6 +3586,8 @@ fn do_forouzan(o: *opts) void = {
 	fmt::println("   3  Ubisoft Connect")!;
 	fmt::println("   4  Minecraft  (Prism)")!;
 	fmt::println("   5  World of Tanks  (Wargaming)")!;
+	fmt::println("   6  Rockstar Games")!;
+	fmt::println("   7  League of Legends  (Riot)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3644,6 +3646,18 @@ fn do_forouzan(o: *opts) void = {
 		os::setenv("WINEPREFIX", prefix)!;
 		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
 		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-wargaming/drive_c/Program Files/Wargaming.net/GameCenter/wgc.exe", home)!;
+	} else if (choice == "6") {
+		const prbuf: [512]u8 = [0...];
+		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-rockstar", home)!;
+		os::setenv("WINEPREFIX", prefix)!;
+		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-rockstar/drive_c/Program Files/Rockstar Games/Launcher/Launcher.exe", home)!;
+	} else if (choice == "7") {
+		const prbuf: [512]u8 = [0...];
+		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-riot", home)!;
+		os::setenv("WINEPREFIX", prefix)!;
+		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-riot/drive_c/Riot Games/Riot Client/RiotClientServices.exe", home)!;
 	} else {
 		cprint(C_YELLOW, "FOROUZAN", "The fleet rests. Farewell!", o.nocolor);
 		return;
