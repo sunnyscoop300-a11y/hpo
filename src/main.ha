@@ -3861,7 +3861,29 @@ fn do_li(o: *opts) void = {
 	// Ellers: cast url/fil
 	cprint(C_GREEN, "LI", fmt::asprintf("Casting to {}... Skadoosh!", dev)!, o.nocolor);
 	const args: []str = ["catt", "-d", dev, "cast", o.li_arg];
-	let _ = run_cmd(args, o.nocolor);
+	if (run_cmd_quiet(args, o.nocolor)) {
+		cprint(C_GREEN, "LI", "Now playing on the big screen!", o.nocolor);
+		return;
+	};
+	// Direkte cast fejlede - er det en URL? Proev temp-fil fallback (som Kai)
+	if (strings::hasprefix(o.li_arg, "http")) {
+		cprint(C_YELLOW, "LI", "Direct cast failed - downloading to temp file first...", o.nocolor);
+		const tmp = "/tmp/hpo-li-cast.mp4";
+		os::remove(tmp): void;
+		static let dlbuf: [4096]u8 = [0...];
+		const dl = fmt::bsprintf(dlbuf, "yt-dlp -f \"bestvideo[height<=1080]+bestaudio/best[height<=1080]/best\" --merge-output-format mp4 --no-part -o {} \"{}\"", tmp, o.li_arg)!;
+		const dlargs: []str = ["sh", "-c", dl];
+		if (!run_cmd(dlargs, o.nocolor)) {
+			cprint(C_RED, "LI", "Download failed - video may be unavailable.", o.nocolor);
+			return;
+		};
+		cprint(C_GREEN, "LI", "Casting the downloaded file... Skadoosh!", o.nocolor);
+		const cargs: []str = ["catt", "-d", dev, "cast", tmp];
+		let _ = run_cmd(cargs, o.nocolor);
+		// Bemaerk: temp-filen forbliver mens TV'et streamer den. Ryddes ved naeste cast.
+	} else {
+		cprint(C_RED, "LI", "Cast failed - check the file path or device.", o.nocolor);
+	};
 };
 
 fn do_crane(o: *opts) void = {
