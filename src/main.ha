@@ -3584,6 +3584,8 @@ fn do_forouzan(o: *opts) void = {
 	fmt::println("   1  Battle.net  (Blizzard)")!;
 	fmt::println("   2  EA App")!;
 	fmt::println("   3  Ubisoft Connect")!;
+	fmt::println("   4  Minecraft  (Prism)")!;
+	fmt::println("   5  World of Tanks  (Wargaming)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3624,6 +3626,24 @@ fn do_forouzan(o: *opts) void = {
 		os::setenv("WINEPREFIX", prefix)!;
 		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
 		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-ubisoft/drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe", home)!;
+	} else if (choice == "4") {
+		// Minecraft via Prism (native - ingen Zhen noedvendig)
+		cprint(C_GREEN, "FOROUZAN", "The Pirate Queen sets sail! Launching Minecraft...", o.nocolor);
+		if (check_tool("prismlauncher")) {
+			const pargs: []str = ["prismlauncher"];
+			let _ = run_cmd(pargs, o.nocolor);
+		} else {
+			const pargs: []str = ["flatpak", "run", "org.prismlauncher.PrismLauncher"];
+			let _ = run_cmd(pargs, o.nocolor);
+		};
+		return;
+	} else if (choice == "5") {
+		// World of Tanks via Wargaming Game Center (Zhen/Proton)
+		const prbuf: [512]u8 = [0...];
+		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-wargaming", home)!;
+		os::setenv("WINEPREFIX", prefix)!;
+		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-wargaming/drive_c/Program Files/Wargaming.net/GameCenter/wgc.exe", home)!;
 	} else {
 		cprint(C_YELLOW, "FOROUZAN", "The fleet rests. Farewell!", o.nocolor);
 		return;
