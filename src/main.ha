@@ -1752,7 +1752,7 @@ fn do_steam(o: *opts, target: str) void = {
 		append(ls_args, "sh")!;
 		append(ls_args, "-c")!;
 		static let cmd_buf: [1024]u8 = [0...];
-		const grep_cmd = fmt::bsprintf(cmd_buf, "awk '/appid|name/' {}/appmanifest_*.acf 2>/dev/null | paste - -", apps_dir)!;
+		const grep_cmd = fmt::bsprintf(cmd_buf, "for f in {}/appmanifest_*.acf; do a=$(grep -m1 '\"appid\"' \"$f\" | grep -o '[0-9]*'); n=$(grep -m1 '\"name\"' \"$f\" | sed 's/.*\"name\"[^\"]*\"//; s/\"$//'); case \"$n\" in *Proton*|*'Steam Linux Runtime'*|*Steamworks*|*'Steam Controller'*) ;; *) printf '  %-40s [%s]\\n' \"$n\" \"$a\" ;; esac; done | sort", apps_dir)!;
 		append(ls_args, grep_cmd)!;
 		let _ = run_cmd(ls_args, o.nocolor);
 		return;
