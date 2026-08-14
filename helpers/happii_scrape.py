@@ -24,6 +24,8 @@ import sys
 import time
 import re
 
+FILTER = sys.argv[1].lower() if len(sys.argv) > 1 else ""
+
 try:
     from playwright.sync_api import sync_playwright
 except ImportError:
@@ -99,8 +101,12 @@ def main():
     print(f"-> {len(deals)} produkter fundet hos happii.dk:")
     for name, price in deals:
         if price:
+            if FILTER and FILTER not in name.lower():
+                continue
             print(f"   • {name} — {price}")
         else:
+            if FILTER and FILTER not in name.lower():
+                continue
             print(f"   • {name}")
 
 

@@ -3618,15 +3618,38 @@ fn ostrich_extract_csmegastore(body: str, max: size) []ostrich_deal = {
 
 // Runs one of the Playwright helper scripts (~/hpo/helpers/<script>)
 // and lets its output print straight to our own stdout.
-fn ostrich_run_python_helper(script_name: str, nc: bool) void = {
+fn ostrich_run_python_helper(script_name: str, nc: bool, target: str) void = {
 	const home = match (os::getenv("HOME")) {
 	case let s: str => yield s;
 	case void => yield "/tmp";
 	};
 	static let sbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/{}", home, script_name)!;
-	const args: []str = ["python3", script];
+	const args: []str = if (target == "") ["python3", script] else ["python3", script, target];
 	let _ = run_cmd(args, nc);
+};
+
+fn ostrich_matches(name: str, target: str) bool = {
+	if (target == "") return true;
+	static let nb: [256]u8 = [0...];
+	static let tb: [64]u8 = [0...];
+	const nby = strings::toutf8(name);
+	const tby = strings::toutf8(target);
+	let nn = len(nby); if (nn > 256) nn = 256;
+	let tn = len(tby); if (tn > 64) tn = 64;
+	for (let i = 0z; i < nn; i += 1) {
+		let ch = nby[i];
+		if (ch >= 'A': u8 && ch <= 'Z': u8) ch += 32;
+		nb[i] = ch;
+	};
+	for (let i = 0z; i < tn; i += 1) {
+		let ch = tby[i];
+		if (ch >= 'A': u8 && ch <= 'Z': u8) ch += 32;
+		tb[i] = ch;
+	};
+	const nlow = strings::fromutf8(nb[..nn])!;
+	const tlow = strings::fromutf8(tb[..tn])!;
+	return strings::contains(nlow, tlow);
 };
 
 fn do_ostrich(o: *opts) void = {
@@ -3650,6 +3673,7 @@ fn do_ostrich(o: *opts) void = {
 		} else {
 			fmt::printfln("   -> {} produkter fundet hos csmegastore.dk:", len(deals))!;
 			for (let i = 0z; i < len(deals); i += 1) {
+				if (!ostrich_matches(deals[i].title, o.ostrich_target)) continue;
 				if (len(deals[i].price) == 0) {
 					fmt::printfln("      • {}", deals[i].title)!;
 				} else {
@@ -3663,11 +3687,11 @@ fn do_ostrich(o: *opts) void = {
 
 	fmt::println("")!;
 	cprint(C_CYAN, "OSTRICH", "Flyver forbi Cloudflare for happii.dk (python3 helpers/happii_scrape.py)...", o.nocolor);
-	ostrich_run_python_helper("happii_scrape.py", o.nocolor);
+	ostrich_run_python_helper("happii_scrape.py", o.nocolor, o.ostrich_target);
 
 	fmt::println("")!;
 	cprint(C_CYAN, "OSTRICH", "Crawler compumail.dk's kampagner (python3 helpers/compumail_scrape.py)...", o.nocolor);
-	ostrich_run_python_helper("compumail_scrape.py", o.nocolor);
+	ostrich_run_python_helper("compumail_scrape.py", o.nocolor, o.ostrich_target);
 };
 
 fn do_mastodon(o: *opts) void = {

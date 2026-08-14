@@ -238,10 +238,15 @@ def main():
                 continue
 
             for d in deals[:MAX_DEALS_PER_CAMPAIGN]:
+                if FILTER and FILTER not in d['name'].lower():
+                    continue
                 print(f"    • {d['name']} — {d['price']}")
             print()
 
         browser.close()
+
+
+FILTER = sys.argv[1].lower() if len(sys.argv) > 1 else ""
 
 
 if __name__ == "__main__":
