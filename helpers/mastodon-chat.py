@@ -7,7 +7,7 @@ MASTODON_CONF = os.path.join(CONFDIR, "mastodon.conf")
 SHARED_KEY = os.path.join(CONFDIR, "openrouter_key.txt")
 VERUCA_CONF = os.path.join(CONFDIR, "veruca.conf")
 DEFAULT_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
-DEFAULT_MODEL = "google/gemini-3.6-flash"
+DEFAULT_MODEL = "google/gemini-3.7-flash"
 DEFAULT_SYSTEM = (
     "You are Mastodon, a wise, concise and helpful assistant living inside the hpo command-line tool. "
     "When asked to write an album cover image prompt (for the Veruca image generator), ALWAYS follow these text rules: "
