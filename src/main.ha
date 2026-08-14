@@ -119,6 +119,9 @@ type opts = struct {
 	elizabeth_arg: str,
 	mastodon: bool,
 	mastodon_arg: str,
+	ostrich: bool,
+	ostrich_action: str,
+	ostrich_target: str,
 	doctor: bool,
 	ping_setup: bool,
 	bnet: bool,
@@ -2550,6 +2553,7 @@ fn print_help() void = {
 	fmt::println("  hpo tailung <url1> <url2> ...         Tai Lung parallel download")!;
 	fmt::println("  hpo tigress                           Tigress quote of the day")!;
 	fmt::println("  hpo piyoko                            Piyoko wallet (Piyokocoin)")!;
+	fmt::println("  hpo ostrich scan                      Master Ostrich deal scanner")!;
 	fmt::println("")!;
 	fmt::println("DOWNLOAD OPTIONS:")!;
 	fmt::println("  -o <path>       Output file or directory (default: ~/Downloads/)")!;
@@ -2598,6 +2602,11 @@ fn print_help() void = {
 	fmt::println("  hpo oogway 60                         Custom duration in seconds")!;
 	fmt::println("  hpo oogway 300                        5 min mini session")!;
 	fmt::println("  Bell sound: ~/.local/share/hpo/bell.mp3 (played via mpv)")!;
+	fmt::println("")!;
+	fmt::println("OSTRICH DEAL SCANNER (Kung Fu Panda: The Dragon Knight themed):")!;
+	fmt::println("  hpo ostrich scan                      Scan csmegastore.dk, happii.dk,")!;
+	fmt::println("                                         and compumail.dk for deals")!;
+	fmt::println("  Helpers: ~/hpo/helpers/happii_scrape.py, compumail_scrape.py (Playwright)")!;
 	fmt::println("")!;
 	fmt::println("ROZ WEATHER ROBOT (The Wild Robot themed):")!;
 	fmt::println("  hpo roz vejr                          Auto-locate via IP")!;
@@ -3454,6 +3463,211 @@ fn do_doctor(o: *opts) void = {
 	fmt::println("")!;
 	cprint(C_GREEN, "DOCTOR", "Any MISSING? Run: hpo --setup", o.nocolor);
 	cprint(C_GREEN, "DOCTOR", "GPU mismatch on Flatpak Steam? Run: flatpak update -y", o.nocolor);
+};
+
+// --- Ostrich deal-scanner (ported from the vindhjelm project) ---
+// csmegastore.dk/outlet is server-rendered HTML, so it's scanned
+// natively here with the same curl-to-tempfile approach hpo already
+// uses elsewhere. happii.dk (Cloudflare bot protection) and
+// compumail.dk (needs to crawl into each campaign page) both need a
+// real browser engine, so those two are delegated to the Playwright
+// helper scripts — same "python3 ~/hpo/helpers/<script>.py" pattern
+// hpo already uses for mastodon/veruca.
+
+type ostrich_deal = struct {
+	title: str,
+	price: str,
+};
+
+fn ostrich_trim_ws(s: str) str = {
+	const b = strings::toutf8(s);
+	let start = 0z;
+	for (start < len(b)) {
+		const c = b[start];
+		if (c != (' ': u8) && c != ('\t': u8) && c != ('\n': u8) && c != ('\r': u8)) {
+			break;
+		};
+		start += 1;
+	};
+	let end = len(b);
+	for (end > start) {
+		const c = b[end - 1];
+		if (c != (' ': u8) && c != ('\t': u8) && c != ('\n': u8) && c != ('\r': u8)) {
+			break;
+		};
+		end -= 1;
+	};
+	return strings::fromutf8(b[start..end])!;
+};
+
+fn ostrich_strip_leading_markup(name: str) str = {
+	const b = strings::toutf8(name);
+	let last_gt_pos = 0z;
+	let found = false;
+	for (let i = 0z; i < len(b); i += 1) {
+		if (b[i] == ('>': u8)) {
+			last_gt_pos = i;
+			found = true;
+		};
+	};
+	if (found) {
+		return ostrich_trim_ws(strings::fromutf8(b[last_gt_pos + 1..])!);
+	};
+	return name;
+};
+
+fn ostrich_free_deals(deals: []ostrich_deal) void = {
+	for (let i = 0z; i < len(deals); i += 1) {
+		free(deals[i].title);
+		free(deals[i].price);
+	};
+	free(deals);
+};
+
+// Fetches a URL via curl into a scratch file and reads it back.
+fn ostrich_fetch(url: str) (str | void) = {
+	static let tbuf: [512]u8 = [0...];
+	const tmp = fmt::bsprintf(tbuf, "/tmp/hpo-ostrich-fetch.html")!;
+
+	const cmd = match (exec::cmd(
+		"curl",
+		"-sL",
+		"--max-time", "15",
+		"-A", "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0",
+		"-o", tmp,
+		url,
+	)) {
+	case let c: exec::command => yield c;
+	case => return void;
+	};
+	const proc = match (exec::start(&cmd)) {
+	case let p: exec::process => yield p;
+	case => return void;
+	};
+	const status = match (exec::wait(&proc)) {
+	case let s: exec::status => yield s;
+	case => return void;
+	};
+	if (!(exec::check(&status) is void)) {
+		return void;
+	};
+
+	const file = match (os::open(tmp)) {
+	case let f: io::file => yield f;
+	case => return void;
+	};
+	defer io::close(file)!;
+	const out = match (io::drain(file)) {
+	case let d: []u8 => yield d;
+	case => return void;
+	};
+	return match (strings::fromutf8(out)) {
+	case let s: str => yield s;
+	case => void;
+	};
+};
+
+// csmegastore.dk: walks m-product-card__name / m-product-card__price-text
+// pairs, up to `max` hits.
+fn ostrich_extract_csmegastore(body: str, max: size) []ostrich_deal = {
+	let out: []ostrich_deal = [];
+	const b = strings::toutf8(body);
+	const name_marker = "m-product-card__name\">";
+	const name_end = "</h3>";
+	const price_marker = "m-product-card__price-text\">";
+	const price_end = "</span>";
+
+	let pos = 0z;
+	for (len(out) < max) {
+		const rest = strings::fromutf8(b[pos..])!;
+		const ni = strings::index(rest, name_marker);
+		if (ni is void) {
+			break;
+		};
+		const name_start = pos + (ni: size) + len(name_marker);
+		const after_name = strings::fromutf8(b[name_start..])!;
+		const nei = strings::index(after_name, name_end);
+		if (nei is void) {
+			break;
+		};
+		const name_end_pos = name_start + (nei: size);
+		const name = ostrich_strip_leading_markup(ostrich_trim_ws(strings::fromutf8(b[name_start..name_end_pos])!));
+
+		let price = "";
+		const after_for_price = strings::fromutf8(b[name_end_pos..])!;
+		const pi = strings::index(after_for_price, price_marker);
+		if (!(pi is void)) {
+			const price_start = name_end_pos + (pi: size) + len(price_marker);
+			const after_price = strings::fromutf8(b[price_start..])!;
+			const pei = strings::index(after_price, price_end);
+			if (!(pei is void)) {
+				const price_end_pos = price_start + (pei: size);
+				price = ostrich_trim_ws(strings::fromutf8(b[price_start..price_end_pos])!);
+			};
+		};
+
+		append(out, ostrich_deal {
+			title = strings::dup(name)!,
+			price = strings::dup(price)!,
+		})!;
+
+		pos = name_end_pos + len(name_end);
+	};
+	return out;
+};
+
+// Runs one of the Playwright helper scripts (~/hpo/helpers/<script>)
+// and lets its output print straight to our own stdout.
+fn ostrich_run_python_helper(script_name: str, nc: bool) void = {
+	const home = match (os::getenv("HOME")) {
+	case let s: str => yield s;
+	case void => yield "/tmp";
+	};
+	static let sbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/{}", home, script_name)!;
+	const args: []str = ["python3", script];
+	let _ = run_cmd(args, nc);
+};
+
+fn do_ostrich(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_CYAN)!;
+	fmt::println("   [OSTRICH] Helm of Winds unfurled — vinden finder det, du ikke kan se...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+
+	if (o.ostrich_action != "scan") {
+		cprint(C_YELLOW, "OSTRICH", "Usage: hpo ostrich scan", o.nocolor);
+		return;
+	};
+
+	cprint(C_CYAN, "OSTRICH", "Spejder over csmegastore.dk/outlet...", o.nocolor);
+	match (ostrich_fetch("https://www.csmegastore.dk/outlet")) {
+	case let body: str =>
+		defer free(body);
+		const deals = ostrich_extract_csmegastore(body, 10);
+		defer ostrich_free_deals(deals);
+		if (len(deals) == 0) {
+			cprint(C_YELLOW, "OSTRICH", "Ingen produkter fundet hos csmegastore.dk lige nu.", o.nocolor);
+		} else {
+			fmt::printfln("   -> {} produkter fundet hos csmegastore.dk:", len(deals))!;
+			for (let i = 0z; i < len(deals); i += 1) {
+				if (len(deals[i].price) == 0) {
+					fmt::printfln("      • {}", deals[i].title)!;
+				} else {
+					fmt::printfln("      • {} — {} kr", deals[i].title, deals[i].price)!;
+				};
+			};
+		};
+	case void =>
+		cprint(C_RED, "OSTRICH", "Kunne ikke hente csmegastore.dk/outlet.", o.nocolor);
+	};
+
+	fmt::println("")!;
+	cprint(C_CYAN, "OSTRICH", "Flyver forbi Cloudflare for happii.dk (python3 helpers/happii_scrape.py)...", o.nocolor);
+	ostrich_run_python_helper("happii_scrape.py", o.nocolor);
+
+	fmt::println("")!;
+	cprint(C_CYAN, "OSTRICH", "Crawler compumail.dk's kampagner (python3 helpers/compumail_scrape.py)...", o.nocolor);
+	ostrich_run_python_helper("compumail_scrape.py", o.nocolor);
 };
 
 fn do_mastodon(o: *opts) void = {
@@ -4871,6 +5085,9 @@ export fn main() void = {
 		elizabeth_arg = "",
 			mastodon = false,
 			mastodon_arg = "",
+			ostrich = false,
+			ostrich_action = "",
+			ostrich_target = "",
 			doctor = false,
 			ping_setup = false,
 			bnet = false,
@@ -5205,6 +5422,16 @@ export fn main() void = {
                 		append(o.tailung_urls, args[i + 1])!;
                 		i += 1;
                 	};
+                } else if (a == "ostrich") {
+                	o.ostrich = true;
+                	if (i + 1 < len(args)) {
+                		o.ostrich_action = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.ostrich_target = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "colin3ds") {
                 	o.colin3ds = true;
                 	if (i + 1 < len(args)) {
@@ -5367,6 +5594,10 @@ export fn main() void = {
 	};
 	if (o.mastodon) {
 		do_mastodon(&o);
+		return;
+	};
+	if (o.ostrich) {
+		do_ostrich(&o);
 		return;
 	};
 	if (o.elizabeth) {
