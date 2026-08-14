@@ -3589,6 +3589,7 @@ fn do_forouzan(o: *opts) void = {
 	fmt::println("   6  Rockstar Games")!;
 	fmt::println("   7  League of Legends  (Riot)")!;
 	fmt::println("   8  Genshin Impact  (HoYoverse)")!;
+	fmt::println("   9  Playnite  (Game Library)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3598,8 +3599,9 @@ fn do_forouzan(o: *opts) void = {
 	};
 	const choice = strings::trim(line);
 	// Faelles Zhen/umu opsaetning
+	const zver = zhen_latest(home);
 	const pbuf: [512]u8 = [0...];
-	const proton = fmt::bsprintf(pbuf, "{}/.local/share/hpo/zhen/proton/GE-Proton11-3", home)!;
+	const proton = fmt::bsprintf(pbuf, "{}/.local/share/hpo/zhen/proton/{}", home, zver)!;
 	const ubuf: [512]u8 = [0...];
 	const umu = fmt::bsprintf(ubuf, "{}/.local/share/hpo/zhen/umu-run", home)!;
 	const zbuf: [512]u8 = [0...];
@@ -3609,6 +3611,7 @@ fn do_forouzan(o: *opts) void = {
 	os::setenv("GAMEID", "umu-0")!;
 	os::setenv("STORE", "none")!;
 	os::setenv("WINEFSYNC", "1")!;
+	os::setenv("PROTON_DISABLE_XALIA", "1")!;
 	let exe = "";
 	const ebuf: [512]u8 = [0...];
 	if (choice == "1") {
@@ -3622,7 +3625,15 @@ fn do_forouzan(o: *opts) void = {
 		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-ea", home)!;
 		os::setenv("WINEPREFIX", prefix)!;
 		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
-		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-ea/drive_c/Program Files/Electronic Arts/EA Desktop/13.743.1.6250/EA Desktop/EADesktop.exe", home)!;
+		// Find nyeste EA Desktop version dynamisk
+		static let eabuf: [512]u8 = [0...];
+		const eascript = fmt::bsprintf(eabuf, "ls -d {}/.proton-prefix-ea/drive_c/Program*Files/Electronic*Arts/EA*Desktop/*/EA*Desktop/EADesktop.exe 2>/dev/null | grep -v compatibility32 | sort -V | tail -1", home)!;
+		const easargs: []str = ["sh", "-c", eascript];
+		static let eaout: [512]u8 = [0...];
+		const eacmd = match (exec::cmd(easargs[0], easargs[1..]...)) { case let c: exec::command => yield c; case => yield exec::cmd("true")!; };
+		const eapipe = exec::pipe();
+		exec::addfile(&eacmd, os::stdout_file, eapipe.1)!;
+		match (exec::start(&eacmd)) { case let pr: exec::process => { io::close(eapipe.1)!; const en = match (io::read(eapipe.0, eaout)) { case let nn: size => yield nn; case => yield 0z; }; io::close(eapipe.0)!; exec::wait(&pr)!; if (en > 0) exe = strings::dup(strings::trim(strings::fromutf8(eaout[..en])!))!; }; case => void; };
 	} else if (choice == "3") {
 		const prbuf: [512]u8 = [0...];
 		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-ubisoft", home)!;
@@ -3665,6 +3676,12 @@ fn do_forouzan(o: *opts) void = {
 		os::setenv("WINEPREFIX", prefix)!;
 		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
 		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-genshin/drive_c/Program Files/HoYoPlay/launcher.exe", home)!;
+	} else if (choice == "9") {
+		const prbuf: [512]u8 = [0...];
+		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-playnite", home)!;
+		os::setenv("WINEPREFIX", prefix)!;
+		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
+		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-playnite/drive_c/users/steamuser/AppData/Local/Playnite/Playnite.DesktopApp.exe", home)!;
 	} else {
 		cprint(C_YELLOW, "FOROUZAN", "The fleet rests. Farewell!", o.nocolor);
 		return;
