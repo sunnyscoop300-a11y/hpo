@@ -1940,15 +1940,11 @@ fn do_steam(o: *opts, target: str) void = {
 						fmt::printfln("  Exe: {}", exe)!;
 						fmt::println("")!;
 					};
-					static let envbuf: [256]u8 = [0...];
-					const envarg = fmt::bsprintf(envbuf, "--env=STEAM_COMPAT_TOOL_OVERRIDE={}", zver)!;
-					let uargs: []str = alloc([], 5)!;
+					os::setenv("PROTON_DISABLE_XALIA", "1")!;
+					let uargs: []str = alloc([], 3)!;
 					defer free(uargs);
-					append(uargs, "flatpak")!;
-					append(uargs, "run")!;
-					append(uargs, envarg)!;
-					append(uargs, "com.valvesoftware.Steam")!;
-					append(uargs, uri)!;
+					append(uargs, umu)!;
+					append(uargs, exe)!;
 					if (run_cmd_quiet(uargs, o.nocolor)) {
 						if (!o.quiet) cprint(C_GREEN, "OK", "Game launched with GE-Proton! Skadoosh!", o.nocolor);
 					} else {
