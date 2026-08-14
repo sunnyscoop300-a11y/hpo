@@ -3867,8 +3867,19 @@ fn alice_upper(code: str) str = {
 
 fn do_alice(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_MAGENTA)!;
-	fmt::println("   [ALICE] The octopus pirate weighs your treasure...")!;
+	if (o.alice_arg == "steam") {
+		fmt::println("   🐙 [ALICE] The octopus prices your Steam loot... 💰")!;
+	} else {
+		fmt::println("   🐙 [ALICE] The octopus pirate weighs your treasure... 💰")!;
+	};
 	if (!o.nocolor) fmt::print(C_RESET)!;
+
+	// Steam-genvej: hpo alice steam <pris> -> EUR til DKK
+	if (o.alice_arg == "steam" && o.alice_arg2 != "") {
+		o.alice_arg = o.alice_arg2;
+		o.alice_arg2 = "eur";
+		o.alice_arg3 = "dkk";
+	};
 
 	if (o.alice_arg == "" || o.alice_arg2 == "" || o.alice_arg3 == "") {
 		cprint(C_YELLOW, "ALICE", "Usage: hpo alice <amount> <from> <to>   (e.g. hpo alice 100 usd dkk)", o.nocolor);
@@ -3930,8 +3941,16 @@ fn do_alice(o: *opts) void = {
 	};
 
 	const result = amount * rate;
+	// Afrund til 2 decimaler: gang, rund, split i hel- og oere-del
+	const cents = (result * 100.0 + 0.5): i64;
+	const whole = cents / 100;
+	const frac = cents % 100;
 	if (!o.nocolor) fmt::print(C_GREEN)!;
-	fmt::printfln("   {} {} = {} {}", o.alice_arg, from, result, to)!;
+	if (frac < 10) {
+		fmt::printfln("   {} {} = {}.0{} {}", o.alice_arg, from, whole, frac, to)!;
+	} else {
+		fmt::printfln("   {} {} = {}.{} {}", o.alice_arg, from, whole, frac, to)!;
+	};
 	if (!o.nocolor) fmt::print(C_RESET)!;
 };
 
