@@ -86,11 +86,15 @@ type opts = struct {
 	monkey_setup: bool,
 	crane: bool,
 	li: bool,
+	alice: bool,
 	morio: bool,
 	morio_args: []str,
 	crane_arg: str,
 	crane_arg2: str,
 	li_arg: str,
+	alice_arg: str,
+	alice_arg2: str,
+	alice_arg3: str,
 	li_arg2: str,
 	shen: bool,
 	shen_arg: str,
@@ -3848,6 +3852,89 @@ fn do_kai(o: *opts) void = {
 	os::remove(tmp): void;
 };
 
+fn alice_upper(code: str) str = {
+	static let ub: [8]u8 = [0...];
+	const b = strings::toutf8(code);
+	let n = len(b);
+	if (n > 8) n = 8;
+	for (let i = 0z; i < n; i += 1) {
+		let c = b[i];
+		if (c >= 'a': u8 && c <= 'z': u8) c -= 32;
+		ub[i] = c;
+	};
+	return strings::dup(strings::fromutf8(ub[..n])!)!;
+};
+
+fn do_alice(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_MAGENTA)!;
+	fmt::println("   [ALICE] The octopus pirate weighs your treasure...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+
+	if (o.alice_arg == "" || o.alice_arg2 == "" || o.alice_arg3 == "") {
+		cprint(C_YELLOW, "ALICE", "Usage: hpo alice <amount> <from> <to>   (e.g. hpo alice 100 usd dkk)", o.nocolor);
+		return;
+	};
+
+	const amount = match (strconv::stof64(o.alice_arg)) {
+	case let f: f64 => yield f;
+	case => {
+		cprint(C_RED, "ALICE", "That's not a number, matey.", o.nocolor);
+		return;
+	};
+	};
+
+	const from = alice_upper(o.alice_arg2);
+	defer free(from);
+	const to = alice_upper(o.alice_arg3);
+	defer free(to);
+
+	static let urlbuf: [256]u8 = [0...];
+	const url = fmt::bsprintf(urlbuf, "https://api.frankfurter.dev/v1/latest?base={}&symbols={}", from, to)!;
+	const args: []str = ["curl", "-sL", url];
+
+	const cmd = match (exec::cmd(args[0], args[1..]...)) {
+	case let c: exec::command => yield c;
+	case => {
+		cprint(C_RED, "ALICE", "Could not summon curl.", o.nocolor);
+		return;
+	};
+	};
+	const pipe = exec::pipe();
+	exec::addfile(&cmd, os::stdout_file, pipe.1)!;
+	const proc = match (exec::start(&cmd)) {
+	case let pr: exec::process => yield pr;
+	case => {
+		cprint(C_RED, "ALICE", "Could not fetch rates.", o.nocolor);
+		return;
+	};
+	};
+	io::close(pipe.1)!;
+	static let rbuf: [4096]u8 = [0...];
+	const n = match (io::read(pipe.0, rbuf)) {
+	case let nn: size => yield nn;
+	case => yield 0z;
+	};
+	io::close(pipe.0)!;
+	exec::wait(&proc)!;
+
+	if (n == 0) {
+		cprint(C_RED, "ALICE", "No answer from the tides (network?).", o.nocolor);
+		return;
+	};
+
+	const resp = strings::fromutf8(rbuf[..n])!;
+	const rate = parse_json_num(resp, to);
+	if (rate == 0.0) {
+		cprint(C_RED, "ALICE", "Unknown currency, or the seas are rough. Check the codes.", o.nocolor);
+		return;
+	};
+
+	const result = amount * rate;
+	if (!o.nocolor) fmt::print(C_GREEN)!;
+	fmt::printfln("   {} {} = {} {}", o.alice_arg, from, result, to)!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+};
+
 fn do_li(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_CYAN)!;
 	fmt::println("   [LI] Panda dad casts your content to the big screen!")!;
@@ -4740,6 +4827,10 @@ export fn main() void = {
 			crane_arg = "",
 			li = false,
 			li_arg = "",
+			alice = false,
+			alice_arg = "",
+			alice_arg2 = "",
+			alice_arg3 = "",
 			li_arg2 = "",
 			shen = false,
 			shen_arg = "",
@@ -4887,6 +4978,20 @@ export fn main() void = {
                 	};
                 	if (i + 1 < len(args)) {
                 		o.xp_rom = args[i + 1];
+                		i += 1;
+                	};
+                } else if (a == "alice") {
+                	o.alice = true;
+                	if (i + 1 < len(args)) {
+                		o.alice_arg = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.alice_arg2 = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.alice_arg3 = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "li") {
@@ -5291,6 +5396,10 @@ export fn main() void = {
 	};
 	if (o.morio) {
 		do_morio(&o);
+		return;
+	};
+	if (o.alice) {
+		do_alice(&o);
 		return;
 	};
 	if (o.li) {
