@@ -3823,6 +3823,7 @@ fn do_forouzan_setup(o: *opts) void = {
 	fmt::println("   5  World of Tanks  (Wargaming)")!;
 	fmt::println("   6  Rockstar Games")!;
 	fmt::println("   7  League of Legends  (Riot)")!;
+	fmt::println("   8  Genshin Impact  (paste installer path)")!;
 	fmt::println("   9  Plarium Play  (Raid etc.)")!;
 	fmt::println("   q  Cancel")!;
 	fmt::print("   Vaelg: ")!;
@@ -3841,6 +3842,42 @@ fn do_forouzan_setup(o: *opts) void = {
 		const mcargs: []str = ["flatpak", "install", "-y", "flathub", "org.prismlauncher.PrismLauncher"];
 		let _ = run_cmd(mcargs, o.nocolor);
 		cprint(C_GREEN, "SETUP", "Prism Launcher installed (or already present).", o.nocolor);
+		return;
+	};
+	if (choice == "8") {
+		fmt::println("")!;
+		cprint(C_BLUE, "GENSHIN", "How to install:", o.nocolor);
+		fmt::println("   1. Go to genshin.hoyoverse.com and download the PC installer.")!;
+		fmt::println("   2. Save the HoYoPlay .exe (e.g. to your Downloads folder).")!;
+		fmt::println("   3. Paste the full path below - hpo runs it via GE-Proton.")!;
+		fmt::println("   4. In the installer window, pick a folder with lots of space")!;
+		fmt::println("      (Genshin needs ~90 GB), then let it download the game.")!;
+		fmt::println("")!;
+		fmt::print("   Paste full path to the .exe: ")!;
+		bufio::flush(os::stdout)!;
+		const pline = match (bufio::read_line(os::stdin)) {
+		case let b: []u8 => yield strings::fromutf8(b)!;
+		case => return;
+		};
+		let gpath = strings::trim(pline);
+		// Ekspandér ~ til home
+		if (strings::hasprefix(gpath, "~/")) {
+			static let gpbuf: [512]u8 = [0...];
+			gpath = fmt::bsprintf(gpbuf, "{}/{}", home, strings::sub(gpath, 2, strings::end))!;
+		};
+		if (len(gpath) == 0 || !os::exists(gpath)) {
+			cprint(C_RED, "SETUP", "File not found. Check the path and try again.", o.nocolor);
+			return;
+		};
+		const zver8 = zhen_latest(home);
+		static let g8buf: [1024]u8 = [0...];
+		const gcmd = fmt::bsprintf(g8buf,
+			"PROTON_DISABLE_XALIA=1 PROTONPATH={}/.local/share/hpo/zhen/proton/{} STEAM_COMPAT_CLIENT_INSTALL_PATH={}/.local/share/hpo/zhen WINEPREFIX={}/.proton-prefix-genshin GAMEID=umu-0 {}/.local/share/hpo/zhen/umu-run '{}'",
+			home, zver8, home, home, home, gpath)!;
+		cprint(C_YELLOW, "SETUP", "Launching Genshin installer (click through the window)...", o.nocolor);
+		const gargs: []str = ["sh", "-c", gcmd];
+		let _ = run_cmd(gargs, o.nocolor);
+		cprint(C_GREEN, "SETUP", "Done. If a window appeared, finish the install there.", o.nocolor);
 		return;
 	};
 	if (choice == "2") { url = "https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller.exe"; pfx = ".proton-prefix-ea"; fname = "ea-installer.exe"; }
