@@ -109,6 +109,7 @@ type opts = struct {
 	akna_arg: str,
 	akna_arg2: str,
 	forouzan: bool,
+	forouzan_arg: str,
 	klaus: bool,
 	klaus_arg: str,
 	veruca: bool,
@@ -3811,8 +3812,53 @@ fn do_klaus(o: *opts) void = {
 	};
 };
 
+fn do_forouzan_setup(o: *opts) void = {
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	if (!o.nocolor) fmt::print(C_BLUE)!;
+	fmt::println("")!;
+	fmt::println("   [FOROUZAN SETUP] Which launcher to install?")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	fmt::println("   2  EA App")!;
+	fmt::println("   5  World of Tanks  (Wargaming)")!;
+	fmt::println("   6  Rockstar Games")!;
+	fmt::println("   7  League of Legends  (Riot)")!;
+	fmt::println("   9  Plarium Play  (Raid etc.)")!;
+	fmt::println("   q  Cancel")!;
+	fmt::print("   Vaelg: ")!;
+	bufio::flush(os::stdout)!;
+	const line = match (bufio::read_line(os::stdin)) {
+	case let b: []u8 => yield strings::fromutf8(b)!;
+	case => return;
+	};
+	const choice = strings::trim(line);
+
+	let url = "";
+	let pfx = "";
+	let fname = "";
+	if (choice == "2") { url = "https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller.exe"; pfx = ".proton-prefix-ea"; fname = "ea-installer.exe"; }
+	else if (choice == "5") { url = "https://redirect.wargaming.net/WoT/latest_web_install_eu"; pfx = ".proton-prefix-wargaming"; fname = "wgc-installer.exe"; }
+	else if (choice == "6") { url = "https://gamedownloads.rockstargames.com/public/installer/Rockstar-Games-Launcher.exe"; pfx = ".proton-prefix-rockstar"; fname = "rockstar-installer.exe"; }
+	else if (choice == "7") { url = "https://lol.secure.dyn.riotcdn.net/channels/public/x/installer/current/live.euw.exe"; pfx = ".proton-prefix-riot"; fname = "riot-installer.exe"; }
+	else if (choice == "9") { url = "https://installer.plarium.com/desktop?appId=27&arc=64&os=linux"; pfx = ".proton-prefix-plarium"; fname = "plarium-installer.exe"; }
+	else { cprint(C_BLUE, "SETUP", "Cancelled.", o.nocolor); return; };
+
+	const zver = zhen_latest(home);
+	static let cbuf: [1024]u8 = [0...];
+	const cmd = fmt::bsprintf(cbuf,
+		"curl -L -o {}/Downloads/{} '{}' && PROTON_DISABLE_XALIA=1 PROTONPATH={}/.local/share/hpo/zhen/proton/{} STEAM_COMPAT_CLIENT_INSTALL_PATH={}/.local/share/hpo/zhen WINEPREFIX={}/{} GAMEID=umu-0 {}/.local/share/hpo/zhen/umu-run {}/Downloads/{}",
+		home, fname, url, home, zver, home, home, pfx, home, home, fname)!;
+	cprint(C_YELLOW, "SETUP", "Downloading and launching installer (click through the window)...", o.nocolor);
+	const args: []str = ["sh", "-c", cmd];
+	let _ = run_cmd(args, o.nocolor);
+	cprint(C_GREEN, "SETUP", "Done. If a window appeared, finish the install there.", o.nocolor);
+};
+
 fn do_forouzan(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	if (o.forouzan_arg == "setup") {
+		do_forouzan_setup(o);
+		return;
+	};
 	if (!o.nocolor) fmt::print(C_BLUE)!;
 	fmt::println("")!;
 	fmt::println("   \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")!;
@@ -5106,6 +5152,7 @@ export fn main() void = {
 			akna_arg = "",
 			akna_arg2 = "",
 			forouzan = false,
+			forouzan_arg = "",
 			klaus = false,
 			klaus_arg = "",
 			veruca = false,
@@ -5305,6 +5352,10 @@ export fn main() void = {
                 	};
                 } else if (a == "forouzan") {
                 	o.forouzan = true;
+                	if (i + 1 < len(args)) {
+                		o.forouzan_arg = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "akna") {
                 	o.akna = true;
                 	if (i + 1 < len(args)) {
