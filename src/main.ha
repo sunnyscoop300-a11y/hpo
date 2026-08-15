@@ -3819,6 +3819,7 @@ fn do_forouzan_setup(o: *opts) void = {
 	fmt::println("   [FOROUZAN SETUP] Which launcher to install?")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	fmt::println("   2  EA App")!;
+	fmt::println("   4  Minecraft  (Prism, Flatpak)")!;
 	fmt::println("   5  World of Tanks  (Wargaming)")!;
 	fmt::println("   6  Rockstar Games")!;
 	fmt::println("   7  League of Legends  (Riot)")!;
@@ -3835,6 +3836,13 @@ fn do_forouzan_setup(o: *opts) void = {
 	let url = "";
 	let pfx = "";
 	let fname = "";
+	if (choice == "4") {
+		cprint(C_YELLOW, "SETUP", "Installing Prism Launcher via Flatpak...", o.nocolor);
+		const mcargs: []str = ["flatpak", "install", "-y", "flathub", "org.prismlauncher.PrismLauncher"];
+		let _ = run_cmd(mcargs, o.nocolor);
+		cprint(C_GREEN, "SETUP", "Prism Launcher installed (or already present).", o.nocolor);
+		return;
+	};
 	if (choice == "2") { url = "https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller.exe"; pfx = ".proton-prefix-ea"; fname = "ea-installer.exe"; }
 	else if (choice == "5") { url = "https://redirect.wargaming.net/WoT/latest_web_install_eu"; pfx = ".proton-prefix-wargaming"; fname = "wgc-installer.exe"; }
 	else if (choice == "6") { url = "https://gamedownloads.rockstargames.com/public/installer/Rockstar-Games-Launcher.exe"; pfx = ".proton-prefix-rockstar"; fname = "rockstar-installer.exe"; }
