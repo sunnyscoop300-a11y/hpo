@@ -3820,6 +3820,7 @@ fn do_forouzan_setup(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	fmt::println("   1  Battle.net  (Blizzard)")!;
 	fmt::println("   2  EA App")!;
+	fmt::println("   3  Ubisoft Connect")!;
 	fmt::println("   4  Minecraft  (Prism, Flatpak)")!;
 	fmt::println("   5  World of Tanks  (Wargaming)")!;
 	fmt::println("   6  Rockstar Games")!;
@@ -3883,6 +3884,7 @@ fn do_forouzan_setup(o: *opts) void = {
 	};
 	if (choice == "1") { url = "https://downloader.battle.net/download/installer/win/1.0.66/Battle.net-Setup.exe"; pfx = ".proton-prefix-bnet"; fname = "bnet-installer.exe"; }
 	else if (choice == "2") { url = "https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller.exe"; pfx = ".proton-prefix-ea"; fname = "ea-installer.exe"; }
+	else if (choice == "3") { url = "https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe"; pfx = ".proton-prefix-ubisoft"; fname = "ubisoft-installer.exe"; }
 	else if (choice == "5") { url = "https://redirect.wargaming.net/WoT/latest_web_install_eu"; pfx = ".proton-prefix-wargaming"; fname = "wgc-installer.exe"; }
 	else if (choice == "6") { url = "https://gamedownloads.rockstargames.com/public/installer/Rockstar-Games-Launcher.exe"; pfx = ".proton-prefix-rockstar"; fname = "rockstar-installer.exe"; }
 	else if (choice == "7") { url = "https://lol.secure.dyn.riotcdn.net/channels/public/x/installer/current/live.euw.exe"; pfx = ".proton-prefix-riot"; fname = "riot-installer.exe"; }
