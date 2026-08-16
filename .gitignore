@@ -32,4 +32,4 @@ mastodon.conf
 openrouter_key.txt
 *.pdf
 src/colin3ds.ha
-compumail_debug.*
+compumail_debug*
