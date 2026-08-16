@@ -4223,6 +4223,43 @@ fn sloth_quote() str = {
 	return quotes[idx];
 };
 
+fn sloth_film_quote(home: str, nc: bool) void = {
+	static let qpbuf: [512]u8 = [0...];
+	const qpath = fmt::bsprintf(qpbuf, "{}/.config/hpo/sloth_quotes.txt", home)!;
+	const qf = match (os::open(qpath)) {
+	case let file: io::file => yield file;
+	case => return;
+	};
+	static let qrbuf: [8192]u8 = [0...];
+	const qn = match (io::read(qf, qrbuf)) { case let nn: size => yield nn; case => yield 0z; };
+	io::close(qf)!;
+	const qcontents = strings::fromutf8(qrbuf[..qn])!;
+	const qlines = match (strings::split(qcontents, "\n")) {
+	case let sl: []str => yield sl;
+	case => return;
+	};
+	// Tael gyldige linjer (med |)
+	let valid: []str = [];
+	defer free(valid);
+	for (let i = 0z; i < len(qlines); i += 1) {
+		if (strings::contains(qlines[i], "|")) append(valid, qlines[i])!;
+	};
+	if (len(valid) == 0) return;
+	const t = time::now(time::clock::MONOTONIC);
+	const idx = (t.sec: size + t.nsec: size) % len(valid);
+	const parts = match (strings::split(valid[idx], "|")) {
+	case let sl: []str => yield sl;
+	case => return;
+	};
+	defer free(parts);
+	if (len(parts) < 2) return;
+	if (!nc) fmt::print(C_GREEN)!;
+	fmt::printfln("   Master Sloth om \"{}\":", parts[0])!;
+	fmt::printfln("   \"{}\"", parts[1])!;
+	if (!nc) fmt::print(C_RESET)!;
+	fmt::println("")!;
+};
+
 fn do_sloth(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	if (!o.nocolor) fmt::print(C_GREEN)!;
@@ -4231,6 +4268,7 @@ fn do_sloth(o: *opts) void = {
 	fmt::printfln("   \"{}\"", sloth_quote())!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	fmt::println("")!;
+	sloth_film_quote(home, o.nocolor);
 
 	// Laes sloth_shows.txt (format: Titel|URL)
 	static let pbuf: [512]u8 = [0...];
@@ -4261,6 +4299,13 @@ fn do_sloth(o: *opts) void = {
 	for (let i = 0z; i < len(lines); i += 1) {
 		const ln = strings::trim(lines[i]);
 		if (len(ln) == 0) continue;
+		if (strings::hasprefix(ln, "#")) {
+			const hdr = strings::trim(strings::sub(ln, 1, strings::end));
+			if (!o.nocolor) fmt::print(C_BLUE)!;
+			fmt::printfln("   {}", hdr)!;
+			if (!o.nocolor) fmt::print(C_RESET)!;
+			continue;
+		};
 		const parts = match (strings::split(ln, "|")) {
 		case let pl: []str => yield pl;
 		case => continue;
