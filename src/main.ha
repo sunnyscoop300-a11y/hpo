@@ -4223,6 +4223,54 @@ fn sloth_quote() str = {
 	return quotes[idx];
 };
 
+fn sloth_url_id(url: str) str = {
+	// Returner alt efter sidste '/'
+	let last = 0z;
+	const bytes = strings::toutf8(url);
+	for (let i = 0z; i < len(bytes); i += 1) {
+		if (bytes[i] == '/': u8) last = i + 1;
+	};
+	if (last >= len(bytes)) return "";
+	return strings::fromutf8(bytes[last..])!;
+};
+
+fn sloth_quote_for_url(home: str, url: str, nc: bool) void = {
+	const wantid = sloth_url_id(url);
+	if (len(wantid) == 0) return;
+	static let qpbuf: [512]u8 = [0...];
+	const qpath = fmt::bsprintf(qpbuf, "{}/.config/hpo/sloth_quotes.txt", home)!;
+	const qf = match (os::open(qpath)) {
+	case let file: io::file => yield file;
+	case => return;
+	};
+	static let qrbuf: [8192]u8 = [0...];
+	const qn = match (io::read(qf, qrbuf)) { case let nn: size => yield nn; case => yield 0z; };
+	io::close(qf)!;
+	const qcontents = strings::fromutf8(qrbuf[..qn])!;
+	const qlines = match (strings::split(qcontents, "\n")) {
+	case let sl: []str => yield sl;
+	case => return;
+	};
+	for (let i = 0z; i < len(qlines); i += 1) {
+		const ln = strings::trim(qlines[i]);
+		if (!strings::contains(ln, "|")) continue;
+		const parts = match (strings::split(ln, "|")) {
+		case let sl: []str => yield sl;
+		case => continue;
+		};
+		defer free(parts);
+		if (len(parts) < 2) continue;
+		if (strings::trim(parts[0]) == wantid) {
+			if (!nc) fmt::print(C_GREEN)!;
+			fmt::println("")!;
+			fmt::printfln("   \"{}\"", strings::trim(parts[1]))!;
+			if (!nc) fmt::print(C_RESET)!;
+			fmt::println("")!;
+			return;
+		};
+	};
+};
+
 fn sloth_film_quote(home: str, nc: bool) void = {
 	static let qpbuf: [512]u8 = [0...];
 	const qpath = fmt::bsprintf(qpbuf, "{}/.config/hpo/sloth_quotes.txt", home)!;
@@ -4268,7 +4316,6 @@ fn do_sloth(o: *opts) void = {
 	fmt::printfln("   \"{}\"", sloth_quote())!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
 	fmt::println("")!;
-	sloth_film_quote(home, o.nocolor);
 
 	// Laes sloth_shows.txt (format: Titel|URL)
 	static let pbuf: [512]u8 = [0...];
@@ -4338,6 +4385,7 @@ fn do_sloth(o: *opts) void = {
 	};
 	const chosen_title = titles[sel: size - 1];
 	const chosen_url = urls[sel: size - 1];
+	sloth_quote_for_url(home, chosen_url, o.nocolor);
 	cprint(C_GREEN, "SLOTH", fmt::asprintf("Opening {}... slooowly.", chosen_title)!, o.nocolor);
 	static let cbuf: [1024]u8 = [0...];
 	const cmd = fmt::bsprintf(cbuf, "xdg-open '{}' >/dev/null 2>&1 &", chosen_url)!;
