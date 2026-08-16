@@ -87,6 +87,8 @@ type opts = struct {
 	crane: bool,
 	li: bool,
 	alice: bool,
+	sloth: bool,
+	sloth_arg: str,
 	morio: bool,
 	morio_args: []str,
 	crane_arg: str,
@@ -4201,6 +4203,103 @@ fn alice_upper(code: str) str = {
 	return strings::dup(strings::fromutf8(ub[..n])!)!;
 };
 
+fn sloth_quote() str = {
+	const quotes: [_]str = [
+		"Haaaaste... makes waste. Lean back, my friend.",
+		"I have not moved in three days. It was... perfect.",
+		"The greatest adventure... is a good couch.",
+		"Slow... is also a speed.",
+		"Why stand up... when you can watch the screen?",
+		"I blinked once today. Very productive.",
+		"No need to rush... the screen will wait.",
+		"A master rests... so he can rest better afterward.",
+		"Popcorn is the reward of patience.",
+		"I am meditating. It looks like sleeping. That is the point.",
+		"Take it sloooow... the best shows do not run away.",
+		"Stillness... is an art. And I am a master.",
+	];
+	const t = time::now(time::clock::MONOTONIC);
+	const idx = (t.sec: size + t.nsec: size) % len(quotes);
+	return quotes[idx];
+};
+
+fn do_sloth(o: *opts) void = {
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	if (!o.nocolor) fmt::print(C_GREEN)!;
+	fmt::println("")!;
+	fmt::println("   [SLOTH] Master Sloth stretches slowly...")!;
+	fmt::printfln("   \"{}\"", sloth_quote())!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	fmt::println("")!;
+
+	// Laes sloth_shows.txt (format: Titel|URL)
+	static let pbuf: [512]u8 = [0...];
+	const path = fmt::bsprintf(pbuf, "{}/.config/hpo/sloth_shows.txt", home)!;
+	const f = match (os::open(path)) {
+	case let file: io::file => yield file;
+	case => {
+		cprint(C_YELLOW, "SLOTH", "No shows yet. Add lines 'Title|URL' to ~/.config/hpo/sloth_shows.txt", o.nocolor);
+		return;
+	};
+	};
+	static let rbuf: [8192]u8 = [0...];
+	const n = match (io::read(f, rbuf)) { case let nn: size => yield nn; case => yield 0z; };
+	io::close(f)!;
+	const contents = strings::fromutf8(rbuf[..n])!;
+	const lines = match (strings::split(contents, "\n")) {
+	case let sl: []str => yield sl;
+	case => return;
+	};
+	defer free(lines);
+
+	// Vis menu
+	let titles: []str = [];
+	let urls: []str = [];
+	defer free(titles);
+	defer free(urls);
+	let num = 1;
+	for (let i = 0z; i < len(lines); i += 1) {
+		const ln = strings::trim(lines[i]);
+		if (len(ln) == 0) continue;
+		const parts = match (strings::split(ln, "|")) {
+		case let pl: []str => yield pl;
+		case => continue;
+		};
+		defer free(parts);
+		if (len(parts) < 2) continue;
+		const title = strings::trim(parts[0]);
+		const url = strings::trim(parts[1]);
+		append(titles, strings::dup(title)!)!;
+		append(urls, strings::dup(url)!)!;
+		fmt::printfln("   {}  {}", num, title)!;
+		num += 1;
+	};
+	fmt::println("   q  Afslut")!;
+	fmt::print("   Vaelg: ")!;
+	bufio::flush(os::stdout)!;
+	const line = match (bufio::read_line(os::stdin)) {
+	case let b: []u8 => yield strings::fromutf8(b)!;
+	case => return;
+	};
+	const choice = strings::trim(line);
+	if (choice == "q" || len(choice) == 0) {
+		cprint(C_GREEN, "SLOTH", "Master Sloth returns to his nap. Zzz...", o.nocolor);
+		return;
+	};
+	const sel = match (strconv::stoi(choice)) { case let v: int => yield v; case => yield -1; };
+	if (sel < 1 || sel: size > len(titles)) {
+		cprint(C_RED, "SLOTH", "Hmm... that number is too much effort. Try again.", o.nocolor);
+		return;
+	};
+	const chosen_title = titles[sel: size - 1];
+	const chosen_url = urls[sel: size - 1];
+	cprint(C_GREEN, "SLOTH", fmt::asprintf("Opening {}... slooowly.", chosen_title)!, o.nocolor);
+	static let cbuf: [1024]u8 = [0...];
+	const cmd = fmt::bsprintf(cbuf, "xdg-open '{}' >/dev/null 2>&1 &", chosen_url)!;
+	const args: []str = ["sh", "-c", cmd];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_alice(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_MAGENTA)!;
 	if (o.alice_arg == "steam") {
@@ -5184,6 +5283,8 @@ export fn main() void = {
 			li_arg = "",
 			alice = false,
 			alice_arg = "",
+			sloth = false,
+			sloth_arg = "",
 			alice_arg2 = "",
 			alice_arg3 = "",
 			li_arg2 = "",
@@ -5337,6 +5438,12 @@ export fn main() void = {
                 	};
                 	if (i + 1 < len(args)) {
                 		o.xp_rom = args[i + 1];
+                		i += 1;
+                	};
+                } else if (a == "sloth") {
+                	o.sloth = true;
+                	if (i + 1 < len(args)) {
+                		o.sloth_arg = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "alice") {
@@ -5773,6 +5880,10 @@ export fn main() void = {
 	};
 	if (o.morio) {
 		do_morio(&o);
+		return;
+	};
+	if (o.sloth) {
+		do_sloth(&o);
 		return;
 	};
 	if (o.alice) {
