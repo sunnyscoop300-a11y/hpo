@@ -18,6 +18,7 @@ def C_RED     = "\x1b[31m";
 def C_BOLD    = "\x1b[1m";
 def C_MAGENTA = "\x1b[35m";
 def C_BLUE    = "\x1b[34m";
+def C_ORANGE  = "\x1b[38;5;208m";
 def C_DIM     = "\x1b[2m";
 
 fn tiger_quote() str = {
@@ -4348,7 +4349,12 @@ fn do_sloth(o: *opts) void = {
 		if (len(ln) == 0) continue;
 		if (strings::hasprefix(ln, "#")) {
 			const hdr = strings::trim(strings::sub(ln, 1, strings::end));
-			if (!o.nocolor) fmt::print(C_BLUE)!;
+			let hcol = C_BLUE;
+			if (strings::contains(hdr, "Crunchyroll")) hcol = C_ORANGE;
+			if (strings::contains(hdr, "Netflix")) hcol = C_RED;
+			if (strings::contains(hdr, "HBO")) hcol = C_MAGENTA;
+			if (strings::contains(hdr, "Disney")) hcol = C_CYAN;
+			if (!o.nocolor) fmt::print(hcol)!;
 			fmt::printfln("   {}", hdr)!;
 			if (!o.nocolor) fmt::print(C_RESET)!;
 			continue;
