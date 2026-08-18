@@ -2682,7 +2682,7 @@ fn print_help() void = {
 	fmt::println("  hpo viper                             PS5/PS4 Remote Play (chiaki-ng)")!;
 	fmt::println("  hpo ping                              Roblox (via Sober)")!;
 	fmt::println("  hpo croc                              Retro arcade hub - 13 games (Master Croc)")!;
-	fmt::println("  hpo croc setup                        Install all 12 arcade games via Flatpak")!;
+	fmt::println("  hpo croc setup                        Install all 13 arcade games via Flatpak")!;
 	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
 	fmt::println("  hpo redpanda                          Nintendo handheld launcher (GB/GBC/GBA/NDS/3DS)")!;
 	fmt::println("  hpo elizabeth [check|install|backup]  Driver mistress (GPU/printer/audio/network)")!;
@@ -2691,6 +2691,15 @@ fn print_help() void = {
 	fmt::println("  hpo rukhmini                          Stream ~/Videos to phone/TV (port 8377)")!;
 	fmt::println("  hpo rukhmini <folder>                 Serve a specific folder")!;
 	fmt::println("  OMDb key: ~/.config/hpo/omdb_key.txt (posters)")!;
+	fmt::println("")!;
+	fmt::println("MEDIA - STREAMING (Master Sloth):")!;
+	fmt::println("  hpo sloth                             Streaming launcher (film/serier by service)")!;
+	fmt::println("  Shows: ~/.config/hpo/sloth_shows.txt, quotes: sloth_quotes.txt")!;
+	fmt::println("")!;
+	fmt::println("AI & CREATIVE (OpenRouter-powered):")!;
+	fmt::println("  hpo mastodon \"<prompt>\"                 AI songwriter & chat (gemini-3.7-flash)")!;
+	fmt::println("  hpo veruca \"<prompt>\"                   AI image generation (album covers etc.)")!;
+	fmt::println("  Key: ~/.config/hpo/openrouter_key.txt")!;
 	fmt::println("")!;
 	fmt::println("LAUNCHERS (Forouzan launcher fleet):")!;
 	fmt::println("  hpo forouzan                          TUI menu: Battle.net, EA App, Ubisoft")!;
