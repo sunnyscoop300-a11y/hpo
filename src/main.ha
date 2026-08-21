@@ -3839,6 +3839,7 @@ fn do_forouzan_setup(o: *opts) void = {
 	fmt::println("   7  League of Legends  (Riot)")!;
 	fmt::println("   8  Genshin Impact  (paste installer path)")!;
 	fmt::println("   9  Plarium Play  (Raid etc.)")!;
+	fmt::println("  10  NTE  (Neverness to Everness)")!;
 	fmt::println("   q  Cancel")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -3901,6 +3902,7 @@ fn do_forouzan_setup(o: *opts) void = {
 	else if (choice == "6") { url = "https://gamedownloads.rockstargames.com/public/installer/Rockstar-Games-Launcher.exe"; pfx = ".proton-prefix-rockstar"; fname = "rockstar-installer.exe"; }
 	else if (choice == "7") { url = "https://lol.secure.dyn.riotcdn.net/channels/public/x/installer/current/live.euw.exe"; pfx = ".proton-prefix-riot"; fname = "riot-installer.exe"; }
 	else if (choice == "9") { url = "https://installer.plarium.com/desktop?appId=27&arc=64&os=linux"; pfx = ".proton-prefix-plarium"; fname = "plarium-installer.exe"; }
+	else if (choice == "10") { url = "https://ntecdn2.perfectworld.com/clientRes/installer-Global/NTE_Global_common_setup_1.0.6.0423_20260424.exe"; pfx = ".proton-prefix-nte"; fname = "nte-installer.exe"; }
 	else { cprint(C_BLUE, "SETUP", "Cancelled.", o.nocolor); return; };
 
 	const zver = zhen_latest(home);
@@ -4016,11 +4018,11 @@ fn do_forouzan(o: *opts) void = {
 		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
 		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-riot/drive_c/Riot Games/Riot Client/RiotClientServices.exe", home)!;
 	} else if (choice == "8") {
-		const prbuf: [512]u8 = [0...];
-		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-genshin", home)!;
-		os::setenv("WINEPREFIX", prefix)!;
-		os::setenv("STEAM_COMPAT_DATA_PATH", prefix)!;
-		exe = fmt::bsprintf(ebuf, "{}/.proton-prefix-genshin/drive_c/Program Files/HoYoPlay/launcher.exe", home)!;
+		cprint(C_MAGENTA, "FOROUZAN", "The Pirate Queen sets sail! Launching Genshin...", o.nocolor);
+		const gcmd = "cd '/media/tux/MONOHOSHIZAO21/ggg/Genshin Impact' && WINEARCH=win64 WINEPREFIX=\"$HOME/genshin-prefix\" '/media/tux/MONOHOSHIZAO21/ggg/runners/wine-dwproton-wow64-11.0-4/bin/wine' GenshinImpact.exe >/dev/null 2>&1 &";
+		const gargs: []str = ["sh", "-c", gcmd];
+		let _ = run_cmd(gargs, o.nocolor);
+		return;
 	} else if (choice == "9") {
 		const prbuf: [512]u8 = [0...];
 		const prefix = fmt::bsprintf(prbuf, "{}/.proton-prefix-plarium", home)!;
