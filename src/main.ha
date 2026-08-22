@@ -3786,7 +3786,25 @@ fn do_veruca(o: *opts) void = {
 	static let sbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/veruca-gen.py", home)!;
 	cprint(C_YELLOW, "VERUCA", "Summoning the image (API call, may take a moment)...", o.nocolor);
-	const args: []str = ["python3", script, o.veruca_arg];
+	// @fil.txt -> laes prompt fra fil (undgaar shell-quoting problemer med lange prompts)
+	let prompt = o.veruca_arg;
+	if (strings::hasprefix(o.veruca_arg, "@")) {
+		const path = strings::sub(o.veruca_arg, 1, strings::end);
+		match (os::open(path)) {
+		case let f: io::file =>
+			match (io::drain(f)) {
+			case let data: []u8 =>
+				prompt = strings::fromutf8(data)!;
+				prompt = strings::trim(prompt);
+			case => void;
+			};
+			io::close(f)!;
+		case =>
+			cprint(C_RED, "VERUCA", "Could not read prompt file!", o.nocolor);
+			return;
+		};
+	};
+	const args: []str = ["python3", script, prompt];
 	let _ = run_cmd(args, o.nocolor);
 };
 
