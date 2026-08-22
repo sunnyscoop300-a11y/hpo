@@ -3789,7 +3789,13 @@ fn do_veruca(o: *opts) void = {
 	// @fil.txt -> laes prompt fra fil (undgaar shell-quoting problemer med lange prompts)
 	let prompt = o.veruca_arg;
 	if (strings::hasprefix(o.veruca_arg, "@")) {
-		const path = strings::sub(o.veruca_arg, 1, strings::end);
+		const rawpath = strings::sub(o.veruca_arg, 1, strings::end);
+		static let pbuf: [512]u8 = [0...];
+		let path = rawpath;
+		if (rawpath == "~" || strings::hasprefix(rawpath, "~/")) {
+			const rest = strings::sub(rawpath, 1, strings::end);
+			path = fmt::bsprintf(pbuf, "{}{}", home, rest)!;
+		};
 		match (os::open(path)) {
 		case let f: io::file =>
 			match (io::drain(f)) {
@@ -3803,6 +3809,12 @@ fn do_veruca(o: *opts) void = {
 			cprint(C_RED, "VERUCA", "Could not read prompt file!", o.nocolor);
 			return;
 		};
+	};
+	// Vixie Rae covers -> automatisk anime-stil
+	static let vbuf: [4096]u8 = [0...];
+	if (strings::contains(prompt, "Vixie Rae") || strings::contains(prompt, "VIXIE RAE")) {
+		prompt = fmt::bsprintf(vbuf, "{}, vibrant anime illustration, cel-shaded, clean bold lineart, expressive anime eyes, dynamic anime shading", prompt)!;
+		cprint(C_MAGENTA, "VERUCA", "Vixie Rae detected - applying anime style", o.nocolor);
 	};
 	const args: []str = ["python3", script, prompt];
 	let _ = run_cmd(args, o.nocolor);
@@ -4278,7 +4290,7 @@ fn sloth_quote_for_url(home: str, url: str, nc: bool) void = {
 	case let file: io::file => yield file;
 	case => return;
 	};
-	static let qrbuf: [8192]u8 = [0...];
+	static let qrbuf: [32768]u8 = [0...];
 	const qn = match (io::read(qf, qrbuf)) { case let nn: size => yield nn; case => yield 0z; };
 	io::close(qf)!;
 	const qcontents = strings::fromutf8(qrbuf[..qn])!;
@@ -4296,9 +4308,19 @@ fn sloth_quote_for_url(home: str, url: str, nc: bool) void = {
 		defer free(parts);
 		if (len(parts) < 2) continue;
 		if (strings::trim(parts[0]) == wantid) {
+			let q = strings::trim(parts[1]);
+			if (strings::contains(q, "~~")) {
+				const variants = match (strings::split(q, "~~")) {
+				case let sl: []str => yield sl;
+				case => continue;
+				};
+				const t = time::now(time::clock::MONOTONIC);
+				const pick = ((t.sec: size) + (t.nsec: size)) % len(variants);
+				q = strings::trim(variants[pick]);
+			};
 			if (!nc) fmt::print(C_GREEN)!;
 			fmt::println("")!;
-			fmt::printfln("   \"{}\"", strings::trim(parts[1]))!;
+			fmt::printfln("   \"{}\"", q)!;
 			if (!nc) fmt::print(C_RESET)!;
 			fmt::println("")!;
 			return;
@@ -4313,7 +4335,7 @@ fn sloth_film_quote(home: str, nc: bool) void = {
 	case let file: io::file => yield file;
 	case => return;
 	};
-	static let qrbuf: [8192]u8 = [0...];
+	static let qrbuf: [32768]u8 = [0...];
 	const qn = match (io::read(qf, qrbuf)) { case let nn: size => yield nn; case => yield 0z; };
 	io::close(qf)!;
 	const qcontents = strings::fromutf8(qrbuf[..qn])!;
