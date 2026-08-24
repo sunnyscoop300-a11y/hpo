@@ -122,6 +122,7 @@ type opts = struct {
 	elizabeth: bool,
 	elizabeth_arg: str,
 	mastodon: bool,
+	longtooth: bool,
 	mastodon_arg: str,
 	ostrich: bool,
 	ostrich_action: str,
@@ -2698,6 +2699,7 @@ fn print_help() void = {
 	fmt::println("")!;
 	fmt::println("AI & CREATIVE (OpenRouter-powered):")!;
 	fmt::println("  hpo mastodon \"<prompt>\"                 AI songwriter & chat (gemini-3.7-flash)")!;
+	fmt::println("  hpo longtooth                         Chat with Master Longtooth (TUI, gpt-5.6-luna)")!;
 	fmt::println("  hpo veruca \"<prompt>\"                   AI image generation (album covers etc.)")!;
 	fmt::println("  Key: ~/.config/hpo/openrouter_key.txt")!;
 	fmt::println("")!;
@@ -3720,6 +3722,17 @@ fn do_mastodon(o: *opts) void = {
 	static let sbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/mastodon-chat.py", home)!;
 	const args: []str = ["python3", script, o.mastodon_arg];
+	let _ = run_cmd(args, o.nocolor);
+};
+
+fn do_longtooth(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_YELLOW)!;
+	fmt::println("   [LONGTOOTH] The ancient master stirs by the fire...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	static let sbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/longtooth-chat.py", home)!;
+	const args: []str = ["python3", script];
 	let _ = run_cmd(args, o.nocolor);
 };
 
@@ -5467,6 +5480,7 @@ export fn main() void = {
 		elizabeth = false,
 		elizabeth_arg = "",
 			mastodon = false,
+			longtooth = false,
 			mastodon_arg = "",
 			ostrich = false,
 			ostrich_action = "",
@@ -5639,6 +5653,8 @@ export fn main() void = {
                 		o.mastodon_arg = args[i + 1];
                 		i += 1;
                 	};
+                } else if (a == "longtooth") {
+                	o.longtooth = true;
                 } else if (a == "elizabeth") {
                 	o.elizabeth = true;
                 	if (i + 1 < len(args)) {
@@ -5987,6 +6003,10 @@ export fn main() void = {
 	};
 	if (o.mastodon) {
 		do_mastodon(&o);
+		return;
+	};
+	if (o.longtooth) {
+		do_longtooth(&o);
 		return;
 	};
 	if (o.ostrich) {
