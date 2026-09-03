@@ -243,6 +243,7 @@ fn do_morio(o: *opts) void = {
 	let bitrate = 320u;
 	let outdir = "";
 	let quiet = false;
+	let limewire = false;
 	let inputs: []str = [];
 	defer free(inputs);
 
@@ -262,6 +263,9 @@ fn do_morio(o: *opts) void = {
 			outdir = args[i];
 		} else if (a == "-q") {
 			quiet = true;
+		} else if (a == "--limewire" || a == "--napster") {
+			bitrate = 128u;
+			limewire = true;
 		} else {
 			append(inputs, a)!;
 		};
@@ -280,6 +284,10 @@ fn do_morio(o: *opts) void = {
 
 	if (!quiet && !o.nocolor) fmt::print(C_YELLOW)!;
 	if (!quiet) fmt::println(morio_banner)!;
+	if (!quiet && limewire) {
+		fmt::println("   >> LIMEWIRE MODE: 128 kbps, dial-up authentic. Downloading at 56k...")!;
+		fmt::println("   >> (may contain a virus and be mislabeled. just like 2003.)")!;
+	};
 	if (!quiet && !o.nocolor) fmt::print(C_RESET)!;
 
 	const files = morio_gather_flac_files(inputs);
