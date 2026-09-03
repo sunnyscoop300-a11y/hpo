@@ -150,7 +150,8 @@ fn morio_convert_file(inpath: str, opts: *morio_options) (str | morio_error) = {
 	// Strip a trailing ".flac"/".FLAC" as raw bytes (ASCII extension,
 	// safe even if the stem has multi-byte runes like ae/oe/aa).
 	const rawbase = strings::toutf8(base);
-	const stembytes = if (len(rawbase) > 5) rawbase[..len(rawbase) - 5] else rawbase;
+	const extlen = if (strings::hassuffix(base, ".wav") || strings::hassuffix(base, ".WAV")) 4z else 5z;
+	const stembytes = if (len(rawbase) > extlen) rawbase[..len(rawbase) - extlen] else rawbase;
 	const stem = strings::fromutf8(stembytes)!;
 
 	const outdir = if (len(opts.outdir) > 0) {
@@ -163,15 +164,19 @@ fn morio_convert_file(inpath: str, opts: *morio_options) (str | morio_error) = {
 
 	const outpath = fmt::asprintf("{}/{}.mp3", outdir, stem)!;
 
+	const is_wav = strings::hassuffix(base, ".wav") || strings::hassuffix(base, ".WAV");
 	const wavpath = fmt::asprintf("/tmp/morio-{}-{}.wav", unix::getpid(): int, stem)!;
 	defer free(wavpath);
-	defer _ = os::remove(wavpath);
+	defer if (!is_wav) _ = os::remove(wavpath);
 
-	// 1. Decode FLAC -> temporary WAV.
-	const decode = exec::cmd("flac", "-d", "-f", "-s", "-o", wavpath, inpath)?;
-	const decproc = exec::start(&decode)?;
-	const decstat = exec::wait(&decproc)?;
-	exec::check(&decstat)?;
+	// 1. Decode FLAC -> temporary WAV (skip for WAV input - use it directly).
+	const srcwav = if (is_wav) inpath else wavpath;
+	if (!is_wav) {
+		const decode = exec::cmd("flac", "-d", "-f", "-s", "-o", wavpath, inpath)?;
+		const decproc = exec::start(&decode)?;
+		const decstat = exec::wait(&decproc)?;
+		exec::check(&decstat)?;
+	};
 
 	// 2. Best-effort tag carry-over.
 	let t = match (morio_read_tags(inpath)) {
@@ -192,7 +197,7 @@ fn morio_convert_file(inpath: str, opts: *morio_options) (str | morio_error) = {
 	append(encargs, bitrate)!;
 	append(encargs, "-h")!;
 	append(encargs, tagargs...)!;
-	append(encargs, wavpath)!;
+	append(encargs, srcwav)!;
 	append(encargs, outpath)!;
 
 	const encode = exec::cmd("lame", encargs...)?;
@@ -204,7 +209,8 @@ fn morio_convert_file(inpath: str, opts: *morio_options) (str | morio_error) = {
 };
 
 fn morio_is_flac_name(name: str) bool = {
-	return strings::hassuffix(name, ".flac") || strings::hassuffix(name, ".FLAC");
+	return strings::hassuffix(name, ".flac") || strings::hassuffix(name, ".FLAC")
+		|| strings::hassuffix(name, ".wav") || strings::hassuffix(name, ".WAV");
 };
 
 // Expands paths into a flat list of .flac files (dirs scanned one level).
@@ -223,7 +229,7 @@ fn morio_gather_flac_files(paths: []str) []str = {
 			if (morio_is_flac_name(p)) {
 				append(result, strings::dup(p)!)!;
 			} else {
-				fmt::errorfln("morio: skipping '{}' (not a .flac file or directory)", p)!;
+				fmt::errorfln("morio: skipping '{}' (not a .flac/.wav file or directory)", p)!;
 			};
 		case => abort();
 		};
