@@ -2698,7 +2698,7 @@ fn print_help() void = {
 	fmt::println("  Shows: ~/.config/hpo/sloth_shows.txt, quotes: sloth_quotes.txt")!;
 	fmt::println("")!;
 	fmt::println("AI & CREATIVE (OpenRouter-powered):")!;
-	fmt::println("  hpo mastodon \"<prompt>\"                 AI songwriter & chat (gemini-3.7-flash)")!;
+	fmt::println("  hpo mastodon \"<prompt>\"                 AI songwriter & chat (gemini-3.8-flash)")!;
 	fmt::println("  hpo longtooth                         Chat with Master Longtooth (TUI, gpt-5.6-luna)")!;
 	fmt::println("  hpo veruca \"<prompt>\"                   AI image generation (album covers etc.)")!;
 	fmt::println("  Key: ~/.config/hpo/openrouter_key.txt")!;
