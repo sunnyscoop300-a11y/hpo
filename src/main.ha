@@ -124,6 +124,8 @@ type opts = struct {
 	mastodon: bool,
 	longtooth: bool,
 	mastodon_arg: str,
+	suzaku: bool,
+	suzaku_arg: str,
 	ostrich: bool,
 	ostrich_action: str,
 	ostrich_target: str,
@@ -3725,6 +3727,21 @@ fn do_mastodon(o: *opts) void = {
 	let _ = run_cmd(args, o.nocolor);
 };
 
+fn do_suzaku(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_RED)!;
+	fmt::println("   [SUZAKU] The firebird takes flight toward the cloud...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	if (o.suzaku_arg == "") {
+		cprint(C_YELLOW, "SUZAKU", "Usage: hpo suzaku <suno-url-or-id>", o.nocolor);
+		return;
+	};
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	static let zbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(zbuf, "{}/hpo/helpers/suzaku-dl.py", home)!;
+	const args: []str = ["python3", script, o.suzaku_arg];
+	let _ = run_cmd(args, o.nocolor);
+};
+
 fn do_longtooth(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
 	fmt::println("   [LONGTOOTH] The ancient master stirs by the fire...")!;
@@ -5482,6 +5499,8 @@ export fn main() void = {
 			mastodon = false,
 			longtooth = false,
 			mastodon_arg = "",
+			suzaku = false,
+			suzaku_arg = "",
 			ostrich = false,
 			ostrich_action = "",
 			ostrich_target = "",
@@ -5651,6 +5670,12 @@ export fn main() void = {
                 	o.mastodon = true;
                 	if (i + 1 < len(args)) {
                 		o.mastodon_arg = args[i + 1];
+                		i += 1;
+                	};
+                } else if (a == "suzaku") {
+                	o.suzaku = true;
+                	if (i + 1 < len(args)) {
+                		o.suzaku_arg = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "longtooth") {
@@ -6003,6 +6028,10 @@ export fn main() void = {
 	};
 	if (o.mastodon) {
 		do_mastodon(&o);
+		return;
+	};
+	if (o.suzaku) {
+		do_suzaku(&o);
 		return;
 	};
 	if (o.longtooth) {
