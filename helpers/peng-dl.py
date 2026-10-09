@@ -145,6 +145,7 @@ def fetch_metadata(song_id):
                 # display_name from Suno is the profile name (e.g. "Vizi Blink"),
         # not the song's artist. Use it only as fallback.
         profile_name = data.get("display_name") or data.get("handle")
+        cover_url = data.get("image_large_url") or data.get("image_url")
     except Exception as e:
         print(f"PENG: clip-api metadata failed ({e}), trying HTML fallback")
 
@@ -168,7 +169,7 @@ def fetch_metadata(song_id):
         except Exception as e:
             print(f"PENG: HTML metadata failed ({e})")
 
-        # Try to extract real artist from the title (Suno titles often embed it)
+     # Try to extract real artist from the title (Suno titles often embed it)
     if title:
         extracted_title, extracted_artist = split_title_artist(title)
         if extracted_artist:
@@ -180,8 +181,12 @@ def fetch_metadata(song_id):
             artist = profile_name
         except NameError:
             pass
-    return title, artist
-
+    # Also fall back cover_url to None if it was never set
+    try:
+        _ = cover_url
+    except NameError:
+        cover_url = None
+    return title, artist, cover_url
 def sanitize_filename(name):
     """Make a string safe to use as a filename on Linux/macOS/Windows."""
     # Convert curly quotes/apostrophes to straight ones first
@@ -236,6 +241,54 @@ def extract_audio(src, dst):
         die(f"ffmpeg failed: {result.stderr}")
 
 
+def extract_audio_with_cover(src, dst, cover_path, title, artist):
+    """Extract audio from MP4 to MP3, embedding cover + metadata if given."""
+    print(f"PENG: extracting audio with ffmpeg...")
+    cmd = ["ffmpeg", "-y", "-i", src]
+    if cover_path:
+        cmd += ["-i", cover_path]
+    cmd += ["-map", "0:a"]
+    if cover_path:
+        cmd += ["-map", "1:v", "-c:v", "mjpeg",
+                "-metadata:s:v", "title=Album cover",
+                "-metadata:s:v", "comment=Cover (front)",
+                "-disposition:v", "attached_pic"]
+    cmd += ["-c:a", "libmp3lame", "-b:a", "320k", "-id3v2_version", "3"]
+    if title:
+        cmd += ["-metadata", f"title={title}"]
+    if artist:
+        cmd += ["-metadata", f"artist={artist}"]
+    cmd += ["-metadata", "album=Suno", "-loglevel", "error", dst]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        die(f"ffmpeg failed: {result.stderr}")
+
+
+def embed_cover(mp3_path, cover_path, title, artist):
+    """Re-mux an existing MP3 to add cover art and metadata."""
+    print(f"PENG: embedding cover art...")
+    tmp_path = mp3_path + ".tmp.mp3"
+    cmd = ["ffmpeg", "-y", "-i", mp3_path, "-i", cover_path,
+           "-map", "0:a", "-map", "1:v",
+           "-c:a", "copy", "-c:v", "mjpeg",
+           "-metadata:s:v", "title=Album cover",
+           "-metadata:s:v", "comment=Cover (front)",
+           "-disposition:v", "attached_pic",
+           "-id3v2_version", "3"]
+    if title:
+        cmd += ["-metadata", f"title={title}"]
+    if artist:
+        cmd += ["-metadata", f"artist={artist}"]
+    cmd += ["-metadata", "album=Suno", "-loglevel", "error", tmp_path]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"PENG: cover embed failed ({result.stderr.strip()}), keeping MP3 without cover")
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        return
+    os.replace(tmp_path, mp3_path)
+
+
 def main():
     if len(sys.argv) < 2:
         die("usage: peng-dl.py <suno-url-or-id> [output-dir]")
@@ -250,20 +303,40 @@ def main():
     if url is None:
         die(f"no working audio URL found for {song_id} - song may be private or Suno may have changed their CDN")
 
-    title, artist = fetch_metadata(song_id)
+    title, artist, cover_url = fetch_metadata(song_id)
+
+
+
+
     if title or artist:
         print(f"PENG: {artist or '?'} - {title or '?'}")
 
     filename = build_filename(title, artist, song_id)
     mp3_path = os.path.join(outdir, filename)
 
+    # Download cover art for embedding (optional)
+    cover_path = None
+    if cover_url:
+        try:
+            cover_path = os.path.join(outdir, f".{song_id}.cover.jpg")
+            print(f"PENG: fetching cover art")
+            download(cover_url, cover_path)
+        except Exception as e:
+            print(f"PENG: cover fetch failed ({e}), skipping embed")
+            cover_path = None
+
     if kind == "mp3":
         download(url, mp3_path)
+        if cover_path:
+            embed_cover(mp3_path, cover_path, title, artist)
     else:
         mp4_path = os.path.join(outdir, f".{song_id}.tmp.mp4")
         download(url, mp4_path)
-        extract_audio(mp4_path, mp3_path)
+        extract_audio_with_cover(mp4_path, mp3_path, cover_path, title, artist)
         os.remove(mp4_path)
+
+    if cover_path and os.path.exists(cover_path):
+        os.remove(cover_path)
 
     print(f"PENG_OK: saved {mp3_path}")
 
