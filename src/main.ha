@@ -2665,7 +2665,7 @@ fn print_help() void = {
 	fmt::println("  hpo crane yt <words>                  YouTube search")!;
 	fmt::println("  hpo crane ytradio <words>             YouTube radio (10 tracks)")!;
 	fmt::println("  hpo crane local <path>                Play local music (Suno, downloads)")!;
-	fmt::println("  hpo morio <file-or-dir>               Convert FLAC/WAV to MP3 (dawn rooster, --limewire for 128k)")!;
+	fmt::println("  hpo morio <file-or-dir>               Convert FLAC/WAV/M4A to MP3 (dawn rooster, --limewire for 128k)")!;
 	fmt::println("  hpo colin3ds decrypt <fil.3ds>        Decrypt a 3DS ROM (Colin, the tracker)")!;
 	fmt::println("  hpo colin3ds encrypt <fil.3ds>        Re-encrypt a 3DS ROM")!;
 	fmt::println("  hpo colin3ds check <fil.3ds>          Verify ROM integrity (SHA-256)")!;
