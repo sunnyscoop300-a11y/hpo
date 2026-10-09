@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Suzaku - Suno song downloader for hpo (firebird that fetches songs from the cloud).
+"""Peng - Suno song downloader for hpo (firebird that fetches songs from the cloud).
 
 Tries several CDN URL patterns and verifies the response is actually audio
 before saving. Fetches title and artist metadata to name the MP3 nicely.
@@ -17,7 +17,7 @@ HEADERS = {"User-Agent": BROWSER_UA, "Referer": "https://suno.com/",
 
 
 def die(msg):
-    print(f"SUZAKU_ERROR: {msg}")
+    print(f"PENG_ERROR: {msg}")
     sys.exit(1)
 
 
@@ -42,7 +42,7 @@ def extract_id(arg):
     if m:
         return m.group(0).lower()
     if "suno.com/s/" in arg or "suno.ai/s/" in arg:
-        print(f"SUZAKU: resolving short link {arg}")
+        print(f"PENG: resolving short link {arg}")
         try:
             req = urllib.request.Request(arg, headers=HEADERS, method="GET")
             with urllib.request.urlopen(req, timeout=15) as resp:
@@ -79,7 +79,7 @@ def find_working_url(song_id):
         (f"https://audiopipe.suno.ai/?item_id={song_id}", "mp3"),
     ]
     for url, kind in candidates:
-        print(f"SUZAKU: testing {url}... ", end="", flush=True)
+        print(f"PENG: testing {url}... ", end="", flush=True)
         if try_url(url):
             print("OK")
             return url, kind
@@ -146,7 +146,7 @@ def fetch_metadata(song_id):
         # not the song's artist. Use it only as fallback.
         profile_name = data.get("display_name") or data.get("handle")
     except Exception as e:
-        print(f"SUZAKU: clip-api metadata failed ({e}), trying HTML fallback")
+        print(f"PENG: clip-api metadata failed ({e}), trying HTML fallback")
 
     # 2. Scrape HTML <title> as fallback / for artist
     if not title or not artist:
@@ -166,7 +166,7 @@ def fetch_metadata(song_id):
                 elif not title:
                     title = raw.strip('"')
         except Exception as e:
-            print(f"SUZAKU: HTML metadata failed ({e})")
+            print(f"PENG: HTML metadata failed ({e})")
 
         # Try to extract real artist from the title (Suno titles often embed it)
     if title:
@@ -209,7 +209,7 @@ def build_filename(title, artist, song_id):
 
 
 def download(url, outpath):
-    print(f"SUZAKU: downloading {url}")
+    print(f"PENG: downloading {url}")
     req = urllib.request.Request(url, headers=HEADERS)
     with urllib.request.urlopen(req, timeout=60) as resp:
         total = int(resp.headers.get("Content-Length", 0))
@@ -223,12 +223,12 @@ def download(url, outpath):
                 downloaded += len(chunk)
                 if total:
                     pct = int(downloaded * 100 / total)
-                    print(f"\rSUZAKU: downloading... {pct}%", end="", flush=True)
+                    print(f"\rPENG: downloading... {pct}%", end="", flush=True)
     print()
 
 
 def extract_audio(src, dst):
-    print(f"SUZAKU: extracting audio with ffmpeg...")
+    print(f"PENG: extracting audio with ffmpeg...")
     cmd = ["ffmpeg", "-y", "-i", src, "-vn", "-acodec", "libmp3lame",
            "-b:a", "320k", "-loglevel", "error", dst]
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -238,13 +238,13 @@ def extract_audio(src, dst):
 
 def main():
     if len(sys.argv) < 2:
-        die("usage: suzaku-dl.py <suno-url-or-id> [output-dir]")
+        die("usage: peng-dl.py <suno-url-or-id> [output-dir]")
     arg = sys.argv[1]
     outdir = sys.argv[2] if len(sys.argv) > 2 else OUTDIR_DEFAULT
     os.makedirs(outdir, exist_ok=True)
 
     song_id = extract_id(arg)
-    print(f"SUZAKU: song ID = {song_id}")
+    print(f"PENG: song ID = {song_id}")
 
     url, kind = find_working_url(song_id)
     if url is None:
@@ -252,7 +252,7 @@ def main():
 
     title, artist = fetch_metadata(song_id)
     if title or artist:
-        print(f"SUZAKU: {artist or '?'} - {title or '?'}")
+        print(f"PENG: {artist or '?'} - {title or '?'}")
 
     filename = build_filename(title, artist, song_id)
     mp3_path = os.path.join(outdir, filename)
@@ -265,7 +265,7 @@ def main():
         extract_audio(mp4_path, mp3_path)
         os.remove(mp4_path)
 
-    print(f"SUZAKU_OK: saved {mp3_path}")
+    print(f"PENG_OK: saved {mp3_path}")
 
 
 if __name__ == "__main__":

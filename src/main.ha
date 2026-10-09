@@ -124,8 +124,8 @@ type opts = struct {
 	mastodon: bool,
 	longtooth: bool,
 	mastodon_arg: str,
-	suzaku: bool,
-	suzaku_arg: str,
+	peng: bool,
+	peng_arg: str,
 	ostrich: bool,
 	ostrich_action: str,
 	ostrich_target: str,
@@ -2701,7 +2701,7 @@ fn print_help() void = {
 	fmt::println("")!;
 	fmt::println("AI & CREATIVE (OpenRouter-powered):")!;
 	fmt::println("  hpo mastodon \"<prompt>\"                 AI songwriter & chat (gemini-3.8-flash)")!;
-	fmt::println("  hpo suzaku <suno-url>                 Download Suno song as MP3 (firebird)")!;
+	fmt::println("  hpo peng <suno-url>                 Download Suno song as MP3 (little panda)")!;
 	fmt::println("  hpo longtooth                         Chat with Master Longtooth (TUI, gpt-5.6-luna)")!;
 	fmt::println("  hpo veruca \"<prompt>\"                   AI image generation (album covers etc.)")!;
 	fmt::println("  Key: ~/.config/hpo/openrouter_key.txt")!;
@@ -3728,18 +3728,18 @@ fn do_mastodon(o: *opts) void = {
 	let _ = run_cmd(args, o.nocolor);
 };
 
-fn do_suzaku(o: *opts) void = {
+fn do_peng(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_RED)!;
-	fmt::println("   [SUZAKU] The firebird takes flight toward the cloud...")!;
+	fmt::println("   [PENG] Peng bounces off to fetch your song...")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
-	if (o.suzaku_arg == "") {
-		cprint(C_YELLOW, "SUZAKU", "Usage: hpo suzaku <suno-url-or-id>", o.nocolor);
+	if (o.peng_arg == "") {
+		cprint(C_YELLOW, "PENG", "Usage: hpo peng <suno-url-or-id>", o.nocolor);
 		return;
 	};
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	static let zbuf: [512]u8 = [0...];
-	const script = fmt::bsprintf(zbuf, "{}/hpo/helpers/suzaku-dl.py", home)!;
-	const args: []str = ["python3", script, o.suzaku_arg];
+	const script = fmt::bsprintf(zbuf, "{}/hpo/helpers/peng-dl.py", home)!;
+	const args: []str = ["python3", script, o.peng_arg];
 	let _ = run_cmd(args, o.nocolor);
 };
 
@@ -5500,8 +5500,8 @@ export fn main() void = {
 			mastodon = false,
 			longtooth = false,
 			mastodon_arg = "",
-			suzaku = false,
-			suzaku_arg = "",
+			peng = false,
+			peng_arg = "",
 			ostrich = false,
 			ostrich_action = "",
 			ostrich_target = "",
@@ -5673,10 +5673,10 @@ export fn main() void = {
                 		o.mastodon_arg = args[i + 1];
                 		i += 1;
                 	};
-                } else if (a == "suzaku") {
-                	o.suzaku = true;
+                } else if (a == "peng") {
+                	o.peng = true;
                 	if (i + 1 < len(args)) {
-                		o.suzaku_arg = args[i + 1];
+                		o.peng_arg = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "longtooth") {
@@ -6031,8 +6031,8 @@ export fn main() void = {
 		do_mastodon(&o);
 		return;
 	};
-	if (o.suzaku) {
-		do_suzaku(&o);
+	if (o.peng) {
+		do_peng(&o);
 		return;
 	};
 	if (o.longtooth) {
