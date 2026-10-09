@@ -104,6 +104,35 @@ def html_unescape(s):
     import html
     return html.unescape(s)
 
+def split_title_artist(raw):
+    """Try to pull artist and clean title out of a Suno-style title string.
+
+    Handles patterns like:
+      'Jett Ryder - "Old Lovers"'       -> ('Old Lovers',       'Jett Ryder')
+      'Chihi - "Boom Like a Monster"'   -> ('Boom Like a Monster', 'Chihi')
+      '"Gassy Today" By Artist: Tina T' -> ('Gassy Today',      'Tina T')
+      '"Gassy Today" By Tina Tuner'     -> ('Gassy Today',      'Tina Tuner')
+      'FakeNews - "Loveberry Riot"'     -> ('Loveberry Riot',   'FakeNews')
+    Returns (clean_title, artist) or (raw, None) if no pattern matched.
+    """
+    s = raw.strip()
+
+    # Pattern A: "<title>" By [Artist:] <artist>
+    m = re.match(r'^[\"\u201C](.+?)[\"\u201D]\s*(?:By|by)\s+(?:Artist[:\s]+)?(.+?)\s*$', s)
+    if m:
+        return m.group(1).strip(), m.group(2).strip()
+
+    # Pattern B: <artist> - "<title>" or <artist> – "<title>"
+    m = re.match(r'^(.+?)\s*[-\u2013\u2014]\s*[\"\u201C](.+?)[\"\u201D]\s*$', s)
+    if m:
+        return m.group(2).strip(), m.group(1).strip()
+
+    # Pattern C: <artist> - <title> (no quotes, use first dash)
+    m = re.match(r'^(.+?)\s+[-\u2013\u2014]\s+(.+?)\s*$', s)
+    if m:
+        return m.group(2).strip(), m.group(1).strip()
+
+    return raw, None
 
 def fetch_metadata(song_id):
     """Return (title, artist) best effort - both may be None."""
@@ -113,8 +142,9 @@ def fetch_metadata(song_id):
     try:
         data = fetch_json(f"https://studio-api.prod.suno.com/api/clip/{song_id}", timeout=10)
         title = data.get("title")
-        # some responses have display_name or handle
-        artist = data.get("display_name") or data.get("handle")
+                # display_name from Suno is the profile name (e.g. "Vizi Blink"),
+        # not the song's artist. Use it only as fallback.
+        profile_name = data.get("display_name") or data.get("handle")
     except Exception as e:
         print(f"SUZAKU: clip-api metadata failed ({e}), trying HTML fallback")
 
@@ -138,8 +168,19 @@ def fetch_metadata(song_id):
         except Exception as e:
             print(f"SUZAKU: HTML metadata failed ({e})")
 
+        # Try to extract real artist from the title (Suno titles often embed it)
+    if title:
+        extracted_title, extracted_artist = split_title_artist(title)
+        if extracted_artist:
+            title = extracted_title
+            artist = extracted_artist
+    # Fall back to profile name if nothing better found
+    if not artist:
+        try:
+            artist = profile_name
+        except NameError:
+            pass
     return title, artist
-
 
 def sanitize_filename(name):
     """Make a string safe to use as a filename on Linux/macOS/Windows."""
