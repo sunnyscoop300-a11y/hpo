@@ -143,8 +143,12 @@ def fetch_metadata(song_id):
 
 def sanitize_filename(name):
     """Make a string safe to use as a filename on Linux/macOS/Windows."""
-    # Remove/replace characters that are illegal or awkward
-    name = re.sub(r'[/\\:*?"<>|]', "_", name)
+    # Convert curly quotes/apostrophes to straight ones first
+    name = name.replace("\u2018", "'").replace("\u2019", "'").replace("\u201C", '"').replace("\u201D", '"')
+    # Remove straight quotes and colons entirely (apostrophes stay)
+    name = re.sub(r'["\:]', "", name)
+    # Replace other illegal chars with underscore
+    name = re.sub(r'[/\\*?<>|]', "_", name)
     # Collapse whitespace
     name = re.sub(r"\s+", " ", name).strip()
     # Avoid leading dot (hidden file) and trailing dots/spaces (Windows)
