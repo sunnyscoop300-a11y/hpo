@@ -4680,6 +4680,31 @@ fn do_crane(o: *opts) void = {
 		return;
 	};
 	// Lokal fil-sti? Spil direkte med mpv
+	// .ichiko-filer -> Ichiko streamer (haandterer Suno, YouTube, MEGA m.m.)
+	if (strings::hassuffix(o.crane_arg, ".ichiko")) {
+		const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+		static let ipbuf: [512]u8 = [0...];
+		// Default sti; kan overstyres i ~/.config/hpo/ichiko.conf (en linje = fuld sti)
+		let ichiko_path = fmt::bsprintf(ipbuf, "{}/Pictures/ls/Ichiko/Ichiko.java", home)!;
+		static let cpbuf: [512]u8 = [0...];
+		const conf = fmt::bsprintf(cpbuf, "{}/.config/hpo/ichiko.conf", home)!;
+		match (os::open(conf)) {
+		case let f: io::file =>
+			match (io::drain(f)) {
+			case let data: []u8 =>
+				const line = strings::trim(strings::fromutf8(data)!);
+				if (len(line) > 0) ichiko_path = line;
+			case => void;
+			};
+			io::close(f)!;
+		case => void;
+		};
+		cprint(C_GREEN, "CRANE", "Ichiko file - handing off to the lucky streamer...", o.nocolor);
+		const args: []str = ["java", ichiko_path, "play", o.crane_arg];
+		let _ = run_cmd(args, o.nocolor);
+		return;
+	};
+
 	if (strings::hasprefix(o.crane_arg, "/") || strings::hasprefix(o.crane_arg, "~") || strings::hasprefix(o.crane_arg, ".")) {
 		cprint(C_GREEN, "CRANE", "Playing local track... (p=pause, q=quit)", o.nocolor);
 		const args: []str = ["mpv", "--no-video", "--term-playing-msg=\u266a ${media-title}", o.crane_arg];
