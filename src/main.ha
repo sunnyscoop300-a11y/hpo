@@ -86,6 +86,7 @@ type opts = struct {
 	monkey: bool,
 	monkey_setup: bool,
 	crane: bool,
+        fenghuang: bool,
 	li: bool,
 	alice: bool,
 	sloth: bool,
@@ -94,6 +95,7 @@ type opts = struct {
 	morio_args: []str,
 	crane_arg: str,
 	crane_arg2: str,
+        fenghuang_arg: str, 
 	li_arg: str,
 	alice_arg: str,
 	alice_arg2: str,
@@ -2718,6 +2720,15 @@ fn print_help() void = {
 	fmt::println("")!;
 	fmt::println("MANGA (Mantis cart hub):")!;
 	fmt::println("  hpo mantis                            Open the manga cart hub (TUI)")!;
+	fmt::println("")!;
+       	fmt::println("")!;
+	fmt::println("")!;
+	fmt::println("SYSTEM MAINTENANCE (Fenghuang, Northern Mountains owl):")!;
+	fmt::println("  hpo fenghuang                         Check for package updates")!;
+	fmt::println("  hpo fenghuang -u                      Upgrade system + flatpaks")!;
+	fmt::println("  hpo fenghuang -c                      Clean up old packages")!;
+	fmt::println("  hpo fenghuang -a                      Full renewal (upgrade + clean)")!;
+	fmt::println("  Supports: apt, pacman, dnf, zypper + flatpak")!;
 	fmt::println("")!;
 	fmt::println("SYSTEM:")!;
 	fmt::println("  hpo doctor                            System health check")!;
@@ -5503,6 +5514,8 @@ export fn main() void = {
 			shen_arg = "",
 			shen_arg2 = "",
 			crane_arg2 = "",
+            fenghuang = false,
+			fenghuang_arg = "",
 			kai = false,
 			kai_arg = "",
 			croc = false,
@@ -5768,6 +5781,12 @@ export fn main() void = {
                 		o.crane_arg = args[i + 1];
                 		i += 1;
                 	};
+                } else if (a == "fenghuang") {
+			o.fenghuang = true;
+			if (i + 1 < len(args)) {
+				o.fenghuang_arg = args[i + 1];
+				i += 1;
+			        }; 
                 	if (i + 1 < len(args)) {
                 		o.crane_arg2 = args[i + 1];
                 		i += 1;
@@ -6126,6 +6145,10 @@ export fn main() void = {
 	};
 	if (o.crane) {
 		do_crane(&o);
+		return;
+	};
+	if (o.fenghuang) {
+		do_fenghuang(&o);
 		return;
 	};
 	if (o.monkey) {
