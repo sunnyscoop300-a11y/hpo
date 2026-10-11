@@ -2,12 +2,12 @@
 """
 Mastodon - AI chat assistant for hpo (the wise elephant)
 Asks a question, gets an answer via an OpenAI-compatible chat endpoint
-(default: OpenRouter + Gemini 3.6 Flash).
+(default: OpenRouter + Gemini 3.8 Flash).
 
 Config: ~/.config/hpo/mastodon.conf  (INI, never committed)
   [mastodon]
   api_key  = sk-or-...                                  # OpenRouter key (optional, falls back to openrouter_key.txt)
-  model    = google/gemini-3.6-flash                    # any chat model
+  model    = google/gemini-3.8-flash                    # any chat model
   endpoint = https://openrouter.ai/api/v1/chat/completions
   system   = You are Mastodon, a wise and helpful assistant.  # optional
 
@@ -25,7 +25,7 @@ import sys, os, json, configparser, urllib.request, urllib.error
 CONF = os.path.expanduser("~/.config/hpo/mastodon.conf")
 SHARED_KEY = os.path.expanduser("~/.config/hpo/openrouter_key.txt")
 DEFAULT_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
-DEFAULT_MODEL = "google/gemini-3.6-flash"
+DEFAULT_MODEL = "google/gemini-3.8-flash"
 DEFAULT_SYSTEM = "You are Mastodon, a wise, concise and helpful assistant living inside the hpo command-line tool."
 LING_MODEL = "inclusionai/ling-3.1-flash"
 
