@@ -50,6 +50,9 @@ def check(pm, lbl):
     if have("flatpak"):
         print(f"{INDIGO}>>{RST} Tjekker flatpaks...")
         run("flatpak","remote-ls","--updates")
+    if have("snap"):
+        print(f"{INDIGO}>>{RST} Tjekker snaps...")
+        run("snap","refresh","--list")
 
 
 def upgrade(pm):
@@ -65,6 +68,9 @@ def upgrade(pm):
     if have("flatpak"):
         print(f"{INDIGO}>>{RST} Opdaterer flatpaks...")
         run("flatpak","update","-y")
+    if have("snap"):
+        print(f"{INDIGO}>>{RST} Opdaterer snaps...")
+        run("sudo","snap","refresh")
     print(f"{EYES}++{MOON} Fuldfoert.{RST}")
 
 
@@ -81,24 +87,60 @@ def clean(pm):
     if have("flatpak"):
         print(f"{INDIGO}>>{RST} Rydder flatpaks...")
         run("flatpak","uninstall","--unused","-y")
+    if have("snap"):
+        print(f"{INDIGO}>>{RST} Rydder gamle snap-versioner...")
+        try:
+            result = subprocess.run(["snap","list","--all"], capture_output=True, text=True)
+            for line in result.stdout.splitlines():
+                parts = line.split()
+                if len(parts) >= 6 and "disabled" in parts[5].lower():
+                    run("sudo","snap","remove",parts[0],"--revision="+parts[2])
+        except FileNotFoundError:
+            pass
+
+
+def install(backend, package):
+    if backend == "apt":
+        if not have("apt"):
+            sys.exit("Fenghuang: apt findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via apt...")
+        run("sudo","apt","install","-y",package)
+    elif backend == "flatpak":
+        if not have("flatpak"):
+            sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via flatpak...")
+        run("flatpak","install","-y",package)
+    elif backend == "snap":
+        if not have("snap"):
+            sys.exit("Fenghuang: snap findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via snap...")
+        run("sudo","snap","install",package)
+    else:
+        sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, flatpak eller snap.")
+    print(f"{EYES}++{MOON} Installation fuldfoert.{RST}")
 
 
 def main():
     banner()
     pm, lbl = detect_pm()
-    if pm is None and not have("flatpak"):
+    if pm is None and not have("flatpak") and not have("snap"):
         sys.exit("Fenghuang: ingen pakkemanager fundet.")
-    arg = sys.argv[1] if len(sys.argv) > 1 else ""
-    if arg == "":
-        check(pm, lbl)
-    elif arg in ("--upgrade","-u","upgrade"):
+    args = sys.argv[1:]
+    if not args:
+        check(pm, lbl); return
+    cmd = args[0]
+    if cmd in ("--upgrade","-u","upgrade"):
         upgrade(pm)
-    elif arg in ("--clean","-c","clean"):
+    elif cmd in ("--clean","-c","clean"):
         clean(pm)
-    elif arg in ("--all","-a","all"):
+    elif cmd in ("--all","-a","all"):
         upgrade(pm); clean(pm)
+    elif cmd == "install":
+        if len(args) < 3:
+            sys.exit("Brug: hpo fenghuang install <apt|flatpak|snap> <pakke>")
+        install(args[1], args[2])
     else:
-        sys.exit(f"Fenghuang: ukendt flag '{arg}'")
+        sys.exit(f"Fenghuang: ukendt flag '{cmd}'")
 
 
 if __name__ == "__main__":

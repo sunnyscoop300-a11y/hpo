@@ -96,6 +96,8 @@ type opts = struct {
 	crane_arg: str,
 	crane_arg2: str,
         fenghuang_arg: str, 
+        fenghuang_arg2: str,
+	    fenghuang_arg3: str,
 	li_arg: str,
 	alice_arg: str,
 	alice_arg2: str,
@@ -2622,6 +2624,9 @@ fn print_help() void = {
 	fmt::println("  hpo roz vejr rødekro                  Specific city")!;
 	fmt::println("  hpo roz vejr sydney                   Anywhere in the world")!;
 	fmt::println("  Data: ip-api.com + Open-Meteo (no API key needed)")!;
+	fmt::println("  hpo fenghuang install apt <pkg>       Install an apt package")!;
+	fmt::println("  hpo fenghuang install flatpak <id>    Install a flatpak")!;
+	fmt::println("  hpo fenghuang install snap <pkg>      Install a snap")!;
 	fmt::println("")!;
 	fmt::println("SHIFU CINEMA GUIDE (live Danish cinema schedules):")!;
 	fmt::println("  hpo shifu                             List nearby cinemas")!;
@@ -5516,6 +5521,8 @@ export fn main() void = {
 			crane_arg2 = "",
             fenghuang = false,
 			fenghuang_arg = "",
+                       	fenghuang_arg2 = "",
+			fenghuang_arg3 = "",
 			kai = false,
 			kai_arg = "",
 			croc = false,
@@ -5781,12 +5788,21 @@ export fn main() void = {
                 		o.crane_arg = args[i + 1];
                 		i += 1;
                 	};
-                } else if (a == "fenghuang") {
+		} else if (a == "fenghuang") {
 			o.fenghuang = true;
 			if (i + 1 < len(args)) {
 				o.fenghuang_arg = args[i + 1];
 				i += 1;
-			        }; 
+			};
+			if (i + 1 < len(args)) {
+				o.fenghuang_arg2 = args[i + 1];
+				i += 1;
+			};
+			if (i + 1 < len(args)) {
+				o.fenghuang_arg3 = args[i + 1];
+				i += 1;
+			};
+                
                 	if (i + 1 < len(args)) {
                 		o.crane_arg2 = args[i + 1];
                 		i += 1;
