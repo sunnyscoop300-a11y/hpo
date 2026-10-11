@@ -120,6 +120,27 @@ def install(backend, package):
     print(f"{EYES}++{MOON} Installation fuldfoert.{RST}")
 
 
+def uninstall(backend, package):
+    if backend == "apt":
+        if not have("apt"):
+            sys.exit("Fenghuang: apt findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via apt...")
+        run("sudo","apt","remove","-y",package)
+    elif backend == "flatpak":
+        if not have("flatpak"):
+            sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via flatpak...")
+        run("flatpak","uninstall","-y",package)
+    elif backend == "snap":
+        if not have("snap"):
+            sys.exit("Fenghuang: snap findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via snap...")
+        run("sudo","snap","remove",package)
+    else:
+        sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, flatpak eller snap.")
+    print(f"{EYES}++{MOON} Fjernelse fuldfoert.{RST}")
+
+
 def main():
     banner()
     pm, lbl = detect_pm()
@@ -139,6 +160,10 @@ def main():
         if len(args) < 3:
             sys.exit("Brug: hpo fenghuang install <apt|flatpak|snap> <pakke>")
         install(args[1], args[2])
+    elif cmd in ("uninstall","remove","-d","--delete"):
+        if len(args) < 3:
+            sys.exit("Brug: hpo fenghuang uninstall <apt|flatpak|snap> <pakke>")
+        uninstall(args[1], args[2])
     else:
         sys.exit(f"Fenghuang: ukendt flag '{cmd}'")
 
