@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Fenghuang - hpo system package updater"""
-import shutil, subprocess, sys
+import os, shutil, subprocess, sys
 
 INDIGO = "\x1b[38;5;93m"
 MOON   = "\x1b[38;5;189m"
@@ -28,6 +28,21 @@ def detect_pm():
         if have(pm):
             return pm, lbl
     return None, "ingen"
+
+
+def auto_backend(package, pm):
+    """Pick backend when user didn't specify one."""
+    # Local .snap or .deb or .flatpak file -> their respective backends
+    if package.endswith(".snap"):
+        return "snap"
+    if package.endswith(".flatpak") or package.endswith(".flatpakref"):
+        return "flatpak"
+    if package.endswith(".deb"):
+        return "apt"
+    # Reverse-DNS looking IDs (at least 2 dots, no slashes) -> flatpak
+    if package.count(".") >= 2 and "/" not in package:
+        return "flatpak"
+    return pm or "apt"
 
 
 def run(*args):
@@ -100,21 +115,35 @@ def clean(pm):
 
 
 def install(backend, package):
+    expanded = os.path.expanduser(package)
+    is_local = os.path.isfile(expanded)
     if backend == "apt":
         if not have("apt"):
             sys.exit("Fenghuang: apt findes ikke paa dette system.")
-        print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via apt...")
-        run("sudo","apt","install","-y",package)
+        if is_local and package.endswith(".deb"):
+            print(f"{INDIGO}>>{RST} Installerer lokal .deb-fil {BOLD}{package}{RST}...")
+            run("sudo","apt","install","-y",expanded)
+        else:
+            print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via apt...")
+            run("sudo","apt","install","-y",package)
     elif backend == "flatpak":
         if not have("flatpak"):
             sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
-        print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via flatpak...")
-        run("flatpak","install","-y",package)
+        if is_local and (package.endswith(".flatpak") or package.endswith(".flatpakref")):
+            print(f"{INDIGO}>>{RST} Installerer lokal flatpak-fil {BOLD}{package}{RST}...")
+            run("flatpak","install","-y",expanded)
+        else:
+            print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via flatpak...")
+            run("flatpak","install","-y",package)
     elif backend == "snap":
         if not have("snap"):
             sys.exit("Fenghuang: snap findes ikke paa dette system.")
-        print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via snap...")
-        run("sudo","snap","install",package)
+        if is_local and package.endswith(".snap"):
+            print(f"{INDIGO}>>{RST} Installerer lokal snap-fil {BOLD}{package}{RST} (--dangerous)...")
+            run("sudo","snap","install","--dangerous",expanded)
+        else:
+            print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via snap...")
+            run("sudo","snap","install",package)
     else:
         sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, flatpak eller snap.")
     print(f"{EYES}++{MOON} Installation fuldfoert.{RST}")
@@ -124,8 +153,8 @@ def uninstall(backend, package):
     if backend == "apt":
         if not have("apt"):
             sys.exit("Fenghuang: apt findes ikke paa dette system.")
-        print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via apt...")
-        run("sudo","apt","remove","-y",package)
+        print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via apt (+ autoremove)...")
+        run("sudo","apt","remove","-y","--autoremove",package)
     elif backend == "flatpak":
         if not have("flatpak"):
             sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
@@ -139,6 +168,27 @@ def uninstall(backend, package):
     else:
         sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, flatpak eller snap.")
     print(f"{EYES}++{MOON} Fjernelse fuldfoert.{RST}")
+
+
+BACKENDS = {"apt","flatpak","snap"}
+
+
+def resolve_backend_and_pkg(args, pm):
+    """From args after 'install'/'uninstall', return (backend, package)."""
+    if len(args) == 1:
+        pkg = args[0]
+        backend = auto_backend(pkg, pm)
+        print(f"{DIM}  (auto-valgt backend: {backend}){RST}")
+        return backend, pkg
+    elif len(args) >= 2:
+        if args[0] in BACKENDS:
+            return args[0], args[1]
+        else:
+            pkg = args[0]
+            backend = auto_backend(pkg, pm)
+            print(f"{DIM}  (auto-valgt backend: {backend}){RST}")
+            return backend, pkg
+    return None, None
 
 
 def main():
@@ -157,13 +207,19 @@ def main():
     elif cmd in ("--all","-a","all"):
         upgrade(pm); clean(pm)
     elif cmd == "install":
-        if len(args) < 3:
-            sys.exit("Brug: hpo fenghuang install <apt|flatpak|snap> <pakke>")
-        install(args[1], args[2])
+        if len(args) < 2:
+            sys.exit("Brug: hpo fenghuang install [backend] <pakke|fil>")
+        backend, pkg = resolve_backend_and_pkg(args[1:], pm)
+        if backend is None:
+            sys.exit("Brug: hpo fenghuang install [backend] <pakke|fil>")
+        install(backend, pkg)
     elif cmd in ("uninstall","remove","-d","--delete"):
-        if len(args) < 3:
-            sys.exit("Brug: hpo fenghuang uninstall <apt|flatpak|snap> <pakke>")
-        uninstall(args[1], args[2])
+        if len(args) < 2:
+            sys.exit("Brug: hpo fenghuang uninstall [backend] <pakke>")
+        backend, pkg = resolve_backend_and_pkg(args[1:], pm)
+        if backend is None:
+            sys.exit("Brug: hpo fenghuang uninstall [backend] <pakke>")
+        uninstall(backend, pkg)
     else:
         sys.exit(f"Fenghuang: ukendt flag '{cmd}'")
 
