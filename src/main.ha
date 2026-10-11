@@ -128,6 +128,7 @@ type opts = struct {
 	mastodon: bool,
 	longtooth: bool,
 	mastodon_arg: str,
+	mastodon_ling: bool,
 	peng: bool,
 	peng_arg: str,
 	ostrich: bool,
@@ -3740,10 +3741,14 @@ fn do_mastodon(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	static let sbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/mastodon-chat.py", home)!;
-	const args: []str = ["python3", script, o.mastodon_arg];
-	let _ = run_cmd(args, o.nocolor);
+	if (o.mastodon_ling) {
+		const args: []str = ["python3", script, o.mastodon_arg, "--ling"];
+		let _ = run_cmd(args, o.nocolor);
+	} else {
+		const args: []str = ["python3", script, o.mastodon_arg];
+		let _ = run_cmd(args, o.nocolor);
+	};
 };
-
 fn do_peng(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_RED)!;
 	fmt::println("   [PENG] Peng bounces off to fetch your song...")!;
@@ -5565,6 +5570,7 @@ export fn main() void = {
 			mastodon = false,
 			longtooth = false,
 			mastodon_arg = "",
+			mastodon_ling = false,
 			peng = false,
 			peng_arg = "",
 			ostrich = false,
@@ -5738,6 +5744,8 @@ export fn main() void = {
                 		o.mastodon_arg = args[i + 1];
                 		i += 1;
                 	};
+                	} else if (a == "--ling") {
+			o.mastodon_ling = true;
                 } else if (a == "peng") {
                 	o.peng = true;
                 	if (i + 1 < len(args)) {
