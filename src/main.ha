@@ -2692,7 +2692,7 @@ fn print_help() void = {
 	fmt::println("  hpo bnet                              Battle.net / World of Warcraft")!;
 	fmt::println("  hpo viper                             PS5/PS4 Remote Play (chiaki-ng)")!;
 	fmt::println("  hpo ping                              Roblox (via Sober)")!;
-	fmt::println("  hpo croc                              Retro arcade hub - 16 games (Master Croc)")!;
+	fmt::println("  hpo croc                              Retro arcade hub - 17 games (Master Croc)")!;
 	fmt::println("  hpo croc setup                        Install all 13 arcade games via Flatpak")!;
 	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
 	fmt::println("  hpo redpanda                          Nintendo handheld launcher (GB/GBC/GBA/NDS/3DS)")!;
@@ -4162,7 +4162,7 @@ fn do_rukhmini(o: *opts) void = {
 
 fn do_croc(o: *opts) void = {
 	if (o.croc_setup) {
-		cprint(C_YELLOW, "CROC", "Master Croc stocks the arcade (16 games)...", o.nocolor);
+		cprint(C_YELLOW, "CROC", "Master Croc stocks the arcade (17 games)...", o.nocolor);
 		cprint(C_CYAN, "CROC", "[1/17] Space Cadet Pinball...", o.nocolor);
 		const g1: []str = ["flatpak", "install", "-y", "flathub", "com.github.k4zmu2a.spacecadetpinball"];
 		let _ = run_cmd(g1, o.nocolor);
