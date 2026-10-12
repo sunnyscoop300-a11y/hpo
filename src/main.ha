@@ -4211,8 +4211,8 @@ fn do_croc(o: *opts) void = {
                	cprint(C_CYAN, "CROC", "[14/17] KMahjongg...", o.nocolor);
 		const g14: []str = ["flatpak", "install", "-y", "flathub", "org.kde.kmahjongg"];
 		let _ = run_cmd(g14, o.nocolor);	
-                cprint(C_CYAN, "CROC", "[17/17] Commander Genius (Keen 4/5/6)...", o.nocolor);
-		const g17: []str = ["flatpak", "install", "-y", "flathub", "io.sourceforge.clonekeenplus"];
+                cprint(C_CYAN, "CROC", "[17/17] Commander Keen 4 (Commander Genius + DOSBox Staging)...", o.nocolor);
+		const g17: []str = ["flatpak", "install", "-y", "flathub", "io.sourceforge.clonekeenplus", "io.github.dosbox-staging"];
 		let _ = run_cmd(g17, o.nocolor);	
                 cprint(C_GREEN, "CROC", "Arcade ready! Play with: hpo croc", o.nocolor);
 		return;
