@@ -28,6 +28,8 @@ DEFAULT_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "google/gemini-3.8-flash"
 DEFAULT_SYSTEM = "You are Mastodon, a wise, concise and helpful assistant living inside the hpo command-line tool."
 LING_MODEL = "inclusionai/ling-3.1-flash"
+# free 3.1 is often rate-limited -> try paid 3.0 before giving up on Ling
+LING_FALLBACK = {"inclusionai/ling-3.1-flash": "inclusionai/ling-3.0-flash"}
 
 
 def die(msg):
@@ -86,6 +88,10 @@ def ask(key, model, endpoint, system, question):
     except urllib.error.HTTPError as e:
         error_body = e.read()[:400].decode(errors='replace')
         # Fallback: if the chosen model is rate-limited, retry with the default model
+        if e.code == 429 and model in LING_FALLBACK:
+            nxt = LING_FALLBACK[model]
+            print(f"  ({model} er rate-limited, proever {nxt})", file=sys.stderr)
+            return ask(key, nxt, endpoint, system, question)
         if e.code == 429 and model != DEFAULT_MODEL:
             print(f"  ({model} er rate-limited, falder tilbage til {DEFAULT_MODEL})", file=sys.stderr)
             return ask(key, DEFAULT_MODEL, endpoint, system, question)
