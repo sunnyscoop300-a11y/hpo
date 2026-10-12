@@ -2693,7 +2693,7 @@ fn print_help() void = {
 	fmt::println("  hpo viper                             PS5/PS4 Remote Play (chiaki-ng)")!;
 	fmt::println("  hpo ping                              Roblox (via Sober)")!;
 	fmt::println("  hpo croc                              Retro arcade hub - 17 games (Master Croc)")!;
-	fmt::println("  hpo croc setup                        Install all 13 arcade games via Flatpak")!;
+	fmt::println("  hpo croc setup                        Install all 17 arcade games")!;
 	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
 	fmt::println("  hpo redpanda                          Nintendo handheld launcher (GB/GBC/GBA/NDS/3DS)")!;
 	fmt::println("  hpo elizabeth [check|install|backup]  Driver mistress (GPU/printer/audio/network)")!;
