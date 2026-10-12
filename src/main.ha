@@ -4239,7 +4239,7 @@ fn do_croc(o: *opts) void = {
         fmt::println("   14  KMahjongg  (mahjong solitaire)")!;
    	fmt::println("   15  GNOME Mahjongg  (mahjong solitaire)")!;
 	fmt::println("   16  Spelunky Classic HD  (platformer)")!;
-        fmt::println("   17  Commander Keen  (Commander Genius, Keen 4/5/6)")!;
+        fmt::println("   17  Commander Keen 4  (DOSBox)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -4272,7 +4272,7 @@ fn do_croc(o: *opts) void = {
 		const args: []str = ["sh", "-c", "~/Applications/SpelunkyClassicHD.AppImage"];
 		let _ = run_cmd(args, o.nocolor);
         } else if (appid == "KEEN4") {
-		const args: []str = ["sh", "-c", "flatpak run io.github.dosbox-staging -c \"mount c $HOME/Games/Keen4\" -c \"c:\" -c \"KEEN4E.EXE /detour\" -c \"exit\""];
+		const args: []str = ["sh", "-c", "K=$HOME/Games/Keen4; CG=\"$HOME/.var/app/io.sourceforge.clonekeenplus/config/CommanderGenius/games/Keen 4/keen4\"; if [ ! -f \"$K/KEEN4E.EXE\" ] && [ -f \"$CG/KEEN4E.EXE\" ]; then mkdir -p \"$HOME/Games\" && cp -r \"$CG\" \"$K\"; fi; if [ -f \"$K/KEEN4E.EXE\" ]; then flatpak run io.github.dosbox-staging -c \"mount c $K\" -c \"c:\" -c \"KEEN4E.EXE /detour\" -c \"exit\"; else echo \"[CROC] Keen 4 filer mangler - starter Commander Genius saa den kan hente dem. Luk den og vaelg 17 igen.\"; flatpak run io.sourceforge.clonekeenplus; fi"];
 		let _ = run_cmd(args, o.nocolor);
 	} else {
 		const args: []str = ["flatpak", "run", appid];
