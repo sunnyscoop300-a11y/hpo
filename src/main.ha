@@ -2692,8 +2692,8 @@ fn print_help() void = {
 	fmt::println("  hpo bnet                              Battle.net / World of Warcraft")!;
 	fmt::println("  hpo viper                             PS5/PS4 Remote Play (chiaki-ng)")!;
 	fmt::println("  hpo ping                              Roblox (via Sober)")!;
-	fmt::println("  hpo croc                              Retro arcade hub - 17 games (Master Croc)")!;
-	fmt::println("  hpo croc setup                        Install all 17 arcade games")!;
+	fmt::println("  hpo croc                              Retro arcade hub - 18 games (Master Croc)")!;
+	fmt::println("  hpo croc setup                        Install all 18 arcade games")!;
 	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
 	fmt::println("  hpo redpanda                          Nintendo handheld launcher (GB/GBC/GBA/NDS/3DS)")!;
 	fmt::println("  hpo elizabeth [check|install|backup]  Driver mistress (GPU/printer/audio/network)")!;
@@ -4162,58 +4162,61 @@ fn do_rukhmini(o: *opts) void = {
 
 fn do_croc(o: *opts) void = {
 	if (o.croc_setup) {
-		cprint(C_YELLOW, "CROC", "Master Croc stocks the arcade (17 games)...", o.nocolor);
-		cprint(C_CYAN, "CROC", "[1/17] Space Cadet Pinball...", o.nocolor);
+		cprint(C_YELLOW, "CROC", "Master Croc stocks the arcade (18 games)...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[1/18] Space Cadet Pinball...", o.nocolor);
 		const g1: []str = ["flatpak", "install", "-y", "flathub", "com.github.k4zmu2a.spacecadetpinball"];
 		let _ = run_cmd(g1, o.nocolor);
-		cprint(C_CYAN, "CROC", "[2/17] LBreakout HD...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[2/18] LBreakout HD...", o.nocolor);
 		const g2: []str = ["flatpak", "install", "-y", "flathub", "net.sourceforge.lgames.LBreakoutHD"];
 		let _ = run_cmd(g2, o.nocolor);
-		cprint(C_CYAN, "CROC", "[3/17] OpenTyrian...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[3/18] OpenTyrian...", o.nocolor);
 		const g3: []str = ["flatpak", "install", "-y", "flathub", "com.github.opentyrian.OpenTyrian"];
 		let _ = run_cmd(g3, o.nocolor);
-		cprint(C_CYAN, "CROC", "[4/17] Frozen Bubble...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[4/18] Frozen Bubble...", o.nocolor);
 		const g4: []str = ["flatpak", "install", "-y", "flathub", "org.frozen_bubble.frozen-bubble"];
 		let _ = run_cmd(g4, o.nocolor);
-		cprint(C_CYAN, "CROC", "[5/17] Nanosaur...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[5/18] Nanosaur...", o.nocolor);
 		const g5: []str = ["flatpak", "install", "-y", "flathub", "io.jor.nanosaur"];
 		let _ = run_cmd(g5, o.nocolor);
-		cprint(C_CYAN, "CROC", "[6/17] Sonic Robo Blast 2...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[6/18] Sonic Robo Blast 2...", o.nocolor);
 		const g6: []str = ["flatpak", "install", "-y", "flathub", "org.srb2.SRB2"];
 		let _ = run_cmd(g6, o.nocolor);
-		cprint(C_CYAN, "CROC", "[7/17] SRB2 Kart...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[7/18] SRB2 Kart...", o.nocolor);
 		const g7: []str = ["flatpak", "install", "-y", "flathub", "org.srb2.SRB2Kart"];
 		let _ = run_cmd(g7, o.nocolor);
-		cprint(C_CYAN, "CROC", "[8/17] Shattered Pixel Dungeon...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[8/18] Shattered Pixel Dungeon...", o.nocolor);
 		const g8: []str = ["flatpak", "install", "-y", "flathub", "com.shatteredpixel.shatteredpixeldungeon"];
 		let _ = run_cmd(g8, o.nocolor);
-		cprint(C_CYAN, "CROC", "[9/17] SuperTux...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[9/18] SuperTux...", o.nocolor);
 		const g9: []str = ["flatpak", "install", "-y", "flathub", "org.supertuxproject.SuperTux"];
 		let _ = run_cmd(g9, o.nocolor);
-		cprint(C_CYAN, "CROC", "[10/17] SuperTuxKart...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[10/18] SuperTuxKart...", o.nocolor);
 		const g10: []str = ["flatpak", "install", "-y", "flathub", "net.supertuxkart.SuperTuxKart"];
 		let _ = run_cmd(g10, o.nocolor);
-		cprint(C_CYAN, "CROC", "[11/17] OpenSurge...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[11/18] OpenSurge...", o.nocolor);
 		const g11: []str = ["flatpak", "install", "-y", "flathub", "org.opensurge2d.OpenSurge"];
 		let _ = run_cmd(g11, o.nocolor);
-		cprint(C_CYAN, "CROC", "[12/17] Dynablaster Revenge...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[12/18] Dynablaster Revenge...", o.nocolor);
 		const g12: []str = ["flatpak", "install", "-y", "flathub", "com.github.varnholt.dynablaster_revenge"];
 		let _ = run_cmd(g12, o.nocolor);
-		cprint(C_CYAN, "CROC", "[13/17] Ricochlime...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[13/18] Ricochlime...", o.nocolor);
 		const g13: []str = ["flatpak", "install", "-y", "flathub", "com.adilhanney.ricochlime"];
 		let _ = run_cmd(g13, o.nocolor);
-               	cprint(C_CYAN, "CROC", "[15/17] GNOME Mahjongg...", o.nocolor);
+               	cprint(C_CYAN, "CROC", "[15/18] GNOME Mahjongg...", o.nocolor);
 		const g15: []str = ["flatpak", "install", "-y", "flathub", "org.gnome.Mahjongg"];
 		let _ = run_cmd(g15, o.nocolor);
-		cprint(C_CYAN, "CROC", "[16/17] Spelunky Classic HD (AppImage)...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[16/18] Spelunky Classic HD (AppImage)...", o.nocolor);
 		const g16: []str = ["sh", "-c", "mkdir -p ~/Applications && wget -nc -q -O ~/Applications/SpelunkyClassicHD.AppImage https://github.com/yancharkin/SpelunkyClassicHD/releases/download/1.2.2/spelunky_classic_hd-linux-x86_64.AppImage; chmod +x ~/Applications/SpelunkyClassicHD.AppImage"];
 		let _ = run_cmd(g16, o.nocolor);
-               	cprint(C_CYAN, "CROC", "[14/17] KMahjongg...", o.nocolor);
+               	cprint(C_CYAN, "CROC", "[14/18] KMahjongg...", o.nocolor);
 		const g14: []str = ["flatpak", "install", "-y", "flathub", "org.kde.kmahjongg"];
 		let _ = run_cmd(g14, o.nocolor);	
-                cprint(C_CYAN, "CROC", "[17/17] Commander Keen 4 (Commander Genius + DOSBox Staging)...", o.nocolor);
+                cprint(C_CYAN, "CROC", "[17/18] Commander Keen 4 (Commander Genius + DOSBox Staging)...", o.nocolor);
 		const g17: []str = ["flatpak", "install", "-y", "flathub", "io.sourceforge.clonekeenplus", "io.github.dosbox-staging"];
 		let _ = run_cmd(g17, o.nocolor);	
+		cprint(C_CYAN, "CROC", "[18/18] Wolfenstein 3D (ECWolf)...", o.nocolor);
+		const g18: []str = ["sh", "-c", "command -v ecwolf >/dev/null || hpo fenghuang install ecwolf; mkdir -p $HOME/Games/Wolf3D; ls $HOME/Games/Wolf3D/*.wl1 >/dev/null 2>&1 || echo '[CROC] Laeg Wolf3D shareware-filerne (*.wl1) i ~/Games/Wolf3D'"];
+		let _ = run_cmd(g18, o.nocolor);
                 cprint(C_GREEN, "CROC", "Arcade ready! Play with: hpo croc", o.nocolor);
 		return;
 	};
@@ -4240,6 +4243,7 @@ fn do_croc(o: *opts) void = {
    	fmt::println("   15  GNOME Mahjongg  (mahjong solitaire)")!;
 	fmt::println("   16  Spelunky Classic HD  (platformer)")!;
         fmt::println("   17  Commander Keen 4  (DOSBox)")!;
+        fmt::println("   18  Wolfenstein 3D  (ECWolf)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -4266,6 +4270,7 @@ fn do_croc(o: *opts) void = {
         else if (choice == "15") { appid = "org.gnome.Mahjongg"; }
 	else if (choice == "16") { appid = "SPELUNKY_APPIMAGE"; }
         else if (choice == "17") { appid = "KEEN4"; }
+        else if (choice == "18") { appid = "WOLF3D"; }
 	else { cprint(C_YELLOW, "CROC", "Afslutter.", o.nocolor); return; };
 	cprint(C_GREEN, "CROC", "TILT! Launching...", o.nocolor);
 	if (appid == "SPELUNKY_APPIMAGE") {
@@ -4273,6 +4278,9 @@ fn do_croc(o: *opts) void = {
 		let _ = run_cmd(args, o.nocolor);
         } else if (appid == "KEEN4") {
 		const args: []str = ["sh", "-c", "K=$HOME/Games/Keen4; CG=\"$HOME/.var/app/io.sourceforge.clonekeenplus/config/CommanderGenius/games/Keen 4/keen4\"; if [ ! -f \"$K/KEEN4E.EXE\" ] && [ -f \"$CG/KEEN4E.EXE\" ]; then mkdir -p \"$HOME/Games\" && cp -r \"$CG\" \"$K\"; fi; if [ -f \"$K/KEEN4E.EXE\" ]; then flatpak run io.github.dosbox-staging -c \"mount c $K\" -c \"c:\" -c \"KEEN4E.EXE /detour\" -c \"exit\"; else echo \"[CROC] Keen 4 filer mangler - starter Commander Genius saa den kan hente dem. Luk den og vaelg 17 igen.\"; flatpak run io.sourceforge.clonekeenplus; fi"];
+		let _ = run_cmd(args, o.nocolor);
+	} else if (appid == "WOLF3D") {
+		const args: []str = ["sh", "-c", "W=$HOME/Games/Wolf3D; if ! command -v ecwolf >/dev/null; then echo \"[CROC] ECWolf mangler - koer: hpo fenghuang install ecwolf\"; elif ! ls \"$W\"/*.wl1 >/dev/null 2>&1; then echo \"[CROC] Wolf3D-filer mangler - laeg *.wl1 i $W\"; else if [ ! -e \"$W/ecwolf.pk3\" ]; then for p in /usr/share/ecwolf/ecwolf.pk3 /usr/local/share/ecwolf/ecwolf.pk3; do [ -e \"$p\" ] && ln -s \"$p\" \"$W/\" && break; done; fi; cd \"$W\" && ecwolf --data wl1; fi"];
 		let _ = run_cmd(args, o.nocolor);
 	} else {
 		const args: []str = ["flatpak", "run", appid];
