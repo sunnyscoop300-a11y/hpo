@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Fenghuang - hpo system package updater"""
+"""Fenghuang - hpo system package updater
+Supports apt, pacman, dnf, zypper + flatpak + snap"""
 import os, shutil, subprocess, sys
 
 INDIGO = "\x1b[38;5;93m"
@@ -32,14 +33,16 @@ def detect_pm():
 
 def auto_backend(package, pm):
     """Pick backend when user didn't specify one."""
-    # Local .snap or .deb or .flatpak file -> their respective backends
     if package.endswith(".snap"):
         return "snap"
     if package.endswith(".flatpak") or package.endswith(".flatpakref"):
         return "flatpak"
     if package.endswith(".deb"):
         return "apt"
-    # Reverse-DNS looking IDs (at least 2 dots, no slashes) -> flatpak
+    if package.endswith(".rpm"):
+        return "dnf" if have("dnf") else "zypper"
+    if package.endswith(".pkg.tar.zst") or package.endswith(".pkg.tar.xz"):
+        return "pacman"
     if package.count(".") >= 2 and "/" not in package:
         return "flatpak"
     return pm or "apt"
@@ -58,7 +61,10 @@ def check(pm, lbl):
     if pm == "apt":
         run("sudo","apt","update"); run("apt","list","--upgradable")
     elif pm == "pacman":
-        run("checkupdates")
+        if have("checkupdates"):
+            run("checkupdates")
+        else:
+            run("pacman","-Qu")
     elif pm == "dnf":
         run("dnf","check-update")
     elif pm == "zypper":
@@ -96,6 +102,15 @@ def clean(pm):
         run("sudo","apt","autoremove","-y"); run("sudo","apt","clean")
     elif pm == "pacman":
         run("sudo","pacman","-Sc","--noconfirm")
+        # Also remove orphaned packages
+        try:
+            result = subprocess.run(["pacman","-Qdtq"], capture_output=True, text=True)
+            orphans = result.stdout.strip().split("\n")
+            orphans = [o for o in orphans if o]
+            if orphans:
+                run("sudo","pacman","-Rns","--noconfirm",*orphans)
+        except FileNotFoundError:
+            pass
     elif pm == "dnf":
         run("sudo","dnf","autoremove","-y"); run("sudo","dnf","clean","all")
     elif pm == "zypper":
@@ -128,6 +143,33 @@ def install(backend, package):
         else:
             print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via apt...")
             ok = run("sudo","apt","install","-y",package)
+    elif backend == "pacman":
+        if not have("pacman"):
+            sys.exit("Fenghuang: pacman findes ikke paa dette system.")
+        if is_local and (package.endswith(".pkg.tar.zst") or package.endswith(".pkg.tar.xz")):
+            print(f"{INDIGO}>>{RST} Installerer lokal pacman-pakke {BOLD}{package}{RST}...")
+            ok = run("sudo","pacman","-U","--noconfirm",expanded)
+        else:
+            print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via pacman...")
+            ok = run("sudo","pacman","-S","--noconfirm",package)
+    elif backend == "dnf":
+        if not have("dnf"):
+            sys.exit("Fenghuang: dnf findes ikke paa dette system.")
+        if is_local and package.endswith(".rpm"):
+            print(f"{INDIGO}>>{RST} Installerer lokal .rpm-fil {BOLD}{package}{RST}...")
+            ok = run("sudo","dnf","install","-y",expanded)
+        else:
+            print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via dnf...")
+            ok = run("sudo","dnf","install","-y",package)
+    elif backend == "zypper":
+        if not have("zypper"):
+            sys.exit("Fenghuang: zypper findes ikke paa dette system.")
+        if is_local and package.endswith(".rpm"):
+            print(f"{INDIGO}>>{RST} Installerer lokal .rpm-fil {BOLD}{package}{RST}...")
+            ok = run("sudo","zypper","install","-y",expanded)
+        else:
+            print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via zypper...")
+            ok = run("sudo","zypper","install","-y",package)
     elif backend == "flatpak":
         if not have("flatpak"):
             sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
@@ -147,7 +189,7 @@ def install(backend, package):
             print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via snap...")
             ok = run("sudo","snap","install",package)
     else:
-        sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, flatpak eller snap.")
+        sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, pacman, dnf, zypper, flatpak eller snap.")
     if ok:
         print(f"{EYES}++{MOON} Installation fuldfoert.{RST}")
     else:
@@ -161,6 +203,21 @@ def uninstall(backend, package):
             sys.exit("Fenghuang: apt findes ikke paa dette system.")
         print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via apt (+ autoremove)...")
         ok = run("sudo","apt","remove","-y","--autoremove",package)
+    elif backend == "pacman":
+        if not have("pacman"):
+            sys.exit("Fenghuang: pacman findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via pacman (+ deps)...")
+        ok = run("sudo","pacman","-Rns","--noconfirm",package)
+    elif backend == "dnf":
+        if not have("dnf"):
+            sys.exit("Fenghuang: dnf findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via dnf...")
+        ok = run("sudo","dnf","remove","-y",package)
+    elif backend == "zypper":
+        if not have("zypper"):
+            sys.exit("Fenghuang: zypper findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via zypper...")
+        ok = run("sudo","zypper","remove","-y",package)
     elif backend == "flatpak":
         if not have("flatpak"):
             sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
@@ -172,7 +229,7 @@ def uninstall(backend, package):
         print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via snap...")
         ok = run("sudo","snap","remove",package)
     else:
-        sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, flatpak eller snap.")
+        sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, pacman, dnf, zypper, flatpak eller snap.")
     if ok:
         print(f"{EYES}++{MOON} Fjernelse fuldfoert.{RST}")
     else:
@@ -183,12 +240,19 @@ def search(backend, query):
     if backend == "all":
         if have("apt"):
             print(f"{INDIGO}>>{RST} Soeger i {BOLD}apt{RST}...")
-            run("apt","search",query)
-            print()
+            run("apt","search",query); print()
+        if have("pacman"):
+            print(f"{INDIGO}>>{RST} Soeger i {BOLD}pacman{RST}...")
+            run("pacman","-Ss",query); print()
+        if have("dnf"):
+            print(f"{INDIGO}>>{RST} Soeger i {BOLD}dnf{RST}...")
+            run("dnf","search",query); print()
+        if have("zypper"):
+            print(f"{INDIGO}>>{RST} Soeger i {BOLD}zypper{RST}...")
+            run("zypper","search",query); print()
         if have("flatpak"):
             print(f"{INDIGO}>>{RST} Soeger i {BOLD}flatpak{RST}...")
-            run("flatpak","search",query)
-            print()
+            run("flatpak","search",query); print()
         if have("snap"):
             print(f"{INDIGO}>>{RST} Soeger i {BOLD}snap store{RST}...")
             run("snap","find",query)
@@ -197,6 +261,21 @@ def search(backend, query):
             sys.exit("Fenghuang: apt findes ikke paa dette system.")
         print(f"{INDIGO}>>{RST} Soeger i apt efter {BOLD}{query}{RST}...")
         run("apt","search",query)
+    elif backend == "pacman":
+        if not have("pacman"):
+            sys.exit("Fenghuang: pacman findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Soeger i pacman efter {BOLD}{query}{RST}...")
+        run("pacman","-Ss",query)
+    elif backend == "dnf":
+        if not have("dnf"):
+            sys.exit("Fenghuang: dnf findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Soeger i dnf efter {BOLD}{query}{RST}...")
+        run("dnf","search",query)
+    elif backend == "zypper":
+        if not have("zypper"):
+            sys.exit("Fenghuang: zypper findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Soeger i zypper efter {BOLD}{query}{RST}...")
+        run("zypper","search",query)
     elif backend == "flatpak":
         if not have("flatpak"):
             sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
@@ -208,10 +287,10 @@ def search(backend, query):
         print(f"{INDIGO}>>{RST} Soeger i snap store efter {BOLD}{query}{RST}...")
         run("snap","find",query)
     else:
-        sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, flatpak, snap eller all.")
+        sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, pacman, dnf, zypper, flatpak, snap eller all.")
 
 
-BACKENDS = {"apt","flatpak","snap"}
+BACKENDS = {"apt","pacman","dnf","zypper","flatpak","snap"}
 
 
 def resolve_backend_and_pkg(args, pm):
