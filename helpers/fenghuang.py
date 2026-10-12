@@ -25,8 +25,14 @@ def have(cmd):
 
 
 def detect_pm():
-    for pm, lbl in [("apt","apt"),("pacman","pacman"),("dnf","dnf"),("zypper","zypper")]:
-        if have(pm):
+    for cmd, pm, lbl in [
+        ("apt","apt","apt"),
+        ("pacman","pacman","pacman"),
+        ("dnf","dnf","dnf"),
+        ("zypper","zypper","zypper"),
+        ("xbps-install","xbps","xbps"),
+    ]:
+        if have(cmd):
             return pm, lbl
     return None, "ingen"
 
@@ -43,6 +49,8 @@ def auto_backend(package, pm):
         return "dnf" if have("dnf") else "zypper"
     if package.endswith(".pkg.tar.zst") or package.endswith(".pkg.tar.xz"):
         return "pacman"
+    if package.endswith(".xbps"):
+        return "xbps"
     if package.count(".") >= 2 and "/" not in package:
         return "flatpak"
     return pm or "apt"
@@ -69,6 +77,8 @@ def check(pm, lbl):
         run("dnf","check-update")
     elif pm == "zypper":
         run("sudo","zypper","refresh"); run("zypper","list-updates")
+    elif pm == "xbps":
+        run("sudo","xbps-install","-Sun")
     if have("flatpak"):
         print(f"{INDIGO}>>{RST} Tjekker flatpaks...")
         run("flatpak","remote-ls","--updates")
@@ -87,6 +97,8 @@ def upgrade(pm):
         run("sudo","dnf","upgrade","-y")
     elif pm == "zypper":
         run("sudo","zypper","update","-y")
+    elif pm == "xbps":
+        run("sudo","xbps-install","-Suy")
     if have("flatpak"):
         print(f"{INDIGO}>>{RST} Opdaterer flatpaks...")
         run("flatpak","update","-y")
@@ -115,6 +127,9 @@ def clean(pm):
         run("sudo","dnf","autoremove","-y"); run("sudo","dnf","clean","all")
     elif pm == "zypper":
         run("sudo","zypper","clean")
+    elif pm == "xbps":
+        run("sudo","xbps-remove","-O","-y")
+        run("sudo","xbps-remove","-o","-y")
     if have("flatpak"):
         print(f"{INDIGO}>>{RST} Rydder flatpaks...")
         run("flatpak","uninstall","--unused","-y")
@@ -170,6 +185,11 @@ def install(backend, package):
         else:
             print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via zypper...")
             ok = run("sudo","zypper","install","-y",package)
+    elif backend == "xbps":
+        if not have("xbps-install"):
+            sys.exit("Fenghuang: xbps-install findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via xbps...")
+        ok = run("sudo","xbps-install","-Sy",package)
     elif backend == "flatpak":
         if not have("flatpak"):
             sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
@@ -218,6 +238,11 @@ def uninstall(backend, package):
             sys.exit("Fenghuang: zypper findes ikke paa dette system.")
         print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via zypper...")
         ok = run("sudo","zypper","remove","-y",package)
+    elif backend == "xbps":
+        if not have("xbps-remove"):
+            sys.exit("Fenghuang: xbps-remove findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via xbps (+ orphans)...")
+        ok = run("sudo","xbps-remove","-Ry",package)
     elif backend == "flatpak":
         if not have("flatpak"):
             sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
@@ -250,6 +275,9 @@ def search(backend, query):
         if have("zypper"):
             print(f"{INDIGO}>>{RST} Soeger i {BOLD}zypper{RST}...")
             run("zypper","search",query); print()
+        if have("xbps-query"):
+            print(f"{INDIGO}>>{RST} Soeger i {BOLD}xbps{RST}...")
+            run("xbps-query","-Rs",query); print()
         if have("flatpak"):
             print(f"{INDIGO}>>{RST} Soeger i {BOLD}flatpak{RST}...")
             run("flatpak","search",query); print()
@@ -276,6 +304,11 @@ def search(backend, query):
             sys.exit("Fenghuang: zypper findes ikke paa dette system.")
         print(f"{INDIGO}>>{RST} Soeger i zypper efter {BOLD}{query}{RST}...")
         run("zypper","search",query)
+    elif backend == "xbps":
+        if not have("xbps-query"):
+            sys.exit("Fenghuang: xbps-query findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Soeger i xbps efter {BOLD}{query}{RST}...")
+        run("xbps-query","-Rs",query)
     elif backend == "flatpak":
         if not have("flatpak"):
             sys.exit("Fenghuang: flatpak findes ikke paa dette system.")
@@ -290,7 +323,7 @@ def search(backend, query):
         sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, pacman, dnf, zypper, flatpak, snap eller all.")
 
 
-BACKENDS = {"apt","pacman","dnf","zypper","flatpak","snap"}
+BACKENDS = {"apt","pacman","dnf","zypper","xbps","flatpak","snap"}
 
 
 def resolve_backend_and_pkg(args, pm):
