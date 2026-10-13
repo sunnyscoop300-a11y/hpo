@@ -28,6 +28,7 @@ DEFAULT_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "google/gemini-3.8-flash"
 DEFAULT_SYSTEM = "You are Mastodon, a wise, concise and helpful assistant living inside the hpo command-line tool."
 LING_MODEL = "inclusionai/ling-3.1-flash"
+ARGON_MODEL = "google/gemini-4-argon"
 # free 3.1 is often rate-limited -> try paid 3.0 before giving up on Ling
 LING_FALLBACK = {"inclusionai/ling-3.1-flash": "inclusionai/ling-3.0-flash"}
 
@@ -108,14 +109,16 @@ def ask(key, model, endpoint, system, question):
 
 def main():
     # Extract --ling flag before processing question
-    args = [a for a in sys.argv[1:] if a != "--ling"]
+    args = [a for a in sys.argv[1:] if a not in ("--ling", "--argon")]
     use_ling = "--ling" in sys.argv
     if not args or not args[0].strip():
-        die('usage: mastodon-chat.py [--ling] "your question"')
+        die('usage: mastodon-chat.py [--ling|--argon] "your question"')
     question = " ".join(args)
     key, model, endpoint, system = load_conf()
     if use_ling:
         model = LING_MODEL
+    elif "--argon" in sys.argv:
+        model = ARGON_MODEL
     answer = ask(key, model, endpoint, system, question)
     print(answer)
 

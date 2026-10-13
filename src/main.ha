@@ -129,6 +129,7 @@ type opts = struct {
 	longtooth: bool,
 	mastodon_arg: str,
 	mastodon_ling: bool,
+	mastodon_argon: bool,
 	peng: bool,
 	peng_arg: str,
 	ostrich: bool,
@@ -3741,8 +3742,8 @@ fn do_mastodon(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	static let sbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/mastodon-chat.py", home)!;
-	if (o.mastodon_ling) {
-		const args: []str = ["python3", script, o.mastodon_arg, "--ling"];
+	if (o.mastodon_ling || o.mastodon_argon) {
+		const args: []str = ["python3", script, o.mastodon_arg, if (o.mastodon_argon) "--argon" else "--ling"];
 		let _ = run_cmd(args, o.nocolor);
 	} else {
 		const args: []str = ["python3", script, o.mastodon_arg];
@@ -5238,10 +5239,17 @@ fn do_shifu(o: *opts) void = {
 
 	// Først: forsøg Python helper for live cinema data
 	if (len(o.shifu_city) > 0) {
-		const helper_paths_early = [
-			"/usr/local/share/hpo/shifu-events.py",
-			"./helpers/shifu-events.py",
-		]: []str;
+		const home_h = match (os::getenv("HOME")) {
+                case let s: str => yield s;
+                case void => yield "/tmp";
+                };
+                static let hp_buf: [512]u8 = [0...];
+                const home_helper = fmt::bsprintf(hp_buf, "{}/hpo/helpers/shifu-events.py", home_h)!;
+                const helper_paths_early = [
+                        home_helper,
+                        "/usr/local/share/hpo/shifu-events.py",
+                        "./helpers/shifu-events.py",
+                ]: []str;
 		let helper_found_early: str = "";
 		for (let hi = 0z; hi < len(helper_paths_early); hi += 1) {
 			if (os::exists(helper_paths_early[hi])) {
@@ -5309,10 +5317,17 @@ fn do_shifu(o: *opts) void = {
 					};
 				};
 				// Først: forsøg at vise dagens program via Python helper
-				const helper_paths = [
-					"/usr/local/share/hpo/shifu-events.py",
-					"./helpers/shifu-events.py",
-				]: []str;
+				const home_h2 = match (os::getenv("HOME")) {
+                                case let s: str => yield s;
+                                case void => yield "/tmp";
+                                };
+                                static let hp_buf2: [512]u8 = [0...];
+                                const home_helper2 = fmt::bsprintf(hp_buf2, "{}/hpo/helpers/shifu-events.py", home_h2)!;
+                                const helper_paths = [
+                                        home_helper2,
+                                        "/usr/local/share/hpo/shifu-events.py",
+                                        "./helpers/shifu-events.py",
+                                ]: []str;
 				let helper_found: str = "";
 				for (let hi = 0z; hi < len(helper_paths); hi += 1) {
 					if (os::exists(helper_paths[hi])) {
@@ -5587,6 +5602,7 @@ export fn main() void = {
 			longtooth = false,
 			mastodon_arg = "",
 			mastodon_ling = false,
+			mastodon_argon = false,
 			peng = false,
 			peng_arg = "",
 			ostrich = false,
@@ -5762,6 +5778,8 @@ export fn main() void = {
                 	};
                 	} else if (a == "--ling") {
 			o.mastodon_ling = true;
+                	} else if (a == "--argon") {
+			o.mastodon_argon = true;
                 } else if (a == "peng") {
                 	o.peng = true;
                 	if (i + 1 < len(args)) {
