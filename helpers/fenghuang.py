@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fenghuang - hpo system package updater
 Supports apt, pacman, dnf, zypper + flatpak + snap"""
-import os, shutil, subprocess, sys
+import os, re, shutil, subprocess, sys
 
 INDIGO = "\x1b[38;5;93m"
 MOON   = "\x1b[38;5;189m"
@@ -37,6 +37,14 @@ def detect_pm():
     return None, "ingen"
 
 
+def aur_helper():
+    """Return the installed AUR helper (yay or paru), or None."""
+    for h in ("yay", "paru"):
+        if have(h):
+            return h
+    return None
+
+
 def auto_backend(package, pm):
     """Pick backend when user didn't specify one."""
     if package.endswith(".snap"):
@@ -64,6 +72,56 @@ def run(*args):
         return False
 
 
+def _vkey(v):
+    """Version sort key: '6.12.48+deb13' -> ['', 6, '.', 12, '.', 48, '+deb', 13, '']"""
+    return [int(p) if p.isdigit() else p for p in re.split(r"(\d+)", v)]
+
+
+def is_wsl():
+    try:
+        with open("/proc/version") as f:
+            return "microsoft" in f.read().lower()
+    except OSError:
+        return False
+
+
+def kernel_status(boot="/boot", modules="/lib/modules"):
+    """Return (running, newest_installed_or_None, reboot_needed)."""
+    running = os.uname().release
+    newest = None
+    try:
+        vers = [f[len("vmlinuz-"):] for f in os.listdir(boot) if f.startswith("vmlinuz-")]
+        # Arch names its files vmlinuz-linux / vmlinuz-linux-lts (no version number)
+        vers = [v for v in vers if v[:1].isdigit()]
+        if vers:
+            newest = max(vers, key=_vkey)
+    except OSError:
+        pass
+    reboot = False
+    if not os.path.isdir(os.path.join(modules, running)):
+        reboot = True   # running kernel's modules were replaced (Arch/Void after an upgrade)
+    elif newest and _vkey(newest) > _vkey(running):
+        reboot = True   # a newer kernel is installed next to the running one (Debian/Fedora)
+    if os.path.exists("/var/run/reboot-required"):
+        reboot = True   # Ubuntu/Mint flag
+    return running, newest, reboot
+
+
+def print_kernel_status(after_upgrade=False):
+    if is_wsl():
+        print(f"{DIM}  (WSL: kernen styres af Windows Update){RST}")
+        return
+    running, newest, reboot = kernel_status()
+    line = f"{INDIGO}>>{RST} Kerne: koerer {BOLD}{running}{RST}"
+    if newest and newest != running:
+        line += f", nyeste installeret {BOLD}{newest}{RST}"
+    print(line)
+    if reboot:
+        print(f"{EYES}!!{MOON} Ny kerne installeret - genstart for at tage den i brug.{RST}")
+    elif after_upgrade:
+        print(f"{DIM}  (ingen ny kerne denne gang){RST}")
+
+
 def check(pm, lbl):
     print(f"{INDIGO}>>{RST} Tjekker system-pakker ({lbl})...")
     if pm == "apt":
@@ -73,6 +131,10 @@ def check(pm, lbl):
             run("checkupdates")
         else:
             run("pacman","-Qu")
+        h = aur_helper()
+        if h:
+            print(f"{INDIGO}>>{RST} Tjekker AUR ({h})...")
+            run(h,"-Qua")
     elif pm == "dnf":
         run("dnf","check-update")
     elif pm == "zypper":
@@ -85,14 +147,22 @@ def check(pm, lbl):
     if have("snap"):
         print(f"{INDIGO}>>{RST} Tjekker snaps...")
         run("snap","refresh","--list")
+    print_kernel_status()
 
 
 def upgrade(pm):
     print(f"{MOON}**{RST} Opdaterer system-pakker...")
     if pm == "apt":
-        run("sudo","apt","update"); run("sudo","apt","upgrade","-y")
+        # full-upgrade (not upgrade) so new kernel packages like linux-image-X are installed
+        run("sudo","apt","update"); run("sudo","apt","full-upgrade","-y")
     elif pm == "pacman":
-        run("sudo","pacman","-Syu","--noconfirm")
+        h = aur_helper()
+        if h:
+            # yay/paru updates both the official repos and the AUR, and calls sudo itself
+            print(f"{DIM}  (bruger {h}, saa AUR-pakker ogsaa bliver opdateret){RST}")
+            run(h,"-Syu","--noconfirm")
+        else:
+            run("sudo","pacman","-Syu","--noconfirm")
     elif pm == "dnf":
         run("sudo","dnf","upgrade","-y")
     elif pm == "zypper":
@@ -105,6 +175,7 @@ def upgrade(pm):
     if have("snap"):
         print(f"{INDIGO}>>{RST} Opdaterer snaps...")
         run("sudo","snap","refresh")
+    print_kernel_status(after_upgrade=True)
     print(f"{EYES}++{MOON} Fuldfoert.{RST}")
 
 
@@ -167,6 +238,16 @@ def install(backend, package):
         else:
             print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} via pacman...")
             ok = run("sudo","pacman","-S","--noconfirm",package)
+            h = aur_helper()
+            if not ok and h:
+                print(f"{DIM}  (ikke fundet i pacman - proever AUR med {h}){RST}")
+                ok = run(h,"-S","--noconfirm",package)
+    elif backend == "aur":
+        h = aur_helper()
+        if not h:
+            sys.exit("Fenghuang: ingen AUR-helper fundet. Installer yay eller paru foerst.")
+        print(f"{INDIGO}>>{RST} Installerer {BOLD}{package}{RST} fra AUR via {h}...")
+        ok = run(h,"-S","--noconfirm",package)
     elif backend == "dnf":
         if not have("dnf"):
             sys.exit("Fenghuang: dnf findes ikke paa dette system.")
@@ -228,6 +309,12 @@ def uninstall(backend, package):
             sys.exit("Fenghuang: pacman findes ikke paa dette system.")
         print(f"{INDIGO}>>{RST} Fjerner {BOLD}{package}{RST} via pacman (+ deps)...")
         ok = run("sudo","pacman","-Rns","--noconfirm",package)
+    elif backend == "aur":
+        # AUR packages are registered in pacman's database, so removal is the same
+        if not have("pacman"):
+            sys.exit("Fenghuang: pacman findes ikke paa dette system.")
+        print(f"{INDIGO}>>{RST} Fjerner AUR-pakken {BOLD}{package}{RST} (+ deps)...")
+        ok = run("sudo","pacman","-Rns","--noconfirm",package)
     elif backend == "dnf":
         if not have("dnf"):
             sys.exit("Fenghuang: dnf findes ikke paa dette system.")
@@ -269,6 +356,10 @@ def search(backend, query):
         if have("pacman"):
             print(f"{INDIGO}>>{RST} Soeger i {BOLD}pacman{RST}...")
             run("pacman","-Ss",query); print()
+        h = aur_helper()
+        if h:
+            print(f"{INDIGO}>>{RST} Soeger i {BOLD}AUR{RST} ({h})...")
+            run(h,"-Ss","--aur",query); print()
         if have("dnf"):
             print(f"{INDIGO}>>{RST} Soeger i {BOLD}dnf{RST}...")
             run("dnf","search",query); print()
@@ -294,6 +385,12 @@ def search(backend, query):
             sys.exit("Fenghuang: pacman findes ikke paa dette system.")
         print(f"{INDIGO}>>{RST} Soeger i pacman efter {BOLD}{query}{RST}...")
         run("pacman","-Ss",query)
+    elif backend == "aur":
+        h = aur_helper()
+        if not h:
+            sys.exit("Fenghuang: ingen AUR-helper fundet. Installer yay eller paru foerst.")
+        print(f"{INDIGO}>>{RST} Soeger i AUR efter {BOLD}{query}{RST} ({h})...")
+        run(h,"-Ss","--aur",query)
     elif backend == "dnf":
         if not have("dnf"):
             sys.exit("Fenghuang: dnf findes ikke paa dette system.")
@@ -323,7 +420,9 @@ def search(backend, query):
         sys.exit(f"Fenghuang: ukendt backend '{backend}'. Brug apt, pacman, dnf, zypper, flatpak, snap eller all.")
 
 
-BACKENDS = {"apt","pacman","dnf","zypper","xbps","flatpak","snap"}
+BACKENDS = {"apt","pacman","aur","dnf","zypper","xbps","flatpak","snap"}
+# "yay" and "paru" are accepted as aliases for "aur"
+BACKEND_ALIASES = {"yay": "aur", "paru": "aur"}
 
 
 def resolve_backend_and_pkg(args, pm):
@@ -350,6 +449,8 @@ def main():
     if pm is None and not have("flatpak") and not have("snap"):
         sys.exit("Fenghuang: ingen pakkemanager fundet.")
     args = sys.argv[1:]
+    if len(args) >= 2 and args[1] in BACKEND_ALIASES:
+        args[1] = BACKEND_ALIASES[args[1]]
     if not args:
         check(pm, lbl); return
     cmd = args[0]
@@ -359,6 +460,8 @@ def main():
         clean(pm)
     elif cmd in ("--all","-a","all"):
         upgrade(pm); clean(pm)
+    elif cmd in ("kernel","-k","--kernel"):
+        print_kernel_status()
     elif cmd == "install":
         if len(args) < 2:
             sys.exit("Brug: hpo fenghuang install [backend] <pakke|fil>")
