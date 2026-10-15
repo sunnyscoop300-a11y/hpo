@@ -93,6 +93,7 @@ type opts = struct {
 	sloth_arg: str,
 	morio: bool,
 	morio_args: []str,
+    antelope: bool,
 	crane_arg: str,
 	crane_arg2: str,
         fenghuang_arg: str, 
@@ -2675,6 +2676,7 @@ fn print_help() void = {
 	fmt::println("  hpo crane ytradio <words>             YouTube radio (10 tracks)")!;
 	fmt::println("  hpo crane local <path>                Play local music (Suno, downloads)")!;
 	fmt::println("  hpo morio <file-or-dir>               Convert FLAC/WAV/M4A to MP3 (dawn rooster, --limewire for 128k)")!;
+	fmt::println("  hpo antelope                          Rip Blu-ray/DVD med MakeMKV + lav mp4 (Antelope Warrior)")!;
 	fmt::println("  hpo colin3ds decrypt <fil.3ds>        Decrypt a 3DS ROM (Colin, the tracker)")!;
 	fmt::println("  hpo colin3ds encrypt <fil.3ds>        Re-encrypt a 3DS ROM")!;
 	fmt::println("  hpo colin3ds check <fil.3ds>          Verify ROM integrity (SHA-256)")!;
@@ -5561,6 +5563,7 @@ export fn main() void = {
 			crane = false,
 		morio = false,
 		morio_args = [],
+            antelope = false,
 			crane_arg = "",
 			li = false,
 			li_arg = "",
@@ -5850,6 +5853,9 @@ export fn main() void = {
                 		o.crane_arg = args[i + 1];
                 		i += 1;
                 	};
+               } else if (a == "dim") {
+                       do_dim(args[i + 1..]);
+                       os::exit(0);
 		} else if (a == "fenghuang") {
 			o.fenghuang = true;
 			if (i + 1 < len(args)) {
@@ -5875,6 +5881,8 @@ export fn main() void = {
                 		append(o.morio_args, args[i + 1])!;
                 		i += 1;
                 	};
+                    } else if (a == "antelope") {
+                	o.antelope = true;
                 } else if (a == "monkey") {
                 	o.monkey = true;
                 	if (i + 1 < len(args) && args[i + 1] == "setup") {
@@ -6207,6 +6215,10 @@ export fn main() void = {
 	};
 	if (o.morio) {
 		do_morio(&o);
+		return;
+	};
+	if (o.antelope) {
+		do_antelope(&o);
 		return;
 	};
 	if (o.sloth) {
