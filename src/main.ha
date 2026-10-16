@@ -8,7 +8,7 @@ use strconv;
 use time;
 use fs;
 
-def VERSION = "4.50.0";
+def VERSION = "4.51.0";
 
 def C_RESET   = "\x1b[0m";
 def C_CYAN    = "\x1b[36m";
@@ -93,6 +93,7 @@ type opts = struct {
 	sloth_arg: str,
 	morio: bool,
 	morio_args: []str,
+    antelope: bool,
 	crane_arg: str,
 	crane_arg2: str,
         fenghuang_arg: str, 
@@ -129,6 +130,7 @@ type opts = struct {
 	longtooth: bool,
 	mastodon_arg: str,
 	mastodon_ling: bool,
+	mastodon_argon: bool,
 	peng: bool,
 	peng_arg: str,
 	ostrich: bool,
@@ -2551,7 +2553,7 @@ fn play_bell_async() void = {
 };
 
 fn print_help() void = {
-	fmt::println("hpo - The Hare Download & Game Manager v4.50.0")!;
+	fmt::println("hpo - The Hare Download & Game Manager v4.51.0")!;
 	fmt::println("")!;
 	fmt::println("USAGE:")!;
 	fmt::println("  hpo <url|magnet|rooster> [options]    Download mode")!;
@@ -2674,6 +2676,7 @@ fn print_help() void = {
 	fmt::println("  hpo crane ytradio <words>             YouTube radio (10 tracks)")!;
 	fmt::println("  hpo crane local <path>                Play local music (Suno, downloads)")!;
 	fmt::println("  hpo morio <file-or-dir>               Convert FLAC/WAV/M4A to MP3 (dawn rooster, --limewire for 128k)")!;
+	fmt::println("  hpo antelope                          Rip Blu-ray/DVD med MakeMKV + lav mp4 (Antelope Warrior)")!;
 	fmt::println("  hpo colin3ds decrypt <fil.3ds>        Decrypt a 3DS ROM (Colin, the tracker)")!;
 	fmt::println("  hpo colin3ds encrypt <fil.3ds>        Re-encrypt a 3DS ROM")!;
 	fmt::println("  hpo colin3ds check <fil.3ds>          Verify ROM integrity (SHA-256)")!;
@@ -3741,8 +3744,8 @@ fn do_mastodon(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	static let sbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/mastodon-chat.py", home)!;
-	if (o.mastodon_ling) {
-		const args: []str = ["python3", script, o.mastodon_arg, "--ling"];
+	if (o.mastodon_ling || o.mastodon_argon) {
+		const args: []str = ["python3", script, o.mastodon_arg, if (o.mastodon_argon) "--argon" else "--ling"];
 		let _ = run_cmd(args, o.nocolor);
 	} else {
 		const args: []str = ["python3", script, o.mastodon_arg];
@@ -5560,6 +5563,7 @@ export fn main() void = {
 			crane = false,
 		morio = false,
 		morio_args = [],
+            antelope = false,
 			crane_arg = "",
 			li = false,
 			li_arg = "",
@@ -5601,6 +5605,7 @@ export fn main() void = {
 			longtooth = false,
 			mastodon_arg = "",
 			mastodon_ling = false,
+			mastodon_argon = false,
 			peng = false,
 			peng_arg = "",
 			ostrich = false,
@@ -5776,6 +5781,8 @@ export fn main() void = {
                 	};
                 	} else if (a == "--ling") {
 			o.mastodon_ling = true;
+                	} else if (a == "--argon") {
+			o.mastodon_argon = true;
                 } else if (a == "peng") {
                 	o.peng = true;
                 	if (i + 1 < len(args)) {
@@ -5846,6 +5853,9 @@ export fn main() void = {
                 		o.crane_arg = args[i + 1];
                 		i += 1;
                 	};
+               } else if (a == "dim") {
+                       do_dim(args[i + 1..]);
+                       os::exit(0);
 		} else if (a == "fenghuang") {
 			o.fenghuang = true;
 			if (i + 1 < len(args)) {
@@ -5871,6 +5881,8 @@ export fn main() void = {
                 		append(o.morio_args, args[i + 1])!;
                 		i += 1;
                 	};
+                    } else if (a == "antelope") {
+                	o.antelope = true;
                 } else if (a == "monkey") {
                 	o.monkey = true;
                 	if (i + 1 < len(args) && args[i + 1] == "setup") {
@@ -6203,6 +6215,10 @@ export fn main() void = {
 	};
 	if (o.morio) {
 		do_morio(&o);
+		return;
+	};
+	if (o.antelope) {
+		do_antelope(&o);
 		return;
 	};
 	if (o.sloth) {
