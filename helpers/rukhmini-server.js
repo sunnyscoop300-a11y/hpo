@@ -19,20 +19,40 @@ function saveCache(){ try { fs.mkdirSync(CFG_DIR,{recursive:true}); fs.writeFile
 function fileToTitle(rel){
   let base = path.basename(rel, path.extname(rel));
   if (titleMap[base]) return titleMap[base];
-  return base.replace(/[_.]/g,' ').replace(/([a-zA-Z])(\d)/g,'$1 $2').replace(/\b(19|20)\d{2}\b/g,'').replace(/\b(1080p|720p|2160p|4k|bluray|bd|web|x264|x265|hevc)\b/gi,'').replace(/\s+/g,' ').trim().toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+  return base.replace(/[_.]/g,' ').replace(/([a-zA-Z])(\d)/g,'$1 $2').replace(/\b(19|20)\d{2}\b/g,'').replace(/\b(1080p|720p|2160p|4k|bluray|bd|web|x264|x265|hevc)\b/gi,'').replace(/[(\[]\s*[)\]]/g,'').replace(/\s+/g,' ').trim().toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
 }
-function fetchPoster(title){
+function omdbLookup(title){
   return new Promise((resolve)=>{
-    if(!OMDB_KEY){resolve(null);return;}
-    if(posterCache[title]!==undefined){resolve(posterCache[title]);return;}
     https.get('https://www.omdbapi.com/?apikey='+OMDB_KEY+'&t='+encodeURIComponent(title),(r)=>{
       let d='';r.on('data',c=>d+=c);r.on('end',()=>{
         let poster=null;
         try{const j=JSON.parse(d);if(j.Poster&&j.Poster!=='N/A')poster=j.Poster;}catch(e){}
-        posterCache[title]=poster;saveCache();resolve(poster);
+        resolve(poster);
       });
     }).on('error',()=>resolve(null));
   });
+}
+async function fetchPoster(title){
+  if(!OMDB_KEY) return null;
+  // kun fundne plakater caches - en ny film OMDb ikke kender endnu proeves igen naeste gang
+  if(posterCache[title]) return posterCache[title];
+  let poster = await omdbLookup(title);
+  // "Minions And Monsters" -> "Minions & Monsters"
+  if(!poster && / and /i.test(title)) poster = await omdbLookup(title.replace(/ and /gi,' & '));
+  if(poster){ posterCache[title]=poster; saveCache(); }
+  return poster;
+}
+
+// Lokal plakat: "Titel (2026).jpg" ved siden af "Titel (2026).mp4" vinder over OMDb
+const POSTER_EXT = ['.jpg', '.jpeg', '.png', '.webp'];
+const IMG_MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
+function localPoster(v){
+  const dir = path.dirname(v.full), base = path.basename(v.full, path.extname(v.full));
+  for (const ext of POSTER_EXT) {
+    const f = path.join(dir, base + ext);
+    if (fs.existsSync(f)) return '/poster/' + encodeURIComponent(path.relative(VIDEO_DIR, f));
+  }
+  return null;
 }
 
 const VIDEO_DIR = process.argv[2] || path.join(os.homedir(), 'Videos');
@@ -83,7 +103,7 @@ const server = http.createServer(async (req, res) => {
   // Home page - list of movies
   if (url === '/' || url === '/index.html') {
     const videos = findVideos(VIDEO_DIR).sort((a,b)=>a.rel.localeCompare(b.rel));
-    const posters = await Promise.all(videos.map(v => fetchPoster(fileToTitle(v.rel))));
+    const posters = await Promise.all(videos.map(v => localPoster(v) || fetchPoster(fileToTitle(v.rel))));
     const items = videos.map((v, i) => {
       const title = esc(fileToTitle(v.rel));
       const poster = posters[i];
@@ -164,6 +184,20 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'image/png', 'Content-Length': stat.size });
       fs.createReadStream(img).pipe(res);
     } catch (e) { res.writeHead(404); res.end('no logo'); }
+    return;
+  }
+
+  if (url.startsWith('/poster/')) {
+    const target = path.resolve(VIDEO_DIR, url.slice('/poster/'.length));
+    const ext = path.extname(target).toLowerCase();
+    if (!target.startsWith(path.resolve(VIDEO_DIR) + path.sep) || !IMG_MIME[ext]) {
+      res.writeHead(403); res.end('Forbidden'); return;
+    }
+    try {
+      const stat = fs.statSync(target);
+      res.writeHead(200, { 'Content-Type': IMG_MIME[ext], 'Content-Length': stat.size, 'Cache-Control': 'max-age=86400' });
+      fs.createReadStream(target).pipe(res);
+    } catch (e) { res.writeHead(404); res.end('no poster'); }
     return;
   }
 

@@ -596,6 +596,7 @@ fn aw_convert() void = {
 		fmt::println("   undertekst:  ingen")!;
 	};
 	fmt::printfln("   preset:      {}", AW_PRESET)!;
+	fmt::println("   lydformat:   AAC stereo 192 kb/s (kan castes)")!;
 	fmt::printfln("   ud:          {}", dst)!;
 	if (os::exists(dst)) {
 		fmt::printfln("{}   (filen findes og bliver overskrevet){}", AW_GOLD, AW_RESET)!;
@@ -625,6 +626,13 @@ fn aw_convert() void = {
 	append(cmd, "--optimize")!;
 	append(cmd, "-a")!;
 	append(cmd, anum)!;
+	// altid stereo AAC: Chromecast/TV og browsere kan ikke afspille 5.1/7.1 AAC
+	append(cmd, "-E")!;
+	append(cmd, "av_aac")!;
+	append(cmd, "--mixdown")!;
+	append(cmd, "stereo")!;
+	append(cmd, "-B")!;
+	append(cmd, "192")!;
 	let snum = "";
 	match (p.sub) {
 	case let s: aw_track =>
