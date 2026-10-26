@@ -3871,6 +3871,12 @@ fn do_veruca(o: *opts) void = {
 		prompt = fmt::bsprintf(vbuf, "{}, vibrant anime illustration, cel-shaded, clean bold lineart, expressive anime eyes, dynamic anime shading", prompt)!;
 		cprint(C_MAGENTA, "VERUCA", "Vixie Rae detected - applying anime style", o.nocolor);
 	};
+	// Sumi Vandal covers -> automatisk Naruto anime-stil
+	static let svbuf: [4096]u8 = [0...];
+	if (strings::contains(prompt, "Sumi Vandal") || strings::contains(prompt, "SUMI VANDAL")) {
+		prompt = fmt::bsprintf(svbuf, "{}, Naruto anime art style, bold shonen anime lineart, cel-shaded, dynamic action anime shading, expressive anime eyes", prompt)!;
+		cprint(C_MAGENTA, "VERUCA", "Sumi Vandal detected - applying Naruto anime style", o.nocolor);
+	};
 	const args: []str = ["python3", script, prompt];
 	let _ = run_cmd(args, o.nocolor);
 };
