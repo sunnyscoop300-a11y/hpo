@@ -18,6 +18,8 @@ def C_RED     = "\x1b[31m";
 def C_BOLD    = "\x1b[1m";
 def C_MAGENTA = "\x1b[35m";
 def C_BLUE    = "\x1b[34m";
+def C_PURPLE  = "\x1b[38;5;135m";
+def C_PINK    = "\x1b[38;5;205m";
 def C_ORANGE  = "\x1b[38;5;208m";
 def C_DIM     = "\x1b[2m";
 
@@ -4597,6 +4599,7 @@ fn do_sloth(o: *opts) void = {
 			if (strings::contains(hdr, "Netflix")) hcol = C_RED;
 			if (strings::contains(hdr, "HBO")) hcol = C_MAGENTA;
 			if (strings::contains(hdr, "Disney")) hcol = C_CYAN;
+            if (strings::contains(hdr, "SkyShowtime")) hcol = C_PINK;
 			if (!o.nocolor) fmt::print(hcol)!;
 			fmt::printfln("   {}", hdr)!;
 			if (!o.nocolor) fmt::print(C_RESET)!;
