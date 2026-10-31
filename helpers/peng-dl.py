@@ -123,7 +123,8 @@ def split_title_artist(raw):
         return m.group(1).strip(), m.group(2).strip()
 
     # Pattern B: <artist> - "<title>" or <artist> – "<title>"
-    m = re.match(r'^(.+?)\s*[-\u2013\u2014]\s*[\"\u201C](.+?)[\"\u201D]\s*$', s)
+    # PENG_SEP_FIX: also '.', ':', '|', middle dot as separator, and doubled quotes
+    m = re.match(r'^(.+?)\s*[-\u2013\u2014.:|\u00B7]\s*[\"\u201C]+(.+?)[\"\u201D]+\s*$', s)
     if m:
         return m.group(2).strip(), m.group(1).strip()
 
@@ -145,6 +146,7 @@ def fetch_metadata(song_id):
                 # display_name from Suno is the profile name (e.g. "Vizi Blink"),
         # not the song's artist. Use it only as fallback.
         profile_name = data.get("display_name") or data.get("handle")
+        save_handle(data.get("handle"))
         cover_url = data.get("image_large_url") or data.get("image_url")
     except Exception as e:
         print(f"PENG: clip-api metadata failed ({e}), trying HTML fallback")
@@ -289,14 +291,135 @@ def embed_cover(mp3_path, cover_path, title, artist):
     os.replace(tmp_path, mp3_path)
 
 
+
+# PENG_SEARCH: find songs by name
+CONF_DIR = os.path.expanduser("~/.config/hpo")
+HANDLE_FILE = os.path.join(CONF_DIR, "peng_handle.txt")
+INDEX_FILE = os.path.join(CONF_DIR, "peng_index.txt")
+
+
+def _norm(s):
+    s = s.lower().replace("“", " ").replace("”", " ")
+    return " ".join(re.sub(r"[^\w\s]", " ", s).split())
+
+
+def save_handle(handle):
+    if not handle:
+        return
+    try:
+        os.makedirs(CONF_DIR, exist_ok=True)
+        if not os.path.exists(HANDLE_FILE):
+            with open(HANDLE_FILE, "w") as f:
+                f.write(handle.strip() + "\n")
+            print(f"PENG: remembered your Suno handle '{handle}' for name search")
+    except Exception:
+        pass
+
+
+def add_to_index(song_id, label):
+    try:
+        os.makedirs(CONF_DIR, exist_ok=True)
+        if os.path.exists(INDEX_FILE):
+            with open(INDEX_FILE) as f:
+                if any(l.startswith(song_id + "|") for l in f):
+                    return
+        with open(INDEX_FILE, "a") as f:
+            f.write(f"{song_id}|{label}\n")
+    except Exception:
+        pass
+
+
+def profile_clips(handle, max_pages=25):
+    clips = []
+    for page in range(1, max_pages + 1):
+        url = (f"https://studio-api.prod.suno.com/api/profiles/{handle}"
+               f"?page={page}&playlists_sort_by=created_at&clips_sort_by=created_at")
+        try:
+            data = fetch_json(url, timeout=15)
+        except Exception as e:
+            if page == 1:
+                print(f"PENG: could not read Suno profile '{handle}' ({e})")
+            break
+        batch = data.get("clips") or []
+        if not batch:
+            break
+        for c in batch:
+            if c.get("id") and c.get("title"):
+                clips.append((c["id"], c["title"]))
+    return clips
+
+
+def index_clips():
+    out = []
+    try:
+        with open(INDEX_FILE) as f:
+            for line in f:
+                if "|" in line:
+                    sid, label = line.rstrip("\n").split("|", 1)
+                    out.append((sid, label))
+    except FileNotFoundError:
+        pass
+    return out
+
+
+def resolve_by_name(query):
+    words = _norm(query).split()
+    if not words:
+        die("empty song name")
+    handle = None
+    try:
+        with open(HANDLE_FILE) as f:
+            handle = f.read().strip() or None
+    except FileNotFoundError:
+        pass
+
+    print(f"PENG: searching for \"{query}\"...")
+    seen, matches = set(), []
+    pool = (profile_clips(handle) if handle else []) + index_clips()
+    for sid, title in pool:
+        if sid in seen:
+            continue
+        seen.add(sid)
+        if all(w in _norm(title) for w in words):
+            matches.append((sid, title))
+
+    if not matches:
+        if not handle:
+            die("no match. Download one of your songs by URL once so Peng learns "
+                "your Suno handle, or write it in ~/.config/hpo/peng_handle.txt")
+        die(f"no song matching \"{query}\" (searched profile '{handle}' and Peng's list)")
+    if len(matches) == 1:
+        print(f"PENG: found {matches[0][1]}")
+        return matches[0][0]
+
+    print(f"PENG: {len(matches)} songs match:")
+    for i, (sid, title) in enumerate(matches[:20], 1):
+        print(f"   {i:2}. {title}")
+    if not sys.stdin.isatty():
+        print("PENG: taking number 1 (no terminal to ask in)")
+        return matches[0][0]
+    while True:
+        try:
+            pick = input("PENG: which one? [1] ").strip() or "1"
+        except EOFError:
+            pick = "1"
+        if pick.isdigit() and 1 <= int(pick) <= min(len(matches), 20):
+            return matches[int(pick) - 1][0]
+        print("PENG: type a number from the list")
+
+
+def looks_like_name(arg):
+    return not UUID_RE.search(arg) and "suno." not in arg and "://" not in arg
+
+
 def main():
     if len(sys.argv) < 2:
-        die("usage: peng-dl.py <suno-url-or-id> [output-dir]")
+        die("usage: peng-dl.py <suno-url | song-id | \"song name\"> [output-dir]")
     arg = sys.argv[1]
     outdir = sys.argv[2] if len(sys.argv) > 2 else OUTDIR_DEFAULT
     os.makedirs(outdir, exist_ok=True)
 
-    song_id = extract_id(arg)
+    song_id = resolve_by_name(arg) if looks_like_name(arg) else extract_id(arg)
     print(f"PENG: song ID = {song_id}")
 
     url, kind = find_working_url(song_id)
@@ -338,6 +461,7 @@ def main():
     if cover_path and os.path.exists(cover_path):
         os.remove(cover_path)
 
+    add_to_index(song_id, os.path.basename(mp3_path)[:-4])
     print(f"PENG_OK: saved {mp3_path}")
 
 
