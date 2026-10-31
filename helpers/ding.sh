@@ -1,12 +1,14 @@
 #!/bin/sh
 # Ding - PlayStation launcher for hpo (Master Ding and his spirit orbs)
-#   ding.sh            menu of your PS1 / PS2 / PSP / PS3 games
+#   ding.sh            menu of your PS1 / PS2 / PSP / PS3 / Vita games
 #   ding.sh setup      install the emulators + make the game folders
 #
 # Games:  ~/.local/share/hpo/arcade/ps1  .cue .chd .pbp .m3u .iso
 #                                   ps2  .iso .chd .cso .gz
 #                                   psp  .iso .cso .pbp .chd
 #                                   ps3  one folder per game (with PS3_GAME/USRDIR/EBOOT.BIN)
+# Vita:   install .pkg/.vpk inside Vita3K once (File -> Install); Ding then lists
+#         everything installed in Vita3K's ux0/app and starts it with Vita3K -r <TITLE-ID>
 # BIOS / firmware must come from your own consoles.
 
 BASE="$HOME/.local/share/hpo/arcade"
@@ -31,6 +33,39 @@ banner() {
 
 have_flatpak_app() { flatpak info "$1" >/dev/null 2>&1; }
 
+vita3k_cmd() {
+	for f in "$APPDIR"/Vita3K*.AppImage "$HOME"/.local/bin/Vita3K*.AppImage; do
+		[ -x "$f" ] && { echo "$f"; return 0; }
+	done
+	command -v Vita3K >/dev/null 2>&1 && { echo Vita3K; return 0; }
+	return 1
+}
+
+# where Vita3K keeps installed games (ux0/app/<TITLE-ID>)
+vita_app_dir() {
+	pp=$(sed -n 's/^pref-path: *//p' "$HOME/.config/Vita3K/config.yml" 2>/dev/null | tr -d "\"'" | head -1)
+	for d in "$pp/ux0/app" "$HOME/.local/share/Vita3K/Vita3K/ux0/app" "$HOME/.local/share/Vita3K/ux0/app"; do
+		[ -n "$d" ] && [ -d "$d" ] && { echo "$d"; return 0; }
+	done
+	return 1
+}
+
+# game name from sce_sys/param.sfo (falls back to the title ID)
+vita_title() {
+	python3 - "$1/sce_sys/param.sfo" 2>/dev/null <<'PY' || basename "$1"
+import struct, sys
+d = open(sys.argv[1], "rb").read()
+k, v, n = struct.unpack_from("<III", d, 8)
+for i in range(n):
+    ko, fmt, ln, mx, do = struct.unpack_from("<HHIII", d, 20 + i * 16)
+    key = d[k + ko:d.index(b"\0", k + ko)].decode()
+    if key == "TITLE":
+        print(d[v + do:v + do + ln].rstrip(b"\0").decode("utf-8", "replace").replace("\n", " "))
+        sys.exit(0)
+sys.exit(1)
+PY
+}
+
 duckstation_cmd() {
 	for f in "$APPDIR"/DuckStation*.AppImage "$HOME"/.local/bin/DuckStation*.AppImage; do
 		[ -x "$f" ] && { echo "$f"; return 0; }
@@ -45,15 +80,15 @@ do_setup() {
 	mkdir -p "$BASE/ps1" "$BASE/ps2" "$BASE/psp" "$BASE/ps3" "$APPDIR"
 	say "Spillemapper klar i $BASE (ps1 ps2 psp ps3)"
 
-	say "[1/4] PS2 - PCSX2"
+	say "[1/5] PS2 - PCSX2"
 	have_flatpak_app net.pcsx2.PCSX2 || flatpak install -y flathub net.pcsx2.PCSX2
 	flatpak override --user --filesystem="$BASE:ro" net.pcsx2.PCSX2
-	say "[2/4] PSP - PPSSPP"
+	say "[2/5] PSP - PPSSPP"
 	have_flatpak_app org.ppsspp.PPSSPP || flatpak install -y flathub org.ppsspp.PPSSPP
-	say "[3/4] PS3 - RPCS3"
+	say "[3/5] PS3 - RPCS3"
 	have_flatpak_app net.rpcs3.RPCS3 || flatpak install -y flathub net.rpcs3.RPCS3
 
-	say "[4/4] PS1 - DuckStation (AppImage)"
+	say "[4/5] PS1 - DuckStation (AppImage)"
 	if duckstation_cmd >/dev/null; then
 		say "DuckStation findes allerede"
 	else
@@ -68,12 +103,28 @@ do_setup() {
 		fi
 	fi
 
+	say "[5/5] Vita - Vita3K (AppImage)"
+	if vita3k_cmd >/dev/null; then
+		say "Vita3K findes allerede"
+	else
+		url="https://github.com/Vita3K/Vita3K/releases/download/continuous/Vita3K-x86_64.AppImage"
+		if curl -fL --progress-bar -o "$APPDIR/Vita3K-x86_64.AppImage" "$url"; then
+			chmod +x "$APPDIR/Vita3K-x86_64.AppImage"
+			say "Vita3K hentet til $APPDIR"
+		else
+			rm -f "$APPDIR/Vita3K-x86_64.AppImage"
+			say "Kunne ikke hente Vita3K automatisk - hent AppImage fra vita3k.org og laeg den i $APPDIR"
+		fi
+	fi
+
 	echo ""
 	say "BIOS/firmware fra dine egne konsoller:"
 	say "  PS1: DuckStation -> Settings -> BIOS"
 	say "  PS2: PCSX2 -> foerste opstart spoerger efter BIOS"
 	say "  PS3: RPCS3 -> File -> Install Firmware (PS3UPDAT.PUP)"
 	say "  PSP: kraever ingen BIOS"
+	say "  Vita: Vita3K -> File -> Install Firmware (PSVUPDAT.PUP + PSP2UPDAT.PUP)"
+	say "        spil: Vita3K -> File -> Install .pkg / .vpk (kun een gang)"
 	say "Klar! Laeg spil i mapperne og koer: hpo ding"
 }
 
@@ -102,6 +153,17 @@ list_games() {
 			i=$((i+1))
 		done
 	done
+	vd=$(vita_app_dir)
+	if [ -n "$vd" ]; then
+		for g in "$vd"/*; do
+			[ -d "$g" ] || continue
+			id=$(basename "$g")
+			printf '   %2d  [VITA] %s (%s)\n' "$i" "$(vita_title "$g")" "$id"
+			eval "g$i=\$id"
+			eval "t$i=vita"
+			i=$((i+1))
+		done
+	fi
 	COUNT=$((i-1))
 }
 
@@ -122,6 +184,9 @@ launch() {
 		have_flatpak_app net.rpcs3.RPCS3 || flatpak install -y flathub net.rpcs3.RPCS3
 		eb=$(find "$sel" -maxdepth 4 -path '*USRDIR/EBOOT.BIN' 2>/dev/null | head -1)
 		flatpak run net.rpcs3.RPCS3 --no-gui "$eb" ;;
+	vita)
+		v3k=$(vita3k_cmd) || { say "Vita3K mangler - koer: hpo ding setup"; return 1; }
+		"$v3k" -r "$sel" ;;
 	esac
 }
 
@@ -130,7 +195,7 @@ menu() {
 	list_games
 	if [ "$COUNT" = 0 ]; then
 		say "Ingen spil endnu. Koer: hpo ding setup"
-		say "og laeg spil i $BASE/ps1, ps2, psp eller ps3"
+		say "og laeg spil i $BASE/ps1, ps2, psp eller ps3 (Vita: installer i Vita3K)"
 		exit 0
 	fi
 	echo "    q  Afslut"

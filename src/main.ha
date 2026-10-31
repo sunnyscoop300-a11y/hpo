@@ -2703,8 +2703,8 @@ fn print_help() void = {
 	fmt::println("  hpo redpanda                          Nintendo launcher (GB/GBC/GBA/NDS/3DS/Switch)")!;
         fmt::println("  Switch: ~/.local/share/hpo/arcade/switch (.nsp/.xci, Ryubing)")!;
 	fmt::println("  Keys/firmware: Ryubing -> Actions -> Install Keys / Firmware")!;
-    fmt::println("  hpo ding                              PlayStation launcher (PS1/PS2/PSP/PS3, Master Ding)")!;
-	fmt::println("  hpo ding setup                        Install DuckStation, PCSX2, PPSSPP, RPCS3")!;
+    fmt::println("  hpo ding                              PlayStation launcher (PS1/PS2/PSP/PS3/Vita, Master Ding)")!;
+	fmt::println("  hpo ding setup                        Install DuckStation, PCSX2, PPSSPP, RPCS3, Vita3K")!;
 	fmt::println("  hpo elizabeth [check|install|backup]  Driver mistress (GPU/printer/audio/network)")!;
 	fmt::println("")!;
 	fmt::println("MEDIA - MOVIES (Rukhmini movie streaming server):")!;
