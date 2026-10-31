@@ -133,6 +133,8 @@ type opts = struct {
 	mastodon_argon: bool,
 	peng: bool,
 	peng_arg: str,
+    	ding: bool,
+	ding_arg: str,
 	ostrich: bool,
 	ostrich_action: str,
 	ostrich_target: str,
@@ -2701,6 +2703,8 @@ fn print_help() void = {
 	fmt::println("  hpo redpanda                          Nintendo launcher (GB/GBC/GBA/NDS/3DS/Switch)")!;
         fmt::println("  Switch: ~/.local/share/hpo/arcade/switch (.nsp/.xci, Ryubing)")!;
 	fmt::println("  Keys/firmware: Ryubing -> Actions -> Install Keys / Firmware")!;
+    fmt::println("  hpo ding                              PlayStation launcher (PS1/PS2/PSP/PS3, Master Ding)")!;
+	fmt::println("  hpo ding setup                        Install DuckStation, PCSX2, PPSSPP, RPCS3")!;
 	fmt::println("  hpo elizabeth [check|install|backup]  Driver mistress (GPU/printer/audio/network)")!;
 	fmt::println("")!;
 	fmt::println("MEDIA - MOVIES (Rukhmini movie streaming server):")!;
@@ -3769,6 +3773,13 @@ fn do_peng(o: *opts) void = {
 	let _ = run_cmd(args, o.nocolor);
 };
 
+fn do_ding(o: *opts) void = {
+	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
+	static let dbuf: [512]u8 = [0...];
+	const script = fmt::bsprintf(dbuf, "{}/hpo/helpers/ding.sh", home)!;
+	const args: []str = ["sh", script, o.ding_arg];
+	let _ = run_cmd(args, o.nocolor);
+};
 fn do_longtooth(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
 	fmt::println("   [LONGTOOTH] The ancient master stirs by the fire...")!;
@@ -5616,6 +5627,8 @@ export fn main() void = {
 			mastodon_argon = false,
 			peng = false,
 			peng_arg = "",
+           			ding = false,
+			ding_arg = "",
 			ostrich = false,
 			ostrich_action = "",
 			ostrich_target = "",
@@ -5795,6 +5808,12 @@ export fn main() void = {
                 	o.peng = true;
                 	if (i + 1 < len(args)) {
                 		o.peng_arg = args[i + 1];
+                		i += 1;
+                	};
+                                } else if (a == "ding") {
+                	o.ding = true;
+                	if (i + 1 < len(args)) {
+                		o.ding_arg = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "longtooth") {
@@ -6183,6 +6202,10 @@ export fn main() void = {
 	};
 	if (o.elizabeth) {
 		do_elizabeth(&o);
+		return;
+	};
+    	if (o.ding) {
+		do_ding(&o);
 		return;
 	};
 	if (o.redpanda) {
