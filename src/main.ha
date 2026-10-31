@@ -4515,7 +4515,13 @@ fn sloth_quote_for_url(home: str, url: str, nc: bool) void = {
 			return;
 		};
 	};
-};
+    // Ingen egen replik for denne titel - brug en generel
+	if (!nc) fmt::print(C_GREEN)!;
+	fmt::println("")!;
+	fmt::printfln("   \"{}\"", sloth_quote())!;
+	if (!nc) fmt::print(C_RESET)!;
+	fmt::println("")!;
+};  
 
 fn sloth_film_quote(home: str, nc: bool) void = {
 	static let qpbuf: [512]u8 = [0...];
