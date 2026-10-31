@@ -104,6 +104,21 @@ def html_unescape(s):
     import html
     return html.unescape(s)
 
+# PENG_EXTRA_FIX: strip trailing "quoted extra info" and (prod./written by ...) credits
+def clean_title(t):
+    s = t.strip()
+    for _ in range(3):
+        m = re.match(r'^(.*?\S)\s*[\"“]+[^\"“”]*[\"”]+\s*$', s)
+        if m:
+            s = m.group(1).strip()
+            continue
+        m = re.match(r'^(.*?\S)\s*[\(\[][^\)\]]*(?:prod|produced|written|feat\.? by|by:)[^\)\]]*[\)\]]\s*$', s, re.I)
+        if m:
+            s = m.group(1).strip()
+            continue
+        break
+    return s or t
+
 def split_title_artist(raw):
     """Try to pull artist and clean title out of a Suno-style title string.
 
@@ -177,6 +192,8 @@ def fetch_metadata(song_id):
         if extracted_artist:
             title = extracted_title
             artist = extracted_artist
+    if title:
+        title = clean_title(title)
     # Fall back to profile name if nothing better found
     if not artist:
         try:
