@@ -1609,7 +1609,37 @@ fn is_wsl() bool = {
 	const s = strings::fromutf8(buf[..n])!;
 	return strings::contains(s, "Microsoft") || strings::contains(s, "microsoft") || strings::contains(s, "WSL");
 };
-
+fn acf_name(path: str) str = {
+	const f = match (os::open(path)) {
+	case let f: io::file => yield f;
+	case => return "";
+	};
+	static let abuf: [8192]u8 = [0...];
+	const n = match (io::read(f, abuf)) {
+	case let z: size => yield z;
+	case => yield 0z;
+	};
+	io::close(f)!;
+	const content = match (strings::fromutf8(abuf[..n])) {
+	case let s: str => yield s;
+	case => return "";
+	};
+	const ki = match (strings::index(content, "\"name\"")) {
+	case let x: size => yield x;
+	case void => return "";
+	};
+	const rest = strings::sub(content, ki + 6, strings::end);
+	const q1 = match (strings::index(rest, '"')) {
+	case let x: size => yield x;
+	case void => return "";
+	};
+	const after = strings::sub(rest, q1 + 1, strings::end);
+	const q2 = match (strings::index(after, '"')) {
+	case let x: size => yield x;
+	case void => return "";
+	};
+	return strings::dup(strings::sub(after, 0, q2))!;
+};
 fn steam_game_name_linux(appid: str) str = {
 	const home = match (os::getenv("HOME")) {
 	case let s: str => yield s;
@@ -1692,6 +1722,53 @@ fn steam_game_name_linux(appid: str) str = {
 			const name = strings::sub(after, 0, q2);
 			return strings::dup(name)!;
 		case => continue;
+		};
+	};
+	
+        // Ekstra Steam-biblioteker (andre drev) fra libraryfolders.vdf
+	const vdfs: [_]str = [
+		"/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/libraryfolders.vdf",
+		"/.local/share/Steam/steamapps/libraryfolders.vdf",
+		"/.steam/steam/steamapps/libraryfolders.vdf",
+	];
+	for (let v = 0z; v < len(vdfs); v += 1) {
+		static let vpbuf: [512]u8 = [0...];
+		const vp = fmt::bsprintf(vpbuf, "{}{}", home, vdfs[v])!;
+		const vf = match (os::open(vp)) {
+		case let f: io::file => yield f;
+		case => continue;
+		};
+		static let vbuf: [16384]u8 = [0...];
+		const vn = match (io::read(vf, vbuf)) {
+		case let z: size => yield z;
+		case => yield 0z;
+		};
+		io::close(vf)!;
+		let rest = match (strings::fromutf8(vbuf[..vn])) {
+		case let s: str => yield s;
+		case => continue;
+		};
+		for (true) {
+			const ki = match (strings::index(rest, "\"path\"")) {
+			case let x: size => yield x;
+			case void => break;
+			};
+			rest = strings::sub(rest, ki + 6, strings::end);
+			const q1 = match (strings::index(rest, '"')) {
+			case let x: size => yield x;
+			case void => break;
+			};
+			rest = strings::sub(rest, q1 + 1, strings::end);
+			const q2 = match (strings::index(rest, '"')) {
+			case let x: size => yield x;
+			case void => break;
+			};
+			const lib = strings::sub(rest, 0, q2);
+			rest = strings::sub(rest, q2 + 1, strings::end);
+			static let apbuf: [768]u8 = [0...];
+			const ap = fmt::bsprintf(apbuf, "{}/steamapps/appmanifest_{}.acf", lib, appid)!;
+			const name = acf_name(ap);
+			if (len(name) > 0) return name;
 		};
 	};
 	return "";
