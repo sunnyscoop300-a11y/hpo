@@ -2699,6 +2699,8 @@ fn print_help() void = {
 	fmt::println("  hpo croc setup                        Install all 18 arcade games")!;
 	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
 	fmt::println("  hpo redpanda                          Nintendo launcher (GB/GBC/GBA/NDS/3DS/Switch)")!;
+        fmt::println("  Switch: ~/.local/share/hpo/arcade/switch (.nsp/.xci, Ryubing)")!;
+	fmt::println("  Keys/firmware: Ryubing -> Actions -> Install Keys / Firmware")!;
 	fmt::println("  hpo elizabeth [check|install|backup]  Driver mistress (GPU/printer/audio/network)")!;
 	fmt::println("")!;
 	fmt::println("MEDIA - MOVIES (Rukhmini movie streaming server):")!;
