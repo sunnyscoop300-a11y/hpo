@@ -2820,9 +2820,6 @@ fn print_help() void = {
         fmt::println("BOOKS (Diya, reading corner behind Villains' Canteen):")!;
 	fmt::println("  hpo diya [bogmappe|-n]                Diya e-book reader (EPUB/TXT/MD in the browser)")!;
 	fmt::println("")!;
-	fmt::println("")!;
-       	fmt::println("")!;
-	fmt::println("")!;
 	fmt::println("SYSTEM MAINTENANCE (Fenghuang, Northern Mountains owl):")!;
 	fmt::println("  hpo fenghuang                         Check for package updates")!;
 	fmt::println("  hpo fenghuang -u                      Upgrade system + flatpaks")!;
