@@ -135,8 +135,10 @@ type opts = struct {
 	mastodon_argon: bool,
 	peng: bool,
 	peng_arg: str,
-    	ding: bool,
+    ding: bool,
 	ding_arg: str,
+    diya: bool,
+	diya_arg: str,
 	ostrich: bool,
 	ostrich_action: str,
 	ostrich_target: str,
@@ -2784,6 +2786,7 @@ fn print_help() void = {
 	fmt::println("  Keys/firmware: Ryubing -> Actions -> Install Keys / Firmware")!;
     fmt::println("  hpo ding                              PlayStation launcher (PS1/PS2/PSP/PS3/Vita, Master Ding)")!;
 	fmt::println("  hpo ding setup                        Install DuckStation, PCSX2, PPSSPP, RPCS3, Vita3K")!;
+    fmt::println("  hpo diya [bogmappe|-n]                Diya e-book reader (EPUB/TXT/MD in the browser)")!;
 	fmt::println("  hpo elizabeth [check|install|backup]  Driver mistress (GPU/printer/audio/network)")!;
 	fmt::println("")!;
 	fmt::println("MEDIA - MOVIES (Rukhmini movie streaming server):")!;
@@ -3857,6 +3860,13 @@ fn do_ding(o: *opts) void = {
 	static let dbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(dbuf, "{}/hpo/helpers/ding.sh", home)!;
 	const args: []str = ["sh", script, o.ding_arg];
+	let _ = run_cmd(args, o.nocolor);
+};
+fn do_diya(o: *opts) void = {
+	if (!o.nocolor) fmt::print(C_YELLOW)!;
+	fmt::println("   [DIYA] The giant squirrel unlocks the reading corner behind Villains' Canteen...")!;
+	if (!o.nocolor) fmt::print(C_RESET)!;
+	const args: []str = ["diya", o.diya_arg];
 	let _ = run_cmd(args, o.nocolor);
 };
 fn do_longtooth(o: *opts) void = {
@@ -5715,6 +5725,8 @@ export fn main() void = {
 			peng_arg = "",
            			ding = false,
 			ding_arg = "",
+            		diya = false,
+			diya_arg = "",
 			ostrich = false,
 			ostrich_action = "",
 			ostrich_target = "",
@@ -5900,6 +5912,12 @@ export fn main() void = {
                 	o.ding = true;
                 	if (i + 1 < len(args)) {
                 		o.ding_arg = args[i + 1];
+                		i += 1;
+                	};
+                                } else if (a == "diya") {
+                	o.diya = true;
+                	if (i + 1 < len(args)) {
+                		o.diya_arg = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "longtooth") {
@@ -6288,6 +6306,10 @@ export fn main() void = {
 	};
 	if (o.elizabeth) {
 		do_elizabeth(&o);
+		return;
+    };
+        if (o.diya) {
+		do_diya(&o);
 		return;
 	};
     	if (o.ding) {
