@@ -359,10 +359,16 @@ fn render_chunks(c: io::handle, b: *book, bi: size, start: size, end: size,
 				yield 1500z;
 			};
 			// Hare regner skaleringen ud: siden bliver px*45 høj, så A−/A+ zoomer
-			const th = px * 45;
-			const tw = wn * th / hn;
-			const sc = th: f64 / hn: f64;
-			putf(c, "<div class=\"fx\" style=\"width:{}px;height:{}px\">", tw, th);
+                    	let th = px * 45;
+			let tw = wn * th / hn;
+			// aldrig bredere end læsefeltet (px*34 minus 2*16 px kant)
+			const maxw = px * 34 - 32;
+			if (tw > maxw) {
+				tw = maxw;
+				th = hn * tw / wn;
+			};
+			const sc = tw: f64 / wn: f64;
+     			putf(c, "<div class=\"fx\" style=\"width:{}px;height:{}px\">", tw, th);
 			putf(c, "<iframe{} width=\"{}\" height=\"{}\" scrolling=\"no\" "
 				"sandbox=\"allow-same-origin\" style=\"transform:scale({})\" "
 				"src=\"/epub/{}/", ld, wn, hn, sc, bi);
