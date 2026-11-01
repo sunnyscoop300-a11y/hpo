@@ -2710,9 +2710,6 @@ fn print_help() void = {
 	fmt::println("  hpo roz vejr rødekro                  Specific city")!;
 	fmt::println("  hpo roz vejr sydney                   Anywhere in the world")!;
 	fmt::println("  Data: ip-api.com + Open-Meteo (no API key needed)")!;
-	fmt::println("  hpo fenghuang install apt <pkg>       Install an apt package")!;
-	fmt::println("  hpo fenghuang install flatpak <id>    Install a flatpak")!;
-	fmt::println("  hpo fenghuang install snap <pkg>      Install a snap")!;
 	fmt::println("")!;
 	fmt::println("SHIFU CINEMA GUIDE (live Danish cinema schedules):")!;
 	fmt::println("  hpo shifu                             List nearby cinemas")!;
@@ -2734,6 +2731,7 @@ fn print_help() void = {
 	fmt::println("EXTRAS (Rooster Fighter & Kung Fu Panda themed):")!;
 	fmt::println("  hpo tailung <urls...>                 Download many files at once")!;
 	fmt::println("  hpo tigress                           Daily motivational quote")!;
+        fmt::println("  hpo alice <amount> <from> <to>        Currency converter (octopus pirate)")!;
 	fmt::println("  hpo piyoko                            Show Piyokocoin balance")!;
 	fmt::println("  hpo piyoko spin                       Gamble 1 PYO (just for fun!)")!;
 	fmt::println("  hpo piyoko cook                       Unlock a random recipe (5 PYO)")!;
@@ -2786,7 +2784,6 @@ fn print_help() void = {
 	fmt::println("  Keys/firmware: Ryubing -> Actions -> Install Keys / Firmware")!;
     fmt::println("  hpo ding                              PlayStation launcher (PS1/PS2/PSP/PS3/Vita, Master Ding)")!;
 	fmt::println("  hpo ding setup                        Install DuckStation, PCSX2, PPSSPP, RPCS3, Vita3K")!;
-    fmt::println("  hpo diya [bogmappe|-n]                Diya e-book reader (EPUB/TXT/MD in the browser)")!;
 	fmt::println("  hpo elizabeth [check|install|backup]  Driver mistress (GPU/printer/audio/network)")!;
 	fmt::println("")!;
 	fmt::println("MEDIA - MOVIES (Rukhmini movie streaming server):")!;
@@ -2799,10 +2796,12 @@ fn print_help() void = {
 	fmt::println("  Shows: ~/.config/hpo/sloth_shows.txt, quotes: sloth_quotes.txt")!;
 	fmt::println("")!;
 	fmt::println("AI & CREATIVE (OpenRouter-powered):")!;
-	fmt::println("  hpo mastodon \"<prompt>\"                 AI songwriter & chat (gemini-3.8-flash)")!;
-	fmt::println("  hpo peng <suno-url>                 Download Suno song as MP3 (little panda)")!;
+        fmt::println("  hpo mastodon \"<prompt>\"               AI songwriter & chat (gemini-3.8-flash)")!;
+	fmt::println("  hpo mastodon \"<prompt>\" --ling        Use Ling 3.1 Flash (falls back to 3.0)")!;
+	fmt::println("  hpo mastodon \"<prompt>\" --argon       Use Gemini 4 Argon (paid flagship)")!;
+	fmt::println("  hpo peng <suno-url|\"name\">            Download Suno song as MP3 (little panda)")!;
 	fmt::println("  hpo longtooth                         Chat with Master Longtooth (TUI, gpt-5.6-luna)")!;
-	fmt::println("  hpo veruca \"<prompt>\"                   AI image generation (album covers etc.)")!;
+        fmt::println("  hpo veruca \"<prompt>\"                 AI image generation (album covers etc.)")!;       
 	fmt::println("  Key: ~/.config/hpo/openrouter_key.txt")!;
 	fmt::println("")!;
 	fmt::println("LAUNCHERS (Forouzan launcher fleet):")!;
@@ -2817,6 +2816,10 @@ fn print_help() void = {
 	fmt::println("")!;
 	fmt::println("MANGA (Mantis cart hub):")!;
 	fmt::println("  hpo mantis                            Open the manga cart hub (TUI)")!;
+	fmt::println("")!;       
+        fmt::println("BOOKS (Diya, reading corner behind Villains' Canteen):")!;
+	fmt::println("  hpo diya [bogmappe|-n]                Diya e-book reader (EPUB/TXT/MD in the browser)")!;
+	fmt::println("")!;
 	fmt::println("")!;
        	fmt::println("")!;
 	fmt::println("")!;
@@ -2825,7 +2828,14 @@ fn print_help() void = {
 	fmt::println("  hpo fenghuang -u                      Upgrade system + flatpaks")!;
 	fmt::println("  hpo fenghuang -c                      Clean up old packages")!;
 	fmt::println("  hpo fenghuang -a                      Full renewal (upgrade + clean)")!;
-	fmt::println("  Supports: apt, pacman, dnf, zypper + flatpak")!;
+	fmt::println("  hpo fenghuang install apt <pkg>       Install an apt package")!;
+	fmt::println("  hpo fenghuang install flatpak <id>    Install a flatpak")!;
+	fmt::println("  hpo fenghuang install snap <pkg>      Install a snap")!;
+	fmt::println("  hpo fenghuang install <pkg|file>      Install (auto-detects backend)")!;
+	fmt::println("  hpo fenghuang -d <pkg>                Uninstall a package")!;
+	fmt::println("  hpo fenghuang search <words>          Search packages")!;
+	fmt::println("  hpo fenghuang kernel                  Show running/newest kernel + reboot hint")!;
+	fmt::println("  Supports: apt, pacman/AUR (yay), dnf, zypper, xbps + flatpak + snap")!;
 	fmt::println("")!;
 	fmt::println("SYSTEM:")!;
 	fmt::println("  hpo doctor                            System health check")!;
