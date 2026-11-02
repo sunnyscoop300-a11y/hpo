@@ -522,6 +522,8 @@ fn display_title(name: str) str = {
 	let t = strings::trimsuffix(name, ".txt");
 	t = strings::trimsuffix(t, ".md");
 	t = strings::trimsuffix(t, ".epub");
+    t = strings::trimsuffix(t, ".cbz");
+	t = strings::trimsuffix(t, ".cbr");
 	return strings::replace(t, "_", " ")!;
 };
 

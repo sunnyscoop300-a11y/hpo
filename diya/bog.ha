@@ -22,7 +22,7 @@ type book = struct {
 
 fn is_book(name: str) bool =
 	strings::hassuffix(name, ".txt") || strings::hassuffix(name, ".md")
-	|| strings::hassuffix(name, ".epub");
+	|| strings::hassuffix(name, ".epub")|| is_comic(name);
 
 // Sorteret liste af bøger i bogmappen. Kalderen frigør med strings::freeall.
 fn list_books() []str = {
@@ -138,6 +138,7 @@ fn flush_para(b: *book, para: []str) void = {
 
 fn load_book(name: str) (book | void) = {
 	if (strings::hassuffix(name, ".epub")) return load_epub(name);
+    if (is_comic(name)) return load_comic(name);
 
 	const p = strings::concat(bookdir, "/", name)!;
 	defer free(p);
