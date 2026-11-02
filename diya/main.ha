@@ -34,6 +34,7 @@ case void =>
 
 export fn main() void = {
 	let nobrowser = false;
+	let lan = false;
 	let port = PORT;
 	let dir = "";
 
@@ -41,6 +42,8 @@ export fn main() void = {
 		const a = os::args[i];
 		if (a == "-n") {
 			nobrowser = true;
+        } else if (a == "-l") {
+			lan = true;
 		} else if (a == "-p" && i + 1 < len(os::args)) {
 			i += 1;
 			port = match (strconv::stou16(os::args[i])) {
@@ -53,6 +56,7 @@ export fn main() void = {
 			fmt::println("diya [-n] [-p port] [bogmappe]")!;
 			fmt::println("  -n   åbn ikke browseren")!;
 			fmt::println("  -p   port (standard 7070)")!;
+   			fmt::println("  -l   del på hjemmenetværket (mobil/tablet)")!;
 			return;
 		} else {
 			dir = a;
@@ -80,7 +84,8 @@ export fn main() void = {
 	case fs::error => void;
 	};
 
-	const sock = match (tcp::listen(ip::LOCAL_V4, port, void: tcp::reuseaddr)) {
+	const addr = if (lan) ip::ANY_V4 else ip::LOCAL_V4;
+	const sock = match (tcp::listen(addr, port, void: tcp::reuseaddr)) {
 	case let s: net::socket =>
 		yield s;
 	case =>

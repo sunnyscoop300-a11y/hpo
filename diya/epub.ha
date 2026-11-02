@@ -471,7 +471,36 @@ fn epub_meta(name: str) (epubmeta | void) = {
 	ok = true;
 	return m;
 };
-
+// Kildestien hvis siden består af præcis ét billede, ellers void
+fn only_image(html: []u8) ([]u8 | void) = {
+	let found: ([]u8 | void) = void;
+	let n = 0z;
+	let i = 0z;
+	for (i < len(html)) {
+		const lt = match (bytes::index(html[i..], strings::toutf8("<"))) {
+		case let o: size =>
+			yield i + o;
+		case void =>
+			break;
+		};
+		const gt = match (bytes::index(html[lt..], strings::toutf8(">"))) {
+		case let o: size =>
+			yield lt + o;
+		case void =>
+			break;
+		};
+		const tag = html[lt + 1..gt];
+		i = gt + 1;
+		const (name, closing) = tagname(tag);
+		if (closing) continue;
+		if (same(name, "img") || same(name, "image")) {
+			n += 1;
+			if (n == 1) found = img_src(tag);
+		};
+	};
+	if (n != 1) return;
+	return found;
+};
 fn load_epub(name: str) (book | void) = {
 	let m = match (epub_meta(name)) {
 	case let m: epubmeta =>
@@ -490,8 +519,15 @@ fn load_epub(name: str) (book | void) = {
 			const html = strings::toutf8(s);
 			match (viewport(html)) {
 			case let wh: (size, size) =>
-				// fixed layout: hele siden vises som den er (tekstlag + billede)
-				add_chunk(&b, fmt::asprintf("{} {} {}", wh.0, wh.1, m.spine[i])!, kind::PAGE);
+								match (only_image(html)) {
+				case let src: []u8 =>
+				// manga-side = ét billede: vis det som billede, så det
+					// skalerer til skærmen (også på mobil)
+					add_chunk(&b, resolve(dirname(m.spine[i]), src), kind::IMG);
+				case void =>
+				// fixed layout med tekstlag: hele siden vises som den er
+					add_chunk(&b, fmt::asprintf("{} {} {}", wh.0, wh.1, m.spine[i])!, kind::PAGE);
+				};
 			case void =>
 				html_to_chunks(&b, html, dirname(m.spine[i]));
 			};
