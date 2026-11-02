@@ -40,12 +40,13 @@ a{color:var(--gold)}
 .continue{display:flex;flex-direction:column;gap:4px;padding:18px 22px;margin-bottom:28px;border:1px solid var(--gold);border-radius:14px;text-decoration:none;color:var(--ink);background:var(--paper)}
 .continue span{font:600 12px system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
 .continue strong{font-size:22px;font-weight:500}
-.shelf{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
-.shelf a{position:relative;display:flex;flex-direction:column;gap:10px;min-height:150px;padding:18px 18px 16px 30px;background:var(--paper);border:1px solid var(--line);border-radius:6px 14px 14px 6px;text-decoration:none;color:var(--ink);transition:transform .15s,border-color .15s}
-.shelf a:hover{transform:translateY(-3px);border-color:var(--gold)}
-.spine{position:absolute;left:0;top:0;bottom:0;width:12px;border-radius:6px 0 0 6px;background:linear-gradient(var(--gold),var(--bindi))}
-.shelf .t{font-size:19px;line-height:1.3;flex:1}
-.shelf .cover{display:block;width:100%;height:240px;object-fit:cover;border-radius:4px;background:var(--line)}
+.shelf{list-style:none;margin:0;padding:18px 18px 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0;background:linear-gradient(90deg,#4a2c17,#5c3820 8%,#5c3820 92%,#4a2c17);border:14px solid #7a4f2d;border-bottom-width:22px;border-radius:4px;box-shadow:0 12px 30px rgba(0,0,0,.45),inset 0 0 40px rgba(0,0,0,.5)}
+.shelf li{display:flex;align-items:flex-end;padding:18px 10px 0;border-bottom:14px solid #8a5a34;box-shadow:0 6px 8px -4px rgba(0,0,0,.6)}
+.shelf a{position:relative;display:flex;flex-direction:column;gap:6px;width:100%;padding:8px;background:var(--paper);border:1px solid var(--line);border-radius:3px 6px 6px 3px;text-decoration:none;color:var(--ink);box-shadow:3px 0 6px rgba(0,0,0,.4);transition:transform .15s}
+.shelf a:hover{transform:translateY(-6px)}
+.spine{position:absolute;left:0;top:0;bottom:0;width:6px;border-radius:3px 0 0 3px;background:linear-gradient(var(--gold),var(--bindi))}
+.shelf .t{font-size:15px;line-height:1.25;padding-left:4px}
+.shelf .cover{display:block;width:100%;aspect-ratio:2/3;height:auto;object-fit:cover;border-radius:2px;background:var(--line)}
 .meta{font:13px system-ui,sans-serif;color:var(--soft)}
 .bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--gold)}
