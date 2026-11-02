@@ -45,6 +45,7 @@ a{color:var(--gold)}
 .shelf a:hover{transform:translateY(-3px);border-color:var(--gold)}
 .spine{position:absolute;left:0;top:0;bottom:0;width:12px;border-radius:6px 0 0 6px;background:linear-gradient(var(--gold),var(--bindi))}
 .shelf .t{font-size:19px;line-height:1.3;flex:1}
+.shelf .cover{display:block;width:100%;height:240px;object-fit:cover;border-radius:4px;background:var(--line)}
 .meta{font:13px system-ui,sans-serif;color:var(--soft)}
 .bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--gold)}
@@ -179,7 +180,16 @@ fn page_library(c: io::handle) void = {
 			const (pg, tot) = progress(books[i]);
 			put(c, "<li><a href=\"");
 			bookhref(c, i, books[i]);
-			put(c, "\"><span class=\"spine\"></span><span class=\"t\">");
+			put(c, "\"><span class=\"spine\"></span>");
+			match (book_cover(books[i])) {
+			case let cv: str =>
+			putf(c, "<img class=\"cover\" loading=\"lazy\" alt=\"\" src=\"/img?bog={}&f=", i);
+				urlenc(c, cv);
+				put(c, "\">");
+				free(cv);
+			case void => void;
+			};
+			put(c, "<span class=\"t\">");
 			title(c, books[i]);
 			put(c, "</span>");
 			if (tot == 0) {
