@@ -139,6 +139,7 @@ type opts = struct {
 	ding_arg: str,
     diya: bool,
 	diya_arg: str,
+    diya_arg2: str,
 	ostrich: bool,
 	ostrich_action: str,
 	ostrich_target: str,
@@ -3873,8 +3874,13 @@ fn do_diya(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
 	fmt::println("   [DIYA] The giant squirrel unlocks the reading corner behind Villains' Canteen...")!;
 	if (!o.nocolor) fmt::print(C_RESET)!;
-	const args: []str = ["diya", o.diya_arg];
-	let _ = run_cmd(args, o.nocolor);
+	if (o.diya_arg2 != "") {
+		const args: []str = ["diya", o.diya_arg, o.diya_arg2];
+		let _ = run_cmd(args, o.nocolor);
+	} else {
+		const args: []str = ["diya", o.diya_arg];
+		let _ = run_cmd(args, o.nocolor);
+	};
 };
 fn do_longtooth(o: *opts) void = {
 	if (!o.nocolor) fmt::print(C_YELLOW)!;
@@ -5734,6 +5740,7 @@ export fn main() void = {
 			ding_arg = "",
             		diya = false,
 			diya_arg = "",
+                        diya_arg2 = "",
 			ostrich = false,
 			ostrich_action = "",
 			ostrich_target = "",
@@ -5921,10 +5928,14 @@ export fn main() void = {
                 		o.ding_arg = args[i + 1];
                 		i += 1;
                 	};
-                                } else if (a == "diya") {
+                    } else if (a == "diya") {
                 	o.diya = true;
                 	if (i + 1 < len(args)) {
                 		o.diya_arg = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.diya_arg2 = args[i + 1];
                 		i += 1;
                 	};
                 } else if (a == "longtooth") {
