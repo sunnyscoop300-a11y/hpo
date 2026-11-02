@@ -2818,7 +2818,7 @@ fn print_help() void = {
 	fmt::println("  hpo mantis                            Open the manga cart hub (TUI)")!;
 	fmt::println("")!;       
         fmt::println("BOOKS (Diya, reading corner behind Villains' Canteen):")!;
-	fmt::println("  hpo diya [bogmappe|-n]                Diya e-book reader (EPUB/TXT/MD in the browser)")!;
+	fmt::println("  hpo diya [bogmappe|-n]                Diya e-book reader (EPUB/CBZ/CBR/TXT/MD in the browser)")!;
 	fmt::println("")!;
 	fmt::println("SYSTEM MAINTENANCE (Fenghuang, Northern Mountains owl):")!;
 	fmt::println("  hpo fenghuang                         Check for package updates")!;
