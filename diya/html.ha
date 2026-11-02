@@ -184,7 +184,9 @@ fn page_library(c: io::handle) void = {
 			put(c, "\"><span class=\"spine\"></span>");
 			match (book_cover(books[i])) {
 			case let cv: str =>
-			putf(c, "<img class=\"cover\" loading=\"lazy\" alt=\"\" src=\"/img?bog={}&f=", i);
+                        putf(c, "<img class=\"cover\" loading=\"lazy\" alt=\"\" src=\"/img?bog={}&n=", i);
+				urlenc(c, books[i]);
+				put(c, "&f=");
 				urlenc(c, cv);
 				put(c, "\">");
 				free(cv);

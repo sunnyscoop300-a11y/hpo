@@ -739,7 +739,7 @@ fn serve_cached(c: io::handle, name: str, rel: str) void = {
 	};
 	defer free(data);
 	putf(c, "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\n"
-		"Cache-Control: max-age=86400\r\nConnection: close\r\n\r\n",
+		"Cache-Control: no-cache\r\nConnection: close\r\n\r\n",
 		mimetype(rel), len(data));
 	putb(c, data);
 };
