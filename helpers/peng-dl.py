@@ -144,7 +144,7 @@ def split_title_artist(raw):
         return m.group(2).strip(), m.group(1).strip()
 
     # Pattern C: <artist> - <title> (no quotes, use first dash)
-    m = re.match(r'^(.+?)\s+[-\u2013\u2014]\s+(.+?)\s*$', s)
+    m = re.match(r'^(.+?)\s+[-\u2013\u2014\u2022\u00B7|]\s+(.+?)\s*$', s)
     if m:
         return m.group(2).strip(), m.group(1).strip()
 
