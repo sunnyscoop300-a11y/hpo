@@ -113,6 +113,7 @@ type opts = struct {
 	kai_arg: str,
 	croc: bool,
 	croc_setup: bool,
+	croc_tui: bool,
 	rukhmini: bool,
 	rukhmini_arg: str,
 	akna: bool,
@@ -2779,6 +2780,7 @@ fn print_help() void = {
 	fmt::println("  hpo ping                              Roblox (via Sober)")!;
 	fmt::println("  hpo croc                              Retro arcade hub - 18 games (Master Croc)")!;
 	fmt::println("  hpo croc setup                        Install all 18 arcade games")!;
+	fmt::println("  hpo croc tui                          The arcade in the terminal (no window)")!;
 	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
 	fmt::println("  hpo redpanda                          Nintendo launcher (GB/GBC/GBA/NDS/3DS/Switch)")!;
         fmt::println("  Switch: ~/.local/share/hpo/arcade/switch (.nsp/.xci, Ryubing)")!;
@@ -4344,6 +4346,17 @@ fn do_croc(o: *opts) void = {
                 cprint(C_GREEN, "CROC", "Arcade ready! Play with: hpo croc", o.nocolor);
 		return;
 	};
+	// CROC ARCADE: the GUI (croc-gui/), when there's a desktop and it's installed.
+	if (!o.croc_tui && (os::getenv("WAYLAND_DISPLAY") is str || os::getenv("DISPLAY") is str)) {
+		match (exec::cmd("hpo-croc")) {
+		case let c: exec::command =>
+			cprint(C_GREEN, "CROC", "Croc Arcade opens...", o.nocolor);
+			const err = exec::exec(&c);
+			cprint(C_YELLOW, "CROC", exec::strerror(err), o.nocolor);
+		case =>
+			cprint(C_YELLOW, "CROC", "No GUI yet (cd croc-gui && make install). Terminal menu:", o.nocolor);
+		};
+	};
 	if (!o.nocolor) fmt::print(C_GREEN)!;
 	fmt::println("")!;
 	fmt::println("   \u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557")!;
@@ -5714,6 +5727,7 @@ export fn main() void = {
 			kai_arg = "",
 			croc = false,
 			croc_setup = false,
+			croc_tui = false,
 			rukhmini = false,
 			rukhmini_arg = "",
 			akna = false,
@@ -5988,6 +6002,9 @@ export fn main() void = {
                 	o.croc = true;
                 	if (i + 1 < len(args) && args[i + 1] == "setup") {
                 		o.croc_setup = true;
+                		i += 1;
+                	} else if (i + 1 < len(args) && args[i + 1] == "tui") {
+                		o.croc_tui = true;
                 		i += 1;
                 	};
                 } else if (a == "kai") {
