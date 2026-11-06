@@ -18,7 +18,7 @@ Output: saved to ~/Pictures/veruca/ by default (or the given path).
 Prints one status line prefixed with VERUCA_ for the Hare side to read.
 """
 
-import sys, os, json, time, base64, configparser, urllib.request, urllib.error, subprocess
+import re, sys, os, json, time, base64, configparser, urllib.request, urllib.error, subprocess
 
 CONF = os.path.expanduser("~/.config/hpo/veruca.conf")
 OUTDIR = os.path.expanduser("~/Pictures/veruca")
@@ -157,12 +157,26 @@ def gen_stability(prompt, key, model, outfile):
     except Exception as e:
         die(f"stability request failed: {e}")
 
+def pick_size(prompt):
+    # "9:16", "16:9", "4:5" ... i prompten -> passende storrelse (multipla af 16)
+    m = re.search(r'\b(\d{1,2})\s*:\s*(\d{1,2})\b', prompt)
+    if not m:
+        return "1024x1024"
+    a, b = int(m.group(1)), int(m.group(2))
+    if a == 0 or b == 0 or a / b > 3 or b / a > 3:
+        return "1024x1024"
+    long_side = 1536
+    if a >= b:
+        w, h = long_side, long_side * b / a
+    else:
+        w, h = long_side * a / b, long_side
+    return f"{int(round(w / 16)) * 16}x{int(round(h / 16)) * 16}"
 
 def gen_openai_compat(prompt, key, model, endpoint, outfile):
     # Works with OpenAI-compatible image endpoints (DALL-E style)
     url = endpoint or "https://api.openai.com/v1/images/generations"
     hdr = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-    payload = {"prompt": prompt, "n": 1, "size": "1024x1024"}
+    payload = {"prompt": prompt, "n": 1, "size": pick_size(prompt)}
     if model:
         payload["model"] = model
     status, body = http_json(url, payload, hdr)
