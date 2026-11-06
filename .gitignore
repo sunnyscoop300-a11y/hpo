@@ -31,7 +31,7 @@ veruca.conf
 mastodon.conf
 openrouter_key.txt
 *.pdf
-src/colin3ds.ha
+src/colin3ds+colin.ha
 compumail_debug*
 __pycache__/
 diya/diya
