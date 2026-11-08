@@ -6014,9 +6014,13 @@ export fn main() void = {
                 		i += 1;
                 	};
                 } else if (a == "crane") {
-                	o.crane = true;
+                	    o.crane = true;
                 	if (i + 1 < len(args)) {
                 		o.crane_arg = args[i + 1];
+                		i += 1;
+                	};
+                	if (i + 1 < len(args)) {
+                		o.crane_arg2 = args[i + 1];
                 		i += 1;
                 	};
                } else if (a == "dim") {
@@ -6036,11 +6040,6 @@ export fn main() void = {
 				o.fenghuang_arg3 = args[i + 1];
 				i += 1;
 			};
-                
-                	if (i + 1 < len(args)) {
-                		o.crane_arg2 = args[i + 1];
-                		i += 1;
-                	};
                 } else if (a == "morio") {
                 	o.morio = true;
                 	for (i + 1 < len(args)) {
