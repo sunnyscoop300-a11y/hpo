@@ -12,20 +12,20 @@ use strings;
 use viper;
 
 def W: int = 1000;
-def H: int = 680;
-def COLS: size = 6;
-def CW: int = 150;
+def H: int = 840;
+def COLS: size = 7;
+def CW: int = 126;
 def CH: int = 148;
 def GAP: int = 12;
-def GX: int = 20;
+def GX: int = 23;
 def GY: int = 116;
-def ALL: size = 18;           // the "install everything" job
+def ALL: size = 19;           // the "install everything" job
 
 type mode = enum { BROWSE, PLAYING, INSTALLING };
 
 type app = struct {
 	sel: size,
-	ready: [18]bool,
+	ready: [19]bool,
 	mode: mode,
 	proc: exec::process,
 	job: size,          // the game being played or installed, or ALL

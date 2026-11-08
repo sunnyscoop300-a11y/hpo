@@ -126,7 +126,16 @@ fn draw_icon(win: *viper::window, id: int, x: f64, y: f64, t: f64) void = {
 		for (let c = 0; c < 4; c += 1) {
 			viper::rect(win, (x - 30.0): int + c * 16, (y - 28.0): int, 9, 8, 0xff6a6a7a);
 		};
-		viper::round_rect(win, (x - 8.0): int, (y + 4.0): int, 16, 22, 6, 0xff3a2a1a);
+		     viper::round_rect(win, (x - 8.0): int, (y + 4.0): int, 16, 22, 6, 0xff3a2a1a);
+    case 17 => // golden pong: zebra stripes, two bats and a gold ball
+		for (let s = 0; s < 8; s += 1) {
+		const col: u32 = if (s % 2 == 0) 0xfff0f0f0 else 0xff1a1a1a;
+		viper::rect(win, (x - 32.0): int + s * 8, (y - 24.0): int, 8, 48, col);
+		};
+		viper::rect(win, (x - 28.0): int, (y - 10.0): int, 5, 20, 0xffd83a3a);
+		viper::rect(win, (x + 23.0): int, (y - 10.0): int, 5, 20, 0xffd83a3a);
+		shine(win, x + math::sinf64(t * 2.0) * 14.0,
+			y + math::cosf64(t * 3.0) * 10.0, 7, 0xffe0b030, 0xfffff2b0);
 	case => void;
 	};
 };
