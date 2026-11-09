@@ -1,4 +1,4 @@
-// hpo croc — the 19 arcade games: how to tell if one is installed, how to
+// hpo croc — the 20 retro games: how to tell if one is installed, how to
 // install it and how to start it. The same games and commands as the
 // `hpo croc` terminal menu in src/main.ha.
 use fmt;
@@ -8,7 +8,7 @@ use os;
 use os::exec;
 use strings;
 
-type kind = enum { FLATPAK, SPELUNKY, KEEN4, WOLF3D, GPONG };
+type kind = enum { FLATPAK, SPELUNKY, KEEN4, WOLF3D, GPONG,UNICORN };
 
 type game = struct {
 	name: str,       // on the card
@@ -21,7 +21,7 @@ type game = struct {
 	col: u32,        // the card's colour
 };
 
-const GAMES: [19]game = [
+const GAMES: [20]game = [
 	game { name = "Space Cadet", full = "Space Cadet Pinball", genre = "Pinball",
 		about = "Den klassiske flipperspil fra Windows XP.", k = kind::FLATPAK,
 		appid = "com.github.k4zmu2a.spacecadetpinball", icon = 0, col = 0xff3a6ad8 },
@@ -79,6 +79,9 @@ const GAMES: [19]game = [
     game { name = "Golden Pong 3D", full = "Golden Pong 3D", genre = "ViperGui",
 		about = "Gylden bold i en zebra-tunnel. Slå zebraen!", k = kind::GPONG,
 		appid = "", icon = 17, col = 0xffe0b030 },
+    game { name = "Flappy Unicorn", full = "Flappy Unicorn 3D", genre = "ViperGui",
+		about = "Flyv enhjørningen gennem regnbueportene!", k = kind::UNICORN,
+		appid = "", icon = 18, col = 0xffff8fd0 },
 ];
 
 // Files for logs and lists, in /tmp so they never get in the way.
@@ -116,7 +119,7 @@ case => yield false;
 };
 
 // Which games are installed, checked with one call to flatpak.
-fn scan(ready: *[19]bool) void = {
+fn scan(ready: *[20]bool) void = {
 	let buf: [256]u8 = [0...];
 	const list = strings::dup(tmpfile(buf, "flatpaks"))!;
 	defer free(list);
@@ -139,6 +142,9 @@ fn scan(ready: *[19]bool) void = {
         case kind::GPONG =>
 			let hb: [512]u8 = [0...];
 			yield exists(home(hb, "/Videos/viper2/vipergui/golden-pong"));
+		case kind::UNICORN =>
+			let hb: [512]u8 = [0...];
+			yield exists(home(hb, "/Videos/viper2/vipergui/flappy-unicorn"));
 		};
 	};
 };
@@ -165,6 +171,8 @@ fn install_script(buf: []u8, i: size) str = {
 		yield "command -v ecwolf >/dev/null || hpo fenghuang install ecwolf; mkdir -p $HOME/Games/Wolf3D; ls $HOME/Games/Wolf3D/*.wl1 >/dev/null 2>&1 || echo '[CROC] Læg Wolf3D shareware-filerne (*.wl1) i ~/Games/Wolf3D'";
 	case kind::GPONG =>
 		yield "cd $HOME/Videos/viper2/vipergui && make golden-pong";
+    case kind::UNICORN =>
+		yield "cd $HOME/Videos/viper2/vipergui && make flappy-unicorn";
 	};
 };
 
@@ -180,6 +188,8 @@ fn launch_script(buf: []u8, i: size) str = {
 		yield "W=$HOME/Games/Wolf3D; if ! command -v ecwolf >/dev/null; then echo \"[CROC] ECWolf mangler. Tryk I for at installere.\"; elif ! ls \"$W\"/*.wl1 >/dev/null 2>&1; then echo \"[CROC] Wolf3D-filerne mangler. Læg *.wl1 i $W\"; else if [ ! -e \"$W/ecwolf.pk3\" ]; then for p in /usr/share/ecwolf/ecwolf.pk3 /usr/local/share/ecwolf/ecwolf.pk3; do [ -e \"$p\" ] && ln -s \"$p\" \"$W/\" && break; done; fi; cd \"$W\" && ecwolf --data wl1; fi";
     case kind::GPONG =>
 		yield "cd $HOME/Videos/viper2/vipergui && ./golden-pong";
+	case kind::UNICORN =>
+		yield "cd $HOME/Videos/viper2/vipergui && ./flappy-unicorn";
 	};
 };
 

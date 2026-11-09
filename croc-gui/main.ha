@@ -3,7 +3,7 @@
 // there is a desktop; `hpo croc tui` gives the old terminal menu.
 //
 // Arrows/mouse pick a game, Enter plays it (or installs it if it's
-// missing), I installs, A installs all 19, R checks again, Esc quits.
+// missing), I installs, A installs all 20, R checks again, Esc quits.
 use fmt;
 use math;
 use os;
@@ -19,13 +19,13 @@ def CH: int = 148;
 def GAP: int = 12;
 def GX: int = 23;
 def GY: int = 116;
-def ALL: size = 19;           // the "install everything" job
+def ALL: size = 20;           // the "install everything" job
 
 type mode = enum { BROWSE, PLAYING, INSTALLING };
 
 type app = struct {
 	sel: size,
-	ready: [19]bool,
+	ready: [20]bool,
 	mode: mode,
 	proc: exec::process,
 	job: size,          // the game being played or installed, or ALL
@@ -79,12 +79,12 @@ fn install(a: *app, i: size) void = {
 		for (let k = 0z; k < len(GAMES); k += 1) {
 			if (a.ready[k]) continue;
 			let one: [1024]u8 = [0...];
-			const s = fmt::bsprintf(buf[n..], "echo '[{}/19] {}'; {}; ", k + 1,
+			const s = fmt::bsprintf(buf[n..], "echo '[{}/20] {}'; {}; ", k + 1,
 				GAMES[k].full, install_script(one, k))!;
 			n += len(s);
 		};
 		if (n == 0) {
-			say(a, "Alle 19 spil er allerede installeret!");
+			say(a, "Alle 20 spil er allerede installeret!");
 			return;
 		};
 		script = strings::fromutf8_unsafe(buf[..n]);
@@ -122,7 +122,7 @@ fn poll(a: *app) void = {
 	scan(&a.ready);
 	let mb: [160]u8 = [0...];
 	if (a.job == ALL) {
-		say(a, fmt::bsprintf(mb, "Færdig! {} af 19 spil er klar.", nready(a))!);
+		say(a, fmt::bsprintf(mb, "Færdig! {} af 20 spil er klar.", nready(a))!);
 	} else if (a.ready[a.job]) {
 		say(a, fmt::bsprintf(mb, "{} er installeret. Tryk Enter for at spille!",
 			GAMES[a.job].full)!);
@@ -188,7 +188,7 @@ fn input(win: *viper::window, a: *app) bool = {
 	if (viper::key_pressed(win, viper::key::R)) {
 		scan(&a.ready);
 		let b: [64]u8 = [0...];
-		say(a, fmt::bsprintf(b, "{} af 19 spil er klar.", nready(a))!);
+		say(a, fmt::bsprintf(b, "{} af 20 spil er klar.", nready(a))!);
 	};
 	const (mx, my) = viper::mouse(win);
 	match (card_at(mx, my)) {
@@ -266,7 +266,7 @@ fn draw_marquee(win: *viper::window, a: *app) void = {
 	viper::text_scaled(win, 210, 26, "CROC ARCADE", C_GOLD, 3);
 	viper::text(win, 212, 74, "hpo  -  Retro Arcade Hub  -  Master Croc", 0xffffe0b0);
 	let b: [32]u8 = [0...];
-	const s = fmt::bsprintf(b, "{}/19 klar", nready(a))!;
+	const s = fmt::bsprintf(b, "{}/20 klar", nready(a))!;
 	viper::text_scaled(win, W - 60 - viper::text_width(s, 2), 44, s, 0xfffff2d8, 2);
 };
 

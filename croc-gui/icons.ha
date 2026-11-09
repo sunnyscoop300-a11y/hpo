@@ -136,6 +136,18 @@ fn draw_icon(win: *viper::window, id: int, x: f64, y: f64, t: f64) void = {
 		viper::rect(win, (x + 23.0): int, (y - 10.0): int, 5, 20, 0xffd83a3a);
 		shine(win, x + math::sinf64(t * 2.0) * 14.0,
 			y + math::cosf64(t * 3.0) * 10.0, 7, 0xffe0b030, 0xfffff2b0);
+	case 18 => // flappy unicorn: white head, golden horn, rainbow mane
+		const mane: [6]u32 = [0xffff4d6d, 0xffff9f40, 0xffffe14d,
+			0xff4ddb6a, 0xff4db0ff, 0xffa66bff];
+		for (let i = 0z; i < 6; i += 1) {
+			viper::circle(win, (x - 14.0): int + i: int * 3,
+				(y - 16.0): int + i: int * 7, 6, mane[i]);
+		};
+		viper::circle(win, x: int, (y + 2.0): int, 16, 0xfff8f8ff);
+		viper::circle(win, (x + 10.0): int, (y + 12.0): int, 10, 0xfff8f8ff);
+		viper::circle(win, (x + 4.0): int, (y - 2.0): int, 3, 0xff2a2a3a);
+		tri(win, (x - 4.0, y - 12.0), (x + 4.0, y - 12.0),
+			(x + 6.0, y - 34.0 + math::sinf64(t * 4.0) * 2.0), 0xffffcd3c);
 	case => void;
 	};
 };
