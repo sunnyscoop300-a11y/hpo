@@ -64,21 +64,32 @@ Works with HTTP, Google Drive, and magnet links alike — the encrypted token is
 - `hpo ping` — launches Roblox via Sober (Flatpak)
 
 ### 🐊 Croc — Retro Arcade Hub
-*Master Croc racks the ball!* — a TUI menu of 10 open-source retro games.
-- `hpo croc` — open the arcade menu, pick a game
-- `hpo croc setup` — install all 10 games via Flatpak (with progress)
+*Master Croc racks the ball!* — an arcade of 20 open-source retro games, with a ViperGui window (Croc Arcade) and a terminal menu.
+- `hpo croc` — open Croc Arcade (GUI); falls back to the terminal menu
+- `hpo croc tui` — always use the terminal menu
+- `hpo croc setup` — install all 20 games (with progress)
 
-The lineup (all free / open-source):
+Games:
 1. 🎯 Space Cadet Pinball
 2. 🧱 LBreakout HD (Breakout)
 3. 🚀 OpenTyrian (vertical shooter)
 4. 🫧 Frozen Bubble (puzzle)
-5. 🦕 Nanosaur (3D dino shooter)
-6. 🦔 Sonic Robo Blast 2 (3D platformer)
+5. 🦖 Nanosaur (3D dino)
+6. 🦔 Sonic Robo Blast 2
 7. 🏁 SRB2 Kart (racing)
-8. 🗡️ Shattered Pixel Dungeon (roguelike)
+8. ⚔️ Shattered Pixel Dungeon
 9. 🍄 SuperTux (platformer)
-10. 🏎️ SuperTuxKart (racing)
+10. 🏎 SuperTuxKart (racing)
+11. ⚡ OpenSurge (Sonic-like)
+12. 💣 Dynablaster (Bomberman)
+13. 🟢 Ricochlime (retro shooter)
+14. 🀄 KMahjongg (mahjong solitaire)
+15. 🀄 GNOME Mahjongg (mahjong solitaire)
+16. 💎 Spelunky Classic HD (platformer)
+17. 💾 Commander Keen 4 (DOSBox)
+18. 🏰 Wolfenstein 3D (ECWolf)
+19. 🦓 Golden Pong 3D (ViperGui — beat the zebra!)
+20. 🦄 Flappy Unicorn 3D (ViperGui — fly through the rainbow gates)
 
 ### 🐤 Piyoko Arcade — Retro Gaming
 - `hpo xp <system> <game>` — multi-system retro arcade
@@ -234,7 +245,7 @@ hpo --zhen-setup --proton
 
 ### Croc arcade (retro games)
 ```bash
-hpo croc setup      # installs all 10 open-source games via Flatpak
+hpo croc setup      # installs all 20 games (Flatpak, AppImage, ViperGui)
 ```
 
 ### Rukhmini movie posters (OMDb)
