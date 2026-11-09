@@ -2803,7 +2803,7 @@ fn print_help() void = {
 	fmt::println("  hpo mastodon \"<prompt>\" --ling        Use Ling 3.1 Flash (falls back to 3.0)")!;
 	fmt::println("  hpo mastodon \"<prompt>\" --argon       Use Gemini 4 Argon (paid flagship)")!;
 	fmt::println("  hpo peng <suno-url|\"name\">            Download Suno song as MP3 (little panda)")!;
-	fmt::println("  hpo longtooth                         Chat with Master Longtooth (TUI, gpt-5.6-luna)")!;
+	fmt::println("  hpo longtooth                         Chat with Master Longtooth (TUI, gpt-6.1-terra)")!;
         fmt::println("  hpo veruca \"<prompt>\"                 AI image generation (album covers etc.)")!;       
 	fmt::println("  Key: ~/.config/hpo/openrouter_key.txt")!;
 	fmt::println("")!;

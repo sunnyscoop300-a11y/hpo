@@ -12,7 +12,7 @@ LONGTOOTH_CONF = os.path.join(CONFDIR, "longtooth.conf")
 SHARED_KEY = os.path.join(CONFDIR, "openrouter_key.txt")
 VERUCA_CONF = os.path.join(CONFDIR, "veruca.conf")
 DEFAULT_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions"
-DEFAULT_MODEL = "openai/gpt-5.6-luna"
+DEFAULT_MODEL = "openai/gpt-6.1-terra"
 DEFAULT_SYSTEM = (
     "You are Master Longtooth, an ancient saber-tooth cat and one of the legendary Ancient Masters "
     "from a world of kung fu warriors. Long ago you helped forge the Whip of Endless Flame, one of the "
