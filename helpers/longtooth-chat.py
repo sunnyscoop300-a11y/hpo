@@ -278,12 +278,15 @@ def run_tui(stdscr, key, model, endpoint, system):
 
 def main():
     key, model, endpoint, system = resolve_config()
+    if len(sys.argv) > 1 and sys.argv[1].strip():
+        print(ask(key, model, endpoint, system,
+                  [{"role": "user", "content": sys.argv[1]}]))
+        return
     try:
         curses.wrapper(run_tui, key, model, endpoint, system)
     except KeyboardInterrupt:
         pass
     print("Mmm... travel safe, young one. The fire will be here when you return.")
-
 
 if __name__ == "__main__":
     main()

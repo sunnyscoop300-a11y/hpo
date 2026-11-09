@@ -131,6 +131,7 @@ type opts = struct {
 	elizabeth_arg: str,
 	mastodon: bool,
 	longtooth: bool,
+    longtooth_arg: str,
 	mastodon_arg: str,
 	mastodon_ling: bool,
 	mastodon_argon: bool,
@@ -3891,8 +3892,13 @@ fn do_longtooth(o: *opts) void = {
 	const home = match (os::getenv("HOME")) { case let x: str => yield x; case void => yield "/tmp"; };
 	static let sbuf: [512]u8 = [0...];
 	const script = fmt::bsprintf(sbuf, "{}/hpo/helpers/longtooth-chat.py", home)!;
-	const args: []str = ["python3", script];
-	let _ = run_cmd(args, o.nocolor);
+	if (o.longtooth_arg != "") {
+		const args: []str = ["python3", script, o.longtooth_arg];
+		let _ = run_cmd(args, o.nocolor);
+	} else {
+		const args: []str = ["python3", script];
+		let _ = run_cmd(args, o.nocolor);
+	};
 };
 
 fn do_zuma(o: *opts) void = {
@@ -5760,6 +5766,7 @@ export fn main() void = {
 		elizabeth_arg = "",
 			mastodon = false,
 			longtooth = false,
+            longtooth_arg = "",
 			mastodon_arg = "",
 			mastodon_ling = false,
 			mastodon_argon = false,
@@ -5969,6 +5976,10 @@ export fn main() void = {
                 	};
                 } else if (a == "longtooth") {
                 	o.longtooth = true;
+                	if (i + 1 < len(args)) {
+                		o.longtooth_arg = args[i + 1];
+                		i += 1;
+                	};
                 } else if (a == "elizabeth") {
                 	o.elizabeth = true;
                 	if (i + 1 < len(args)) {
