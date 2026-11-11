@@ -4295,66 +4295,69 @@ fn do_rukhmini(o: *opts) void = {
 fn do_croc(o: *opts) void = {
 	if (o.croc_setup) {
 		cprint(C_YELLOW, "CROC", "Master Croc stocks the arcade (19 games)...", o.nocolor);
-		cprint(C_CYAN, "CROC", "[1/20] Space Cadet Pinball...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[1/21] Space Cadet Pinball...", o.nocolor);
 		const g1: []str = ["flatpak", "install", "-y", "flathub", "com.github.k4zmu2a.spacecadetpinball"];
 		let _ = run_cmd(g1, o.nocolor);
-		cprint(C_CYAN, "CROC", "[2/20] LBreakout HD...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[2/21] LBreakout HD...", o.nocolor);
 		const g2: []str = ["flatpak", "install", "-y", "flathub", "net.sourceforge.lgames.LBreakoutHD"];
 		let _ = run_cmd(g2, o.nocolor);
-		cprint(C_CYAN, "CROC", "[3/20] OpenTyrian...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[3/21] OpenTyrian...", o.nocolor);
 		const g3: []str = ["flatpak", "install", "-y", "flathub", "com.github.opentyrian.OpenTyrian"];
 		let _ = run_cmd(g3, o.nocolor);
-		cprint(C_CYAN, "CROC", "[4/20] Frozen Bubble...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[4/21] Frozen Bubble...", o.nocolor);
 		const g4: []str = ["flatpak", "install", "-y", "flathub", "org.frozen_bubble.frozen-bubble"];
 		let _ = run_cmd(g4, o.nocolor);
-		cprint(C_CYAN, "CROC", "[5/20] Nanosaur...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[5/21] Nanosaur...", o.nocolor);
 		const g5: []str = ["flatpak", "install", "-y", "flathub", "io.jor.nanosaur"];
 		let _ = run_cmd(g5, o.nocolor);
-		cprint(C_CYAN, "CROC", "[6/20] Sonic Robo Blast 2...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[6/21] Sonic Robo Blast 2...", o.nocolor);
 		const g6: []str = ["flatpak", "install", "-y", "flathub", "org.srb2.SRB2"];
 		let _ = run_cmd(g6, o.nocolor);
-		cprint(C_CYAN, "CROC", "[7/20] SRB2 Kart...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[7/21] SRB2 Kart...", o.nocolor);
 		const g7: []str = ["flatpak", "install", "-y", "flathub", "org.srb2.SRB2Kart"];
 		let _ = run_cmd(g7, o.nocolor);
-		cprint(C_CYAN, "CROC", "[8/20] Shattered Pixel Dungeon...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[8/21] Shattered Pixel Dungeon...", o.nocolor);
 		const g8: []str = ["flatpak", "install", "-y", "flathub", "com.shatteredpixel.shatteredpixeldungeon"];
 		let _ = run_cmd(g8, o.nocolor);
-		cprint(C_CYAN, "CROC", "[9/20] SuperTux...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[9/21] SuperTux...", o.nocolor);
 		const g9: []str = ["flatpak", "install", "-y", "flathub", "org.supertuxproject.SuperTux"];
 		let _ = run_cmd(g9, o.nocolor);
-		cprint(C_CYAN, "CROC", "[10/20] SuperTuxKart...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[10/21] SuperTuxKart...", o.nocolor);
 		const g10: []str = ["flatpak", "install", "-y", "flathub", "net.supertuxkart.SuperTuxKart"];
 		let _ = run_cmd(g10, o.nocolor);
-		cprint(C_CYAN, "CROC", "[11/20] OpenSurge...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[11/21] OpenSurge...", o.nocolor);
 		const g11: []str = ["flatpak", "install", "-y", "flathub", "org.opensurge2d.OpenSurge"];
 		let _ = run_cmd(g11, o.nocolor);
-		cprint(C_CYAN, "CROC", "[12/20] Dynablaster Revenge...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[12/21] Dynablaster Revenge...", o.nocolor);
 		const g12: []str = ["flatpak", "install", "-y", "flathub", "com.github.varnholt.dynablaster_revenge"];
 		let _ = run_cmd(g12, o.nocolor);
-		cprint(C_CYAN, "CROC", "[13/20] Ricochlime...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[13/21] Ricochlime...", o.nocolor);
 		const g13: []str = ["flatpak", "install", "-y", "flathub", "com.adilhanney.ricochlime"];
 		let _ = run_cmd(g13, o.nocolor);
-               	cprint(C_CYAN, "CROC", "[15/20] GNOME Mahjongg...", o.nocolor);
+               	cprint(C_CYAN, "CROC", "[15/21] GNOME Mahjongg...", o.nocolor);
 		const g15: []str = ["flatpak", "install", "-y", "flathub", "org.gnome.Mahjongg"];
 		let _ = run_cmd(g15, o.nocolor);
-		cprint(C_CYAN, "CROC", "[16/20] Spelunky Classic HD (AppImage)...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[16/21] Spelunky Classic HD (AppImage)...", o.nocolor);
 		const g16: []str = ["sh", "-c", "mkdir -p ~/Applications && wget -nc -q -O ~/Applications/SpelunkyClassicHD.AppImage https://github.com/yancharkin/SpelunkyClassicHD/releases/download/1.2.2/spelunky_classic_hd-linux-x86_64.AppImage; chmod +x ~/Applications/SpelunkyClassicHD.AppImage"];
 		let _ = run_cmd(g16, o.nocolor);
-               	cprint(C_CYAN, "CROC", "[14/20] KMahjongg...", o.nocolor);
+               	cprint(C_CYAN, "CROC", "[14/21] KMahjongg...", o.nocolor);
 		const g14: []str = ["flatpak", "install", "-y", "flathub", "org.kde.kmahjongg"];
 		let _ = run_cmd(g14, o.nocolor);	
-                cprint(C_CYAN, "CROC", "[17/20] Commander Keen 4 (Commander Genius + DOSBox Staging)...", o.nocolor);
+                cprint(C_CYAN, "CROC", "[17/21] Commander Keen 4 (Commander Genius + DOSBox Staging)...", o.nocolor);
 		const g17: []str = ["flatpak", "install", "-y", "flathub", "io.sourceforge.clonekeenplus", "io.github.dosbox-staging"];
 		let _ = run_cmd(g17, o.nocolor);	
-		cprint(C_CYAN, "CROC", "[18/20] Wolfenstein 3D (ECWolf)...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[18/21] Wolfenstein 3D (ECWolf)...", o.nocolor);
 		const g18: []str = ["sh", "-c", "command -v ecwolf >/dev/null || hpo fenghuang install ecwolf; mkdir -p $HOME/Games/Wolf3D; ls $HOME/Games/Wolf3D/*.wl1 >/dev/null 2>&1 || echo '[CROC] Laeg Wolf3D shareware-filerne (*.wl1) i ~/Games/Wolf3D'"];
 		let _ = run_cmd(g18, o.nocolor);
-		cprint(C_CYAN, "CROC", "[19/20] Golden Pong 3D (ViperGui)...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[19/21] Golden Pong 3D (ViperGui)...", o.nocolor);
 		const g19: []str = ["sh", "-c", "cd $HOME/Videos/viper2/vipergui && make golden-pong"];
 		let _ = run_cmd(g19, o.nocolor);
-		cprint(C_CYAN, "CROC", "[20/20] Flappy Unicorn 3D (ViperGui)...", o.nocolor);
+		cprint(C_CYAN, "CROC", "[20/21] Flappy Unicorn 3D (ViperGui)...", o.nocolor);
 		const g20: []str = ["sh", "-c", "cd $HOME/Videos/viper2/vipergui && make flappy-unicorn"];
 		let _ = run_cmd(g20, o.nocolor);
+		cprint(C_CYAN, "CROC", "[21/21] Golden Pong 3D 2 (ViperGui)...", o.nocolor);
+		const g21: []str = ["sh", "-c", "cd $HOME/Videos/viper2/vipergui && make golden-pong-2"];
+		let _ = run_cmd(g21, o.nocolor);
 		cprint(C_GREEN, "CROC", "Arcade ready! Play with: hpo croc", o.nocolor);
 		return;
 	};
@@ -4395,6 +4398,7 @@ fn do_croc(o: *opts) void = {
         fmt::println("   18  Wolfenstein 3D  (ECWolf)")!;
         fmt::println("   19  Golden Pong 3D  (ViperGui, zebraer!)")!;
         fmt::println("   20  Flappy Unicorn 3D  (ViperGui, regnbuer!)")!;
+        fmt::println("   21  Golden Pong 3D 2  (ViperGui, demo)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -4424,6 +4428,7 @@ fn do_croc(o: *opts) void = {
         else if (choice == "18") { appid = "WOLF3D"; }
         else if (choice == "19") { appid = "GPONG"; }
         else if (choice == "20") { appid = "UNICORN"; }
+        else if (choice == "21") { appid = "GPONG2"; }
 	else { cprint(C_YELLOW, "CROC", "Afslutter.", o.nocolor); return; };
 	cprint(C_GREEN, "CROC", "TILT! Launching...", o.nocolor);
 	if (appid == "SPELUNKY_APPIMAGE") {
@@ -4433,6 +4438,9 @@ fn do_croc(o: *opts) void = {
 		let _ = run_cmd(args, o.nocolor);
 	} else if (appid == "UNICORN") {
 		const args: []str = ["sh", "-c", "cd $HOME/Videos/viper2/vipergui && ./flappy-unicorn"];
+		let _ = run_cmd(args, o.nocolor);
+	} else if (appid == "GPONG2") {
+		const args: []str = ["sh", "-c", "cd $HOME/Videos/viper2/vipergui && ./golden-pong-2"];
 		let _ = run_cmd(args, o.nocolor);
 	} else if (appid == "KEEN4") {
 		const args: []str = ["sh", "-c", "K=$HOME/Games/Keen4; CG=\"$HOME/.var/app/io.sourceforge.clonekeenplus/config/CommanderGenius/games/Keen 4/keen4\"; if [ ! -f \"$K/KEEN4E.EXE\" ] && [ -f \"$CG/KEEN4E.EXE\" ]; then mkdir -p \"$HOME/Games\" && cp -r \"$CG\" \"$K\"; fi; if [ -f \"$K/KEEN4E.EXE\" ]; then flatpak run io.github.dosbox-staging -c \"mount c $K\" -c \"c:\" -c \"KEEN4E.EXE /detour\" -c \"exit\"; else echo \"[CROC] Keen 4 filer mangler - starter Commander Genius saa den kan hente dem. Luk den og vaelg 17 igen.\"; flatpak run io.sourceforge.clonekeenplus; fi"];

@@ -148,6 +148,13 @@ fn draw_icon(win: *viper::window, id: int, x: f64, y: f64, t: f64) void = {
 		viper::circle(win, (x + 4.0): int, (y - 2.0): int, 3, 0xff2a2a3a);
 		tri(win, (x - 4.0, y - 12.0), (x + 4.0, y - 12.0),
 			(x + 6.0, y - 34.0 + math::sinf64(t * 4.0) * 2.0), 0xffffcd3c);
+	case 19 => // golden pong 2: a neon tunnel with a gold ball
+		for (let k = 0; k < 4; k += 1) {
+			const s = 30 - k * 7;
+			viper::outline(win, (x - s: f64): int, (y - s: f64 * 0.75): int,
+				s * 2, (s: f64 * 1.5): int, if (k % 2 == 0) 0xff2ee6ff else 0xffff2fd0);
+		};
+		viper::circle(win, (x + math::sinf64(t * 3.0) * 8.0): int, y: int, 6, 0xffffc83a);
 	case => void;
 	};
 };
