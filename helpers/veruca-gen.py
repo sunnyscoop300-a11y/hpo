@@ -52,7 +52,7 @@ def http_json(url, payload, headers, method="POST"):
     data = json.dumps(payload).encode() if payload is not None else None
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     try:
-        with urllib.request.urlopen(req, timeout=120) as r:
+        with urllib.request.urlopen(req, timeout=300) as r:
             return r.status, r.read()
     except urllib.error.HTTPError as e:
         return e.code, e.read()
@@ -63,7 +63,7 @@ def http_json(url, payload, headers, method="POST"):
 def http_get(url, headers=None):
     req = urllib.request.Request(url, headers=headers or {}, method="GET")
     try:
-        with urllib.request.urlopen(req, timeout=120) as r:
+        with urllib.request.urlopen(req, timeout=300) as r:
             return r.status, r.read()
     except urllib.error.HTTPError as e:
         return e.code, e.read()
