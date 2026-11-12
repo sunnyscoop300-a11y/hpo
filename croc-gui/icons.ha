@@ -155,6 +155,15 @@ fn draw_icon(win: *viper::window, id: int, x: f64, y: f64, t: f64) void = {
 				s * 2, (s: f64 * 1.5): int, if (k % 2 == 0) 0xff2ee6ff else 0xffff2fd0);
 		};
 		viper::circle(win, (x + math::sinf64(t * 3.0) * 8.0): int, y: int, 6, 0xffffc83a);
+
+	case 20 => // flamingo putt: a flamingo, a golf ball and the hole
+		viper::circle(win, (x - 18.0): int, (y + 26.0): int, 7, 0xff0d0a12);
+		shine(win, x - 4.0 + math::sinf64(t * 2.0) * 4.0, y + 24.0, 5, 0xfff8f8f8, 0xffffffff);
+		thick(win, x + 8.0, y + 4.0, x + 8.0, y + 30.0, 2, 0xffff7eb6);
+		viper::circle(win, (x + 10.0): int, (y - 2.0): int, 13, 0xffff7eb6);
+		thick(win, x + 18.0, y - 6.0, x + 20.0, y - 26.0, 3, 0xffff7eb6);
+		viper::circle(win, (x + 20.0): int, (y - 30.0): int, 6, 0xffff7eb6);
+		tri(win, (x + 24.0, y - 32.0), (x + 32.0, y - 28.0), (x + 24.0, y - 26.0), 0xff1b1428);
 	case => void;
 	};
 };

@@ -2779,8 +2779,8 @@ fn print_help() void = {
 	fmt::println("  hpo bnet                              Battle.net / World of Warcraft")!;
 	fmt::println("  hpo viper                             PS5/PS4 Remote Play (chiaki-ng)")!;
 	fmt::println("  hpo ping                              Roblox (via Sober)")!;
-	fmt::println("  hpo croc                              Retro arcade hub - 19 games (Master Croc)")!;
-	fmt::println("  hpo croc setup                        Install all 19 arcade games")!;
+	fmt::println("  hpo croc                              Retro arcade hub - 22 games (Master Croc)")!;
+	fmt::println("  hpo croc setup                        Install all 22 arcade games")!;
 	fmt::println("  hpo croc tui                          The arcade in the terminal (no window)")!;
 	fmt::println("  hpo xp <system> <game>                Piyoko retro arcade (nes/snes/etc.)")!;
 	fmt::println("  hpo redpanda                          Nintendo launcher (GB/GBC/GBA/NDS/3DS/Switch)")!;
@@ -4359,6 +4359,9 @@ fn do_croc(o: *opts) void = {
 		const g21: []str = ["sh", "-c", "cd $HOME/Videos/viper2/vipergui && make golden-pong-2"];
 		let _ = run_cmd(g21, o.nocolor);
 		cprint(C_GREEN, "CROC", "Arcade ready! Play with: hpo croc", o.nocolor);
+        cprint(C_CYAN, "CROC", "[22/22] Flamingo Putt (ViperGui)...", o.nocolor);
+		const g22: []str = ["sh", "-c", "cd $HOME/Videos/viper2/vipergui && make flamingo-putt"];
+		let _ = run_cmd(g22, o.nocolor);
 		return;
 	};
 	// CROC ARCADE: the GUI (croc-gui/), when there's a desktop and it's installed.
@@ -4399,6 +4402,7 @@ fn do_croc(o: *opts) void = {
         fmt::println("   19  Golden Pong 3D  (ViperGui, zebraer!)")!;
         fmt::println("   20  Flappy Unicorn 3D  (ViperGui, regnbuer!)")!;
         fmt::println("   21  Golden Pong 3D 2  (ViperGui, demo)")!;
+        fmt::println("   22  Flamingo Putt  (ViperGui, minigolf!)")!;
 	fmt::println("   q  Afslut")!;
 	fmt::print("   Vaelg: ")!;
 	bufio::flush(os::stdout)!;
@@ -4429,6 +4433,7 @@ fn do_croc(o: *opts) void = {
         else if (choice == "19") { appid = "GPONG"; }
         else if (choice == "20") { appid = "UNICORN"; }
         else if (choice == "21") { appid = "GPONG2"; }
+        else if (choice == "22") { appid = "PUTT"; }
 	else { cprint(C_YELLOW, "CROC", "Afslutter.", o.nocolor); return; };
 	cprint(C_GREEN, "CROC", "TILT! Launching...", o.nocolor);
 	if (appid == "SPELUNKY_APPIMAGE") {
@@ -4441,6 +4446,9 @@ fn do_croc(o: *opts) void = {
 		let _ = run_cmd(args, o.nocolor);
 	} else if (appid == "GPONG2") {
 		const args: []str = ["sh", "-c", "cd $HOME/Videos/viper2/vipergui && ./golden-pong-2"];
+		let _ = run_cmd(args, o.nocolor);
+    } else if (appid == "PUTT") {
+		const args: []str = ["sh", "-c", "cd $HOME/Videos/viper2/vipergui && ./flamingo-putt"];
 		let _ = run_cmd(args, o.nocolor);
 	} else if (appid == "KEEN4") {
 		const args: []str = ["sh", "-c", "K=$HOME/Games/Keen4; CG=\"$HOME/.var/app/io.sourceforge.clonekeenplus/config/CommanderGenius/games/Keen 4/keen4\"; if [ ! -f \"$K/KEEN4E.EXE\" ] && [ -f \"$CG/KEEN4E.EXE\" ]; then mkdir -p \"$HOME/Games\" && cp -r \"$CG\" \"$K\"; fi; if [ -f \"$K/KEEN4E.EXE\" ]; then flatpak run io.github.dosbox-staging -c \"mount c $K\" -c \"c:\" -c \"KEEN4E.EXE /detour\" -c \"exit\"; else echo \"[CROC] Keen 4 filer mangler - starter Commander Genius saa den kan hente dem. Luk den og vaelg 17 igen.\"; flatpak run io.sourceforge.clonekeenplus; fi"];

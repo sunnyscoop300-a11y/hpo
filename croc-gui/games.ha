@@ -1,4 +1,4 @@
-// hpo croc — the 21 retro games: how to tell if one is installed, how to
+// hpo croc — the 22 retro games: how to tell if one is installed, how to
 // install it and how to start it. The same games and commands as the
 // `hpo croc` terminal menu in src/main.ha.
 use fmt;
@@ -8,7 +8,7 @@ use os;
 use os::exec;
 use strings;
 
-type kind = enum { FLATPAK, SPELUNKY, KEEN4, WOLF3D, GPONG,UNICORN, GPONG2 };
+type kind = enum { FLATPAK, SPELUNKY, KEEN4, WOLF3D, GPONG,UNICORN, GPONG2,PUTT };
 
 type game = struct {
 	name: str,       // on the card
@@ -21,7 +21,7 @@ type game = struct {
 	col: u32,        // the card's colour
 };
 
-const GAMES: [21]game = [
+const GAMES: [22]game = [
 	game { name = "Space Cadet", full = "Space Cadet Pinball", genre = "Pinball",
 		about = "Den klassiske flipperspil fra Windows XP.", k = kind::FLATPAK,
 		appid = "com.github.k4zmu2a.spacecadetpinball", icon = 0, col = 0xff3a6ad8 },
@@ -85,7 +85,11 @@ const GAMES: [21]game = [
 
 	game { name = "Golden Pong 2", full = "Golden Pong 3D 2 (demo)", genre = "ViperGui",
 		about = "Neon-tunnel mod ZEBRA 7000, der laerer dine skud!", k = kind::GPONG2,
-		appid = "", icon = 19, col = 0xffff2fd0 },
+		
+        appid = "", icon = 19, col = 0xffff2fd0 },
+	game { name = "Flamingo Putt", full = "Flamingo Putt", genre = "ViperGui",
+		about = "Minigolf i Eventyrland med flamingo-koelle!", k = kind::PUTT,
+		appid = "", icon = 20, col = 0xffff7eb6 },
 ];
 
 // Files for logs and lists, in /tmp so they never get in the way.
@@ -123,7 +127,7 @@ case => yield false;
 };
 
 // Which games are installed, checked with one call to flatpak.
-fn scan(ready: *[21]bool) void = {
+fn scan(ready: *[22]bool) void = {
 	let buf: [256]u8 = [0...];
 	const list = strings::dup(tmpfile(buf, "flatpaks"))!;
 	defer free(list);
@@ -153,6 +157,9 @@ fn scan(ready: *[21]bool) void = {
 		case kind::GPONG2 =>
 			let hb: [512]u8 = [0...];
 			yield exists(home(hb, "/Videos/viper2/vipergui/golden-pong-2"));
+        case kind::PUTT =>
+			let hb: [512]u8 = [0...];
+			yield exists(home(hb, "/Videos/viper2/vipergui/flamingo-putt"));
 		};
 	};
 };
@@ -183,6 +190,8 @@ fn install_script(buf: []u8, i: size) str = {
 		yield "cd $HOME/Videos/viper2/vipergui && make flappy-unicorn";
     case kind::GPONG2 =>
 		yield "cd $HOME/Videos/viper2/vipergui && make golden-pong-2";
+    case kind::PUTT =>
+		yield "cd $HOME/Videos/viper2/vipergui && make flamingo-putt";
 	};
 };
 
@@ -200,8 +209,10 @@ fn launch_script(buf: []u8, i: size) str = {
 		yield "cd $HOME/Videos/viper2/vipergui && ./golden-pong";
 	case kind::UNICORN =>
 		yield "cd $HOME/Videos/viper2/vipergui && ./flappy-unicorn";
-    	case kind::GPONG2 =>
+    case kind::GPONG2 =>
 		yield "cd $HOME/Videos/viper2/vipergui && ./golden-pong-2";
+    case kind::PUTT =>
+		yield "cd $HOME/Videos/viper2/vipergui && ./flamingo-putt";
 	};
 };
 
