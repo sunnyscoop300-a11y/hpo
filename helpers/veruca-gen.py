@@ -179,7 +179,13 @@ def gen_openai_compat(prompt, key, model, endpoint, outfile):
     payload = {"prompt": prompt, "n": 1, "size": pick_size(prompt)}
     if model:
         payload["model"] = model
-    status, body = http_json(url, payload, hdr)
+    # OpenAI sometimes fails with 502/503/504 - wait and try again.
+    for attempt in range(4):
+        status, body = http_json(url, payload, hdr)
+        if status not in (502, 503, 504) or attempt == 3:
+            break
+        print(f"[VERUCA] OpenAI svarede {status}, proever igen om {10 * (attempt + 1)} sek...", flush=True)
+        time.sleep(10 * (attempt + 1))
     if status != 200:
         die(f"openai_compat failed ({status}): {body[:300].decode(errors='replace')}")
     j = json.loads(body)
